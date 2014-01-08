@@ -205,6 +205,7 @@ struct lock_chain {
 	u64				chain_key;
 };
 
+// KID 20140108
 #define MAX_LOCKDEP_KEYS_BITS		13
 /*
  * Subtract one because we offset hlock->class_idx by 1 in order

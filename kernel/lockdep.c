@@ -287,7 +287,12 @@ LIST_HEAD(all_lock_classes);
 /*
  * The lockdep classes are in a hash-table as well, for fast lookup:
  */
+// KID 20140108
+// MAX_LOCKDEP_KEYS_BITS: 13
+// CLASSHASH_BITS: 12
 #define CLASSHASH_BITS		(MAX_LOCKDEP_KEYS_BITS - 1)
+// KID 20140108
+// CLASSHASH_SIZE: 0x800
 #define CLASSHASH_SIZE		(1UL << CLASSHASH_BITS)
 #define __classhashfn(key)	hash_long((unsigned long)key, CLASSHASH_BITS)
 #define classhashentry(key)	(classhash_table + __classhashfn((key)))
