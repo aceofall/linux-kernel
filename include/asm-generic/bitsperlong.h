@@ -7,7 +7,9 @@
 #ifdef CONFIG_64BIT // CONFIG_64BIT=n
 #define BITS_PER_LONG 64
 #else
+/*
 // KID 20140113
+*/
 #define BITS_PER_LONG 32
 #endif /* CONFIG_64BIT */
 

@@ -16,7 +16,9 @@
 #include <asm/fpstate.h>
 
 #define THREAD_SIZE_ORDER	1
+/*
 // KID 20140113
+*/
 #define THREAD_SIZE		8192
 /*
 // ARM10C 20130817
@@ -51,7 +53,9 @@ struct cpu_context_save {
  * low level task data that entry.S needs immediate access to.
  * __switch_to() assumes cpu_context follows immediately after cpu_domain.
  */
+/*
 // KID 20140113
+*/
 struct thread_info {
 	unsigned long		flags;		/* low level flags */
 	int			preempt_count;	/* 0 => preemptable, <0 => bug */
