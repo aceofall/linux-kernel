@@ -155,6 +155,8 @@ extern int bitmap_ord_to_pos(const unsigned long *bitmap, int n, int bits);
 
 // ARM10C 20130831
 // 연산자 우선 순위 : <= 이 && 보다 먼저 수행됨
+// KID 20140113
+// BITS_PER_LONG: 32
 #define small_const_nbits(nbits) \
 	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
 
@@ -232,6 +234,7 @@ static inline void bitmap_complement(unsigned long *dst, const unsigned long *sr
 		__bitmap_complement(dst, src, nbits);
 }
 
+// KID 20140113
 static inline int bitmap_equal(const unsigned long *src1,
 			const unsigned long *src2, int nbits)
 {

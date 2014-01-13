@@ -516,7 +516,7 @@ void notrace cpu_init(void)
 }
 
 // KID 20140108
-// CONFIG_NR_CPUS: 4
+// NR_CPUS: 4
 // MPIDR_INVALID: 0xFF000000
 u32 __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = MPIDR_INVALID };
 

@@ -70,6 +70,7 @@
 #endif
 
 #define PSR_F_BIT	0x00000040	/* >= V4, but not V7M */
+// KID 20140113
 #define PSR_I_BIT	0x00000080	/* >= V4, but not V7M */
 #define PSR_A_BIT	0x00000100	/* >= V6, but not V7M */
 #define PSR_E_BIT	0x00000200	/* >= V6, but not V7M */

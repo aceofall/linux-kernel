@@ -6,6 +6,7 @@
 
 #ifndef __ASSEMBLY__
 
+// KID 20140113
 #define DECLARE_BITMAP(name,bits) \
 	unsigned long name[BITS_TO_LONGS(bits)]
 

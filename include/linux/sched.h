@@ -442,6 +442,9 @@ struct task_cputime {
  * We include PREEMPT_ACTIVE to avoid cond_resched() from working
  * before the scheduler is active -- see should_resched().
  */
+// KID 20140113
+// PREEMPT_ACTIVE: 0x40000000
+// INIT_PREEMPT_COUNT: 0x40000001
 #define INIT_PREEMPT_COUNT	(1 + PREEMPT_ACTIVE)    /* PREEMPT_ACTIVE = 0x40000000*/
 
 /**
@@ -1409,6 +1412,7 @@ struct task_struct {
 };
 
 /* Future-safe accessor for struct task_struct's cpus_allowed. */
+// KID 20140113
 #define tsk_cpus_allowed(tsk) (&(tsk)->cpus_allowed)
 
 #ifdef CONFIG_NUMA_BALANCING
@@ -1915,6 +1919,7 @@ void yield(void);
  */
 extern struct exec_domain	default_exec_domain;
 
+// KID 20140113
 union thread_union {
 	struct thread_info thread_info;
 	unsigned long stack[THREAD_SIZE/sizeof(long)];

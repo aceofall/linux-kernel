@@ -19,6 +19,7 @@
 /* Places which use this should consider cpumask_var_t. */
 // KID 20140108
 // CONFIG_NR_CPUS: 4
+// NR_CPUS: 4
 #define NR_CPUS		CONFIG_NR_CPUS
 
 #define MIN_THREADS_LEFT_FOR_ROOT 4
