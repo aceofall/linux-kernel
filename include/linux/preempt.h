@@ -59,6 +59,7 @@ do { \
 
 #ifdef CONFIG_PREEMPT_COUNT // ARM10C Y 
 
+// KID 20140114
 #define preempt_disable()/*ARM10C this*/ \
 do { \
 	inc_preempt_count(); \
@@ -81,10 +82,12 @@ do { \
 } while (0)
 
 /* For debugging and tracer internals only! */
+// KID 20140114
 #define add_preempt_count_notrace(val)			\
 	do { preempt_count() += (val); } while (0)
 #define sub_preempt_count_notrace(val)			\
 	do { preempt_count() -= (val); } while (0)
+// KID 20140114
 #define inc_preempt_count_notrace() add_preempt_count_notrace(1)
 #define dec_preempt_count_notrace() sub_preempt_count_notrace(1)
 

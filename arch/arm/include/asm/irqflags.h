@@ -26,6 +26,8 @@
 
 // ARM10C 20130907 
 // 현재 모드 CPSR 을 리턴한다.
+// KID 20140114
+// IRQMASK_REG_NAME_R: "cpsr"
 static inline unsigned long arch_local_irq_save(void)
 {
 	unsigned long flags;

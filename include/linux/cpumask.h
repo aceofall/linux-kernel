@@ -778,6 +778,7 @@ extern const unsigned long
 // KID 20140113
 static inline const struct cpumask *get_cpu_mask(unsigned int cpu)
 {
+        // BITS_PER_LONG: 32
 	const unsigned long *p = cpu_bit_bitmap[1 + cpu % BITS_PER_LONG];
 	p -= cpu / BITS_PER_LONG;
 	return to_cpumask(p);

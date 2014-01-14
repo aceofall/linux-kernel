@@ -640,13 +640,21 @@ void notify_cpu_starting(unsigned int cpu)
  */
 
 /* cpu_bit_bitmap[0] is empty - so we can back into it */
+// KID 20140114
 #define MASK_DECLARE_1(x)	[x+1][0] = (1UL << (x))
+// KID 20140114
 #define MASK_DECLARE_2(x)	MASK_DECLARE_1(x), MASK_DECLARE_1(x+1)
+// KID 20140114
 #define MASK_DECLARE_4(x)	MASK_DECLARE_2(x), MASK_DECLARE_2(x+2)
+// KID 20140114
 #define MASK_DECLARE_8(x)	MASK_DECLARE_4(x), MASK_DECLARE_4(x+4)
 
 // ARM10C 20130831
 // cpu_bit_bitmap[33][1]
+// KID 20140114
+// BITS_PER_LONG: 32
+// NR_CPUS: 4
+// BITS_TO_LONGS(NR_CPUS): 1
 const unsigned long cpu_bit_bitmap[BITS_PER_LONG+1][BITS_TO_LONGS(NR_CPUS)] = {
 //      MASK_DECLARE_8(0) 이 아래와 같이 확장됨
 //	[1][0] = (1UL << 0),

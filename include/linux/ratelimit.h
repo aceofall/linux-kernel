@@ -7,6 +7,7 @@
 #define DEFAULT_RATELIMIT_INTERVAL	(5 * HZ)
 #define DEFAULT_RATELIMIT_BURST		10
 
+// KID 20140114
 struct ratelimit_state {
 	raw_spinlock_t	lock;		/* protect the state */
 
@@ -17,6 +18,28 @@ struct ratelimit_state {
 	unsigned long	begin;
 };
 
+// KID 20140114
+// HZ: 100
+// DEFINE_RATELIMIT_STATE(printk_ratelimit_state, 5 * HZ, 10);
+// __RAW_SPIN_LOCK_UNLOCKED(printk_ratelimit_state.lock),
+// #define __RAW_SPIN_LOCK_UNLOCKED(printk_ratelimit_state.lock)
+// 	{
+// 	  .raw_lock = { { 0 } },
+// 	  .magic = 0xdead4ead,
+// 	  .owner_cpu = -1,
+// 	  .owner = ((void *)-1L)
+// 	}
+// #define DEFINE_RATELIMIT_STATE(printk_ratelimit_state, 5 * 100, 10)
+// 	struct ratelimit_state name = {
+// 		.lock = {
+//                .raw_lock = { { 0 } },
+//                .magic = 0xdead4ead,
+//                .owner_cpu = -1,
+//                .owner = ((void *)-1L),
+//            }
+// 		.interval	= 5 * 100
+// 		.burst		= 10
+// 	}
 #define DEFINE_RATELIMIT_STATE(name, interval_init, burst_init)		\
 									\
 	struct ratelimit_state name = {					\
@@ -36,6 +59,7 @@ static inline void ratelimit_state_init(struct ratelimit_state *rs,
 	rs->begin = 0;
 }
 
+// KID 20140114
 extern struct ratelimit_state printk_ratelimit_state;
 
 extern int ___ratelimit(struct ratelimit_state *rs, const char *func);

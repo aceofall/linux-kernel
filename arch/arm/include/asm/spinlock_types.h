@@ -7,6 +7,7 @@
 
 #define TICKET_SHIFT	16
 
+// KID 20140114
 typedef struct {
 	union {
 		u32 slock;
@@ -22,6 +23,7 @@ typedef struct {
 	};
 } arch_spinlock_t;
 
+// KID 20140114
 #define __ARCH_SPIN_LOCK_UNLOCKED	{ { 0 } }
 
 typedef struct {

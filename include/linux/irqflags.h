@@ -59,12 +59,13 @@
 // KID 20140113
 #define raw_local_irq_disable()		arch_local_irq_disable()
 #define raw_local_irq_enable()		arch_local_irq_enable()
+// KID 20140114
 #define raw_local_irq_save(flags)			\
 	do {						\
 		typecheck(unsigned long, flags);	\
 		flags = arch_local_irq_save();/*ARM10C 현재 cpsr을 flag로가져옴*/	\
 	} while (0)
- // ARM10C 20130907 
+// ARM10C 20130907 
 #define raw_local_irq_restore(flags)			\
 	do {						\
 		typecheck(unsigned long, flags);	\
@@ -95,6 +96,7 @@
 // KID 20140113
 #define local_irq_disable() \
 	do { raw_local_irq_disable(); trace_hardirqs_off(); } while (0)
+// KID 20140114
 #define local_irq_save(flags)	/*ARM10C this*/		\
 	do {						\
 		raw_local_irq_save(flags);		\
