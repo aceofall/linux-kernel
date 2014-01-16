@@ -2258,7 +2258,7 @@ EXPORT_SYMBOL(add_preempt_count);
 // ARM10C 20130907 
 void __kprobes sub_preempt_count(int val)
 {
-#ifdef CONFIG_DEBUG_PREEMPT
+#ifdef CONFIG_DEBUG_PREEMPT // CONFIG_DEBUG_PREEMPT=y
 	/*
 	 * Underflow?
 	 */

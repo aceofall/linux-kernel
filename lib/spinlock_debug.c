@@ -87,6 +87,7 @@ debug_spin_lock_before(raw_spinlock_t *lock)
 							lock, "cpu recursion");
 }
 
+// KID 20140116
 static inline void debug_spin_lock_after(raw_spinlock_t *lock)
 {
 	lock->owner_cpu = raw_smp_processor_id();

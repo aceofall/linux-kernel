@@ -35,6 +35,7 @@ static inline const char *printk_skip_level(const char *buffer)
 
 extern int console_printk[];
 
+// KID 20140116
 #define console_loglevel (console_printk[0])
 #define default_message_loglevel (console_printk[1])
 #define minimum_console_loglevel (console_printk[2])
@@ -45,6 +46,7 @@ static inline void console_silent(void)
 	console_loglevel = 0;
 }
 
+// KID 20140116
 static inline void console_verbose(void)
 {
 	if (console_loglevel)

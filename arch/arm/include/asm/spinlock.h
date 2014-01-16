@@ -130,15 +130,17 @@ static inline int arch_spin_trylock(arch_spinlock_t *lock)
 
 
 	do {
-		// lock->slock이0 이면 unlocked
-		// lock->slock이0x10000 이면 locked
+		// lock->slock이 0 이면 unlocked
+		// lock->slock이 0x10000 이면 locked
+                // TICKET_SHIFT: 16
 		//
-		//"	ldrex	slock, lock->slock\n"
-		//"	subs	tmp,   slock, slock, ror #16\n"
-		//위 코드의 의미
-		//if( next == owner )//현재 락을 가져도 된다.
-		//"	addeq	slock, slock, (1 << TICKET_SHIFT)\n"
-		//"	strexeq	tmp,   slock, lock->slock"
+		// "	ldrex	slock, lock->slock\n"
+		// "	mov	res,  #0\n"
+		// "	subs	contended,  slock, slock, ror #16\n"
+		// 위 코드의 의미
+		// if( next == owner ) //현재 락을 가져도 된다.
+		// "	addeq	slock, slock, (1 << TICKET_SHIFT)\n"
+		// "	strexeq	res,   slock, lock->slock"
 		__asm__ __volatile__(
 		"	ldrex	%0, [%3]\n"
 		"	mov	%2, #0\n"
