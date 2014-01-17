@@ -21,6 +21,7 @@
  * that would just muddy the log. So we report the first one and
  * shut up after that.
  */
+// KID 20140116
 int debug_locks = 1;
 EXPORT_SYMBOL_GPL(debug_locks);
 
@@ -29,12 +30,14 @@ EXPORT_SYMBOL_GPL(debug_locks);
  * 'silent failure': nothing is printed to the console when
  * a locking bug is detected.
  */
+// KID 20140116
 int debug_locks_silent;
 EXPORT_SYMBOL_GPL(debug_locks_silent);
 
 /*
  * Generic 'turn off all lock debugging' function:
  */
+// KID 20140116
 int debug_locks_off(void)
 {
 	if (__debug_locks_off()) {

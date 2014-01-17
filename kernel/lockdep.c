@@ -287,22 +287,37 @@ LIST_HEAD(all_lock_classes);
 /*
  * The lockdep classes are in a hash-table as well, for fast lookup:
  */
+// KID 20140108
+// MAX_LOCKDEP_KEYS_BITS: 13
+// CLASSHASH_BITS: 12
 #define CLASSHASH_BITS		(MAX_LOCKDEP_KEYS_BITS - 1)
+// KID 20140108
+// CLASSHASH_SIZE: 0x800
 #define CLASSHASH_SIZE		(1UL << CLASSHASH_BITS)
 #define __classhashfn(key)	hash_long((unsigned long)key, CLASSHASH_BITS)
 #define classhashentry(key)	(classhash_table + __classhashfn((key)))
 
+// KID 20140113
+// CLASSHASH_SIZE: 0x800(2048)
 static struct list_head classhash_table[CLASSHASH_SIZE];
 
 /*
  * We put the lock dependency chains into a hash-table as well, to cache
  * their existence:
  */
+// KID 20140113
+// MAX_LOCKDEP_CHAINS_BITS: 15
+// CHAINHASH_BITS: 14
 #define CHAINHASH_BITS		(MAX_LOCKDEP_CHAINS_BITS-1)
+// KID 20140113
+// CHAINHASH_BITS: 14
+// CHAINHASH_SIZE: 1 << 14: 0x4000
 #define CHAINHASH_SIZE		(1UL << CHAINHASH_BITS)
 #define __chainhashfn(chain)	hash_long(chain, CHAINHASH_BITS)
 #define chainhashentry(chain)	(chainhash_table + __chainhashfn((chain)))
 
+// KID 20140113
+// CHAINHASH_SIZE: 0x4000(16384)
 static struct list_head chainhash_table[CHAINHASH_SIZE];
 
 /*
@@ -3989,6 +4004,7 @@ void lockdep_init(void)
 	for (i = 0; i < CLASSHASH_SIZE; i++)
 		INIT_LIST_HEAD(classhash_table + i);
 
+        // CHAINHASH_SIZE: 16384
 	for (i = 0; i < CHAINHASH_SIZE; i++)
 		INIT_LIST_HEAD(chainhash_table + i);
 

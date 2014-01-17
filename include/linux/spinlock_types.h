@@ -9,7 +9,7 @@
  * Released under the General Public License (GPL).
  */
 
-#if defined(CONFIG_SMP)
+#if defined(CONFIG_SMP) // CONFIG_SMP=y
 # include <asm/spinlock_types.h>
 #else
 # include <linux/spinlock_types_up.h>
@@ -36,17 +36,29 @@ typedef struct raw_spinlock {
 #endif
 } raw_spinlock_t;
 
+// KID 20140114
 #define SPINLOCK_MAGIC		0xdead4ead
 
+// KID 20140114
 #define SPINLOCK_OWNER_INIT	((void *)-1L)
 
-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+#ifdef CONFIG_DEBUG_LOCK_ALLOC // CONFIG_DEBUG_LOCK_ALLOC=n
 # define SPIN_DEP_MAP_INIT(lockname)	.dep_map = { .name = #lockname }
 #else
+// KID 20140114
+// SPIN_DEP_MAP_INIT(printk_ratelimit_state.lock) 
 # define SPIN_DEP_MAP_INIT(lockname)
 #endif
 
-#ifdef CONFIG_DEBUG_SPINLOCK
+#ifdef CONFIG_DEBUG_SPINLOCK // CONFIG_DEBUG_SPINLOCK=y
+// KID 20140114
+// SPINLOCK_MAGIC: 0xdead4ead
+// SPINLOCK_OWNER_INIT:	((void *)-1L)
+// SPIN_DEBUG_INIT(printk_ratelimit_state.lock)	
+// # define SPIN_DEBUG_INIT(printk_ratelimit_state.lock)
+// 	.magic = 0xdead4ead,
+// 	.owner_cpu = -1,
+// 	.owner = ((void *)-1L),
 # define SPIN_DEBUG_INIT(lockname)		\
 	.magic = SPINLOCK_MAGIC,		\
 	.owner_cpu = -1,			\
@@ -56,12 +68,37 @@ typedef struct raw_spinlock {
 #endif
 
 // ARM10C 20130914
+// KID 20140114
+// __RAW_SPIN_LOCK_INITIALIZER(printk_ratelimit_state.lock)
+// __ARCH_SPIN_LOCK_UNLOCKED:	{ { 0 } }
+// #define SPIN_DEBUG_INIT(printk_ratelimit_state.lock)
+// 	.magic = 0xdead4ead,
+// 	.owner_cpu = -1,
+// 	.owner = ((void *)-1L),
+// #define SSPIN_DEP_MAP_INIT(printk_ratelimit_state.lock) 
+// #define __RAW_SPIN_LOCK_INITIALIZER(printk_ratelimit_state.lock)
+// 	{
+// 	  .raw_lock = { { 0 } },
+// 	  .magic = 0xdead4ead,
+// 	  .owner_cpu = -1,
+// 	  .owner = ((void *)-1L),
+// 	}
 #define __RAW_SPIN_LOCK_INITIALIZER(lockname)	\
 	{					\
 	.raw_lock = __ARCH_SPIN_LOCK_UNLOCKED,	\
 	SPIN_DEBUG_INIT(lockname)		\
 	SPIN_DEP_MAP_INIT(lockname) }
 
+// KID 20140114
+// __RAW_SPIN_LOCK_UNLOCKED(printk_ratelimit_state.lock),
+// __RAW_SPIN_LOCK_INITIALIZER(printk_ratelimit_state.lock)
+// #define __RAW_SPIN_LOCK_INITIALIZER(printk_ratelimit_state.lock)
+// 	{
+// 	  .raw_lock = { { 0 } },
+// 	  .magic = 0xdead4ead,
+// 	  .owner_cpu = -1,
+// 	  .owner = ((void *)-1L),
+// 	}
 #define __RAW_SPIN_LOCK_UNLOCKED(lockname)	\
 	(raw_spinlock_t) __RAW_SPIN_LOCK_INITIALIZER(lockname)
 

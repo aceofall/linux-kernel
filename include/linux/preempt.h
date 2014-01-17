@@ -10,8 +10,10 @@
 #include <linux/linkage.h>
 #include <linux/list.h>
 
+// CONFIG_DEBUG_PREEMPT=y, CONFIG_PREEMPT_TRACER=n
 #if defined(CONFIG_DEBUG_PREEMPT) || defined(CONFIG_PREEMPT_TRACER) // ARM10C Y 
   extern void add_preempt_count(int val);   // ARM10C this 
+// KID 20140116
   extern void sub_preempt_count(int val);
 #else
 # define add_preempt_count(val)	do { preempt_count() += (val); } while (0)
@@ -19,6 +21,7 @@
 #endif
 
 #define inc_preempt_count() add_preempt_count(1)
+// KID 20140116
 #define dec_preempt_count() sub_preempt_count(1)
 
 // ARM10C 20130824
@@ -59,20 +62,24 @@ do { \
 
 #ifdef CONFIG_PREEMPT_COUNT // ARM10C Y 
 
+// KID 20140114
 #define preempt_disable()/*ARM10C this*/ \
 do { \
 	inc_preempt_count(); \
 	barrier(); \
 } while (0)
 
+// KID 20140116
 #define sched_preempt_enable_no_resched() \
 do { \
 	barrier(); \
 	dec_preempt_count(); \
 } while (0)
 
+// KID 20140116
 #define preempt_enable_no_resched()	sched_preempt_enable_no_resched()
 
+// KID 20140116
 #define preempt_enable() /*ARM10C this*/ \
 do { \
 	preempt_enable_no_resched(); \
@@ -81,10 +88,12 @@ do { \
 } while (0)
 
 /* For debugging and tracer internals only! */
+// KID 20140114
 #define add_preempt_count_notrace(val)			\
 	do { preempt_count() += (val); } while (0)
 #define sub_preempt_count_notrace(val)			\
 	do { preempt_count() -= (val); } while (0)
+// KID 20140114
 #define inc_preempt_count_notrace() add_preempt_count_notrace(1)
 #define dec_preempt_count_notrace() sub_preempt_count_notrace(1)
 

@@ -28,7 +28,7 @@ extern unsigned int total_cpus;
 int smp_call_function_single(int cpuid, smp_call_func_t func, void *info,
 			     int wait);
 
-#ifdef CONFIG_SMP
+#ifdef CONFIG_SMP // CONFIG_SMP=y
 
 #include <linux/preempt.h>
 #include <linux/kernel.h>
@@ -209,8 +209,9 @@ static inline void kick_all_cpus_sync(void) {  }
  * which use for some reason is legal). Don't use this to hack around
  * the warning message, as your code might not work under PREEMPT.
  */
-#ifdef CONFIG_DEBUG_PREEMPT
+#ifdef CONFIG_DEBUG_PREEMPT // CONFIG_DEBUG_PREEMPT=y
   extern unsigned int debug_smp_processor_id(void);
+// KID 20140113
 # define smp_processor_id() debug_smp_processor_id()
 #else
 # define smp_processor_id() raw_smp_processor_id()

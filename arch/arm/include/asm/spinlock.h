@@ -11,6 +11,7 @@
  * sev and wfe are ARMv6K extensions.  Uniprocessor ARMv6 may not have the K
  * extensions, so when running on UP, we have to patch these instructions away.
  */
+// KID 20140115
 #define ALT_SMP(smp, up)					\
 	"9998:	" smp "\n"					\
 	"	.pushsection \".alt.smp.init\", \"a\"\n"	\
@@ -18,7 +19,7 @@
 	"	" up "\n"					\
 	"	.popsection\n"
 
-#ifdef CONFIG_THUMB2_KERNEL
+#ifdef CONFIG_THUMB2_KERNEL // CONFIG_THUMB2_KERNEL=n
 #define SEV		ALT_SMP("sev.w", "nop.w")
 /*
  * For Thumb-2, special care is needed to ensure that the conditional WFE
@@ -38,10 +39,12 @@
 	"nop.w"					\
 )
 #else
+// KID 20140115
 #define SEV		ALT_SMP("sev", "nop")
 #define WFE(cond)	ALT_SMP("wfe" cond, "nop")
 #endif
 
+// KID 20140115
 static inline void dsb_sev(void)
 {
 #if __LINUX_ARM_ARCH__ >= 7 // ARM10C Y 
@@ -78,16 +81,21 @@ static inline void dsb_sev(void)
 static inline void arch_spin_lock(arch_spinlock_t *lock)
 {
 	unsigned long tmp;
-	u32 newval;//다음 next 값
-	arch_spinlock_t lockval;//현재 next 값
-//ARM10C 20130907 
-//"1:	ldrex	lockval, &lock->slock\n"
-//현재 next(lockval)는 받아 놓고,
-//"	add	newval, lockval, (1<<TICKET_SHIFT)\n" tickets.next += 1
-//다음 next(newval) 는 += 1하고 저장 한다.
-//"	strex	tmp, newval, &lock->slock\n"
-//"	teq	tmp, #0\n"
-//"	bne	1b"
+        // 다음 next 값
+	u32 newval;
+        // 현재 next 값
+	arch_spinlock_t lockval;
+
+// ARM10C 20130907
+// TICKET_SHIFT: 16
+// "1:	ldrex	lockval, &lock->slock\n"
+// 현재 next(lockval)는 받아 놓고,
+// "	add	newval, lockval, (1<<TICKET_SHIFT)\n" tickets.next += 1
+// 다음 next(newval) 는 += 1하고 저장 한다.
+// "	strex	tmp, newval, &lock->slock\n"
+// "	teq	tmp, #0\n"
+// "	bne	1b"
+
 	// lock->slock에서 실제 데이터를 쓸때(next+=1) 까지 루프
 	// next+=1 의 의미는 표를 받기위해 번호표발행
 	__asm__ __volatile__(
@@ -103,8 +111,9 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 	// 실재 lock을 걸기 위해 busylock 한다.
 	// 받은 번호표의 순을 기다린다.(unlock에서 owner을 증가 시켜서)
 	while (lockval.tickets.next != lockval.tickets.owner) {
-		wfe();	// ARM10C 이벤트대기(irq,frq,부정확한 중단 또는 디버그 시작 요청 대기. 구현되지 않은 경우 NOP
-	       // arch_spin_unlock()의 dsb_sev();가 호출될때 깨어남
+                // ARM10C 이벤트대기(irq,frq,부정확한 중단 또는 디버그 시작 요청 대기. 구현되지 않은 경우 NOP
+		wfe();
+	        // arch_spin_unlock()의 dsb_sev();가 호출될때 깨어남
 		lockval.tickets.owner = ACCESS_ONCE(lock->tickets.owner);
 		// ARM10C local owner값 업데이트
 	}
@@ -121,15 +130,17 @@ static inline int arch_spin_trylock(arch_spinlock_t *lock)
 
 
 	do {
-		// lock->slock이0 이면 unlocked
-		// lock->slock이0x10000 이면 locked
+		// lock->slock이 0 이면 unlocked
+		// lock->slock이 0x10000 이면 locked
+                // TICKET_SHIFT: 16
 		//
-		//"	ldrex	slock, lock->slock\n"
-		//"	subs	tmp,   slock, slock, ror #16\n"
-		//위 코드의 의미
-		//if( next == owner )//현재 락을 가져도 된다.
-		//"	addeq	slock, slock, (1 << TICKET_SHIFT)\n"
-		//"	strexeq	tmp,   slock, lock->slock"
+		// "	ldrex	slock, lock->slock\n"
+		// "	mov	res,  #0\n"
+		// "	subs	contended,  slock, slock, ror #16\n"
+		// 위 코드의 의미
+		// if( next == owner ) //현재 락을 가져도 된다.
+		// "	addeq	slock, slock, (1 << TICKET_SHIFT)\n"
+		// "	strexeq	res,   slock, lock->slock"
 		__asm__ __volatile__(
 		"	ldrex	%0, [%3]\n"
 		"	mov	%2, #0\n"
@@ -149,11 +160,14 @@ static inline int arch_spin_trylock(arch_spinlock_t *lock)
 	}
 }
 
+// KID 20140115
 static inline void arch_spin_unlock(arch_spinlock_t *lock)
 {
-	smp_mb();   // ARM10C smb_mb(), dsb_sev() 중 dsb()는 owner를 보호하기위한 것 
+        // ARM10C smb_mb(), dsb_sev() 중 dsb()는 owner를 보호하기위한 것 
+	smp_mb();
 	lock->tickets.owner++;
-	dsb_sev(); // ARM10C 이벤트발생
+        // ARM10C 이벤트발생
+	dsb_sev();
 }
 
 static inline int arch_spin_is_locked(arch_spinlock_t *lock)

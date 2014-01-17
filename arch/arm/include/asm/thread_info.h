@@ -16,6 +16,9 @@
 #include <asm/fpstate.h>
 
 #define THREAD_SIZE_ORDER	1
+/*
+// KID 20140113
+*/
 #define THREAD_SIZE		8192
 /*
 // ARM10C 20130817
@@ -50,6 +53,9 @@ struct cpu_context_save {
  * low level task data that entry.S needs immediate access to.
  * __switch_to() assumes cpu_context follows immediately after cpu_domain.
  */
+/*
+// KID 20140113
+*/
 struct thread_info {
 	unsigned long		flags;		/* low level flags */
 	int			preempt_count;	/* 0 => preemptable, <0 => bug */
@@ -62,18 +68,19 @@ struct thread_info {
 	__u32			syscall;	/* syscall number */
 	__u8			used_cp[16];	/* thread used copro */
 	unsigned long		tp_value[2];	/* TLS registers */
-#ifdef CONFIG_CRUNCH
+#ifdef CONFIG_CRUNCH // CONFIG_CRUNCH=n
 	struct crunch_state	crunchstate;
 #endif
 	union fp_state		fpstate __attribute__((aligned(8)));
 	union vfp_state		vfpstate;
-#ifdef CONFIG_ARM_THUMBEE
+#ifdef CONFIG_ARM_THUMBEE // CONFIG_ARM_THUMBEE=n
 	unsigned long		thumbee_state;	/* ThumbEE Handler Base register */
 #endif
 	struct restart_block	restart_block;
 };
 
 // ARM10C 20130824
+// INIT_PREEMPT_COUNT: 0x40000001
 #define INIT_THREAD_INFO(tsk)						\
 {									\
 	.task		= &tsk,						\
@@ -104,6 +111,8 @@ static inline struct thread_info *current_thread_info(void)
 {
 	// stack이 8K로 정렬되어 있기 때문에 13비트를 clear시키면 stack의 맨 앞을 가리키게 된다.
 	register unsigned long sp asm ("sp");
+
+        // THREAD_SIZE: 8192
 	return (struct thread_info *)(sp & ~(THREAD_SIZE - 1));
 }
 

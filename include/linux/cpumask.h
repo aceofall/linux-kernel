@@ -13,6 +13,8 @@
 
 // ARM10C 20130831
 // struct cpumask { bits[1]; }
+// KID 20140113
+// NR_CPUS: 4
 typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
 
 /**
@@ -30,11 +32,14 @@ typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
 extern int nr_cpu_ids;
 #endif
 
-#ifdef CONFIG_CPUMASK_OFFSTACK
+#ifdef CONFIG_CPUMASK_OFFSTACK // CONFIG_CPUMASK_OFFSTACK=n
 /* Assuming NR_CPUS is huge, a runtime limit is more efficient.  Also,
  * not all bits may be allocated. */
 #define nr_cpumask_bits	nr_cpu_ids
 #else
+// KID 20140113
+// NR_CPUS: 4
+// nr_cpumask_bits: 4
 #define nr_cpumask_bits	NR_CPUS
 #endif
 
@@ -406,9 +411,11 @@ static inline void cpumask_complement(struct cpumask *dstp,
  * @src1p: the first input
  * @src2p: the second input
  */
+// KID 20140113
 static inline bool cpumask_equal(const struct cpumask *src1p,
 				const struct cpumask *src2p)
 {
+        // nr_cpumask_bits: 4
 	return bitmap_equal(cpumask_bits(src1p), cpumask_bits(src2p),
 						 nr_cpumask_bits);
 }
@@ -533,6 +540,7 @@ static inline void cpumask_copy(struct cpumask *dstp,
  * cpumask_of - the cpumask containing just a given cpu
  * @cpu: the cpu (<= nr_cpu_ids)
  */
+// KID 20140113
 #define cpumask_of(cpu) (get_cpu_mask(cpu))
 
 /**
@@ -767,8 +775,10 @@ static inline int __check_is_bitmap(const unsigned long *bitmap)
 extern const unsigned long
 	cpu_bit_bitmap[BITS_PER_LONG+1][BITS_TO_LONGS(NR_CPUS)];
 
+// KID 20140113
 static inline const struct cpumask *get_cpu_mask(unsigned int cpu)
 {
+        // BITS_PER_LONG: 32
 	const unsigned long *p = cpu_bit_bitmap[1 + cpu % BITS_PER_LONG];
 	p -= cpu / BITS_PER_LONG;
 	return to_cpumask(p);

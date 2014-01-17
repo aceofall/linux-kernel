@@ -59,6 +59,7 @@
 
 #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
 // ARM10C 20131207
+// KID 20140113
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 #define DIV_ROUND_UP_ULL(ll,d) \
 	({ unsigned long long _tmp = (ll)+(d)-1; do_div(_tmp, d); _tmp; })
@@ -415,6 +416,7 @@ extern int root_mountflags;
 extern bool early_boot_irqs_disabled;
 
 /* Values used for system_state */
+// KID 20140114
 extern enum system_states {
 	SYSTEM_BOOTING,
 	SYSTEM_RUNNING,

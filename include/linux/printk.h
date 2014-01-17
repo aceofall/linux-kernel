@@ -35,6 +35,7 @@ static inline const char *printk_skip_level(const char *buffer)
 
 extern int console_printk[];
 
+// KID 20140116
 #define console_loglevel (console_printk[0])
 #define default_message_loglevel (console_printk[1])
 #define minimum_console_loglevel (console_printk[2])
@@ -45,6 +46,7 @@ static inline void console_silent(void)
 	console_loglevel = 0;
 }
 
+// KID 20140116
 static inline void console_verbose(void)
 {
 	if (console_loglevel)
@@ -106,7 +108,7 @@ static inline __printf(1, 2) __cold
 void early_printk(const char *s, ...) { }
 #endif
 
-#ifdef CONFIG_PRINTK
+#ifdef CONFIG_PRINTK // CONFIG_PRINTK=y
 asmlinkage __printf(5, 0)
 int vprintk_emit(int facility, int level,
 		 const char *dict, size_t dictlen,
@@ -133,7 +135,9 @@ __printf(1, 2) __cold int printk_sched(const char *fmt, ...);
  * with all other unrelated printk_ratelimit() callsites.  Instead use
  * printk_ratelimited() or plain old __ratelimit().
  */
+// KID 20140114
 extern int __printk_ratelimit(const char *func);
+// KID 20140114
 #define printk_ratelimit() __printk_ratelimit(__func__)
 extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
 				   unsigned int interval_msec);

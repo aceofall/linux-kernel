@@ -87,6 +87,7 @@ debug_spin_lock_before(raw_spinlock_t *lock)
 							lock, "cpu recursion");
 }
 
+// KID 20140116
 static inline void debug_spin_lock_after(raw_spinlock_t *lock)
 {
 	lock->owner_cpu = raw_smp_processor_id();
@@ -146,7 +147,7 @@ int do_raw_spin_trylock(raw_spinlock_t *lock)
 
 	if (ret)
 		debug_spin_lock_after(lock);
-#ifndef CONFIG_SMP  // ARM10C 실행안함 
+#ifndef CONFIG_SMP  // ARM10C 실행안함  CONFIG_SMP=y
 	/*
 	 * Must not happen on UP:
 	 */

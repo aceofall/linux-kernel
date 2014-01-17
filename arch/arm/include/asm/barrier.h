@@ -9,6 +9,7 @@
 #if __LINUX_ARM_ARCH__ >= 7 ||		\
 	(__LINUX_ARM_ARCH__ == 6 && defined(CONFIG_CPU_32v6K))
 #define sev()	__asm__ __volatile__ ("sev" : : : "memory")
+// KID 20140115
 #define wfe()	__asm__ __volatile__ ("wfe" : : : "memory")
 #define wfi()	__asm__ __volatile__ ("wfi" : : : "memory")
 #endif
@@ -17,6 +18,7 @@
 #define isb() __asm__ __volatile__ ("isb" : : : "memory")
 // ARM10C 20131109
 #define dsb() __asm__ __volatile__ ("dsb" : : : "memory")
+// KID 20140116
 #define dmb() __asm__ __volatile__ ("dmb" : : : "memory")   // ARM10C this 
 #elif defined(CONFIG_CPU_XSC3) || __LINUX_ARM_ARCH__ == 6
 #define isb() __asm__ __volatile__ ("mcr p15, 0, %0, c7, c5, 4" \
@@ -50,7 +52,7 @@
 #define wmb()		barrier()
 #endif
 
-#ifndef CONFIG_SMP
+#ifndef CONFIG_SMP // CONFIG_SMP=y
 #define smp_mb()	barrier()
 #define smp_rmb()	barrier()
 #define smp_wmb()	barrier()

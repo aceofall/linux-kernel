@@ -56,14 +56,16 @@
 /*
  * Wrap the arch provided IRQ routines to provide appropriate checks.
  */
+// KID 20140113
 #define raw_local_irq_disable()		arch_local_irq_disable()
 #define raw_local_irq_enable()		arch_local_irq_enable()
+// KID 20140114
 #define raw_local_irq_save(flags)			\
 	do {						\
 		typecheck(unsigned long, flags);	\
 		flags = arch_local_irq_save();/*ARM10C 현재 cpsr을 flag로가져옴*/	\
 	} while (0)
- // ARM10C 20130907 
+// ARM10C 20130907 
 #define raw_local_irq_restore(flags)			\
 	do {						\
 		typecheck(unsigned long, flags);	\
@@ -75,6 +77,7 @@
 		typecheck(unsigned long, flags);	\
 		flags = arch_local_save_flags();	\
 	} while (0)
+// KID 20140113
 #define raw_irqs_disabled_flags(flags)			\
 	({						\
 		typecheck(unsigned long, flags);	\
@@ -87,11 +90,13 @@
  * The local_irq_*() APIs are equal to the raw_local_irq*()
  * if !TRACE_IRQFLAGS.
  */
-#ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT	// ARM10C Y 
+#ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT	// ARM10C Y, CONFIG_TRACE_IRQFLAGS_SUPPORT=y
 #define local_irq_enable() \
 	do { trace_hardirqs_on(); raw_local_irq_enable(); } while (0)
+// KID 20140113
 #define local_irq_disable() \
 	do { raw_local_irq_disable(); trace_hardirqs_off(); } while (0)
+// KID 20140114
 #define local_irq_save(flags)	/*ARM10C this*/		\
 	do {						\
 		raw_local_irq_save(flags);		\
