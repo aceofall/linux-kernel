@@ -119,7 +119,7 @@ void __init add_static_vm_early(struct static_vm *svm)
 	// vm->addr: 0xF6100000, vaddr: 0xF6100000
 	vaddr = vm->addr;
 
-  // #define list_for_each_entry(curr_svm, &static_vmlist, list)
+	// #define list_for_each_entry(curr_svm, &static_vmlist, list)
 	// for (curr_svm = list_entry((&static_vmlist)->next, typeof(*curr_svm), list);
 	//     &curr_svm->list != (&static_vmlist);
 	//     curr_svm = list_entry(curr_svm->list.next, typeof(*curr_svm), list))
