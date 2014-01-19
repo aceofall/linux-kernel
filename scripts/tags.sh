@@ -20,7 +20,6 @@ ignore="( -name SCCS -o -name BitKeeper -o -name .svn -o \
 # Do not use full path if we do not use O=.. builds
 # Use make O=. {tags|cscope}
 # to force full paths for a non-O= build
-KBUILD_SRC=`pwd`
 if [ "${KBUILD_SRC}" = "" ]; then
 	tree=
 else
