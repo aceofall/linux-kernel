@@ -423,7 +423,7 @@ struct lock_class_key { };
 
 #endif /* !LOCKDEP */
 
-#ifdef CONFIG_LOCK_STAT
+#ifdef CONFIG_LOCK_STAT // CONFIG_LOCK_STAT=n
 
 extern void lock_contended(struct lockdep_map *lock, unsigned long ip);
 extern void lock_acquired(struct lockdep_map *lock, unsigned long ip);
@@ -442,6 +442,9 @@ do {								\
 #define lock_contended(lockdep_map, ip) do {} while (0)
 #define lock_acquired(lockdep_map, ip) do {} while (0)
 
+// ARM10C 20140125
+// LOCK_CONTENDED(lock, do_raw_write_trylock, do_raw_write_lock);
+// => do_raw_write_lock(lock)
 #define LOCK_CONTENDED(_lock, try, lock) \
 	lock(_lock)
 
@@ -499,7 +502,7 @@ static inline void print_irqtrace_events(struct task_struct *curr)
 # define spin_release(l, n, i)			do { } while (0)    // ARM10C this 
 #endif
 
-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+#ifdef CONFIG_DEBUG_LOCK_ALLOC // CONFIG_DEBUG_LOCK_ALLOC=n
 # ifdef CONFIG_PROVE_LOCKING
 #  define rwlock_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
 #  define rwlock_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 2, 2, NULL, i)
@@ -509,8 +512,10 @@ static inline void print_irqtrace_events(struct task_struct *curr)
 # endif
 # define rwlock_release(l, n, i)		lock_release(l, n, i)
 #else
+// ARM10C 20140125
 # define rwlock_acquire(l, s, t, i)		do { } while (0)
 # define rwlock_acquire_read(l, s, t, i)	do { } while (0)
+// ARM10C 20140125
 # define rwlock_release(l, n, i)		do { } while (0)
 #endif
 

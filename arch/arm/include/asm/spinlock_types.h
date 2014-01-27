@@ -9,6 +9,7 @@
 #define TICKET_SHIFT	16
 
 // KID 20140114
+// ARM10C 20140125
 typedef struct {
         union {
                 u32 slock;

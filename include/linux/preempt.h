@@ -20,8 +20,10 @@
 # define sub_preempt_count(val)	do { preempt_count() -= (val); } while (0)
 #endif
 
+// ARM10C 20140125
 #define inc_preempt_count() add_preempt_count(1)
 // KID 20140116
+// ARM10C 20140125
 #define dec_preempt_count() sub_preempt_count(1)
 
 // ARM10C 20130824
@@ -63,6 +65,7 @@ do { \
 #ifdef CONFIG_PREEMPT_COUNT // ARM10C Y 
 
 // KID 20140114
+// ARM10C 20140125
 #define preempt_disable()/*ARM10C this*/ \
 do { \
 	inc_preempt_count(); \
@@ -70,6 +73,7 @@ do { \
 } while (0)
 
 // KID 20140116
+// ARM10C 20140125
 #define sched_preempt_enable_no_resched() \
 do { \
 	barrier(); \
@@ -77,9 +81,11 @@ do { \
 } while (0)
 
 // KID 20140116
+// ARM10C 20140125
 #define preempt_enable_no_resched()	sched_preempt_enable_no_resched()
 
 // KID 20140116
+// ARM10C 20140125
 #define preempt_enable() /*ARM10C this*/ \
 do { \
 	preempt_enable_no_resched(); \

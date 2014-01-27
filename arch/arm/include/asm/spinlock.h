@@ -191,6 +191,7 @@ static inline int arch_spin_is_contended(arch_spinlock_t *lock)
  * just write zero since the lock is exclusively held.
  */
 
+// ARM10C 20140125
 static inline void arch_write_lock(arch_rwlock_t *rw)
 {
 	unsigned long tmp;
@@ -232,6 +233,7 @@ static inline int arch_write_trylock(arch_rwlock_t *rw)
 	}
 }
 
+// ARM10C 20140125
 static inline void arch_write_unlock(arch_rwlock_t *rw)
 {
 	smp_mb();
