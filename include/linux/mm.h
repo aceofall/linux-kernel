@@ -836,6 +836,7 @@ static __always_inline void *lowmem_page_address(const struct page *page)
 // ARM10C 20140125
 void *page_address(const struct page *page);
 void set_page_address(struct page *page, void *virtual);
+// KID 20140203
 void page_address_init(void);	// ARM10C this 
 #endif
 

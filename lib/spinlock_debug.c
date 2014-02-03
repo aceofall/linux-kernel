@@ -13,6 +13,7 @@
 #include <linux/delay.h>
 #include <linux/export.h>
 
+// KID 20140203
 void __raw_spin_lock_init(raw_spinlock_t *lock, const char *name,
 			  struct lock_class_key *key)
 {
@@ -24,8 +25,11 @@ void __raw_spin_lock_init(raw_spinlock_t *lock, const char *name,
 	debug_check_no_locks_freed((void *)lock, sizeof(*lock));
 	lockdep_init_map(&lock->dep_map, name, key, 0);
 #endif
+        // __ARCH_SPIN_LOCK_UNLOCKED: (arch_spinlock_t){ { 0 } }
 	lock->raw_lock = (arch_spinlock_t)__ARCH_SPIN_LOCK_UNLOCKED;// = (arch_spinlock_t){ { 0 } }
+        // SPINLOCK_MAGIC: 0xdead4ead
 	lock->magic = SPINLOCK_MAGIC;//0xdead4ead
+        // SPINLOCK_OWNER_INIT: ((void *)-1L)
 	lock->owner = SPINLOCK_OWNER_INIT; // ((void *)-1L) = 0xffffffff
 	lock->owner_cpu = -1;
 }

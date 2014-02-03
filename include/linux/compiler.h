@@ -297,6 +297,15 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
 
 /* Are two types/vars the same type (ignoring qualifiers)? */
 #ifndef __same_type
+/*
+// KID 20140203
+// gcc_4_8_1 manual
+// int __builtin_types_compatible_p (type1, type2)
+// You can use the built-in function __builtin_types_compatible_p to determine
+// whether two types are the same.
+// This built-in function returns 1 if the unqualified versions of the types type1 and
+// type2 (which are types, not expressions) are compatible, 0 otherwise
+*/
 # define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
 #endif
 

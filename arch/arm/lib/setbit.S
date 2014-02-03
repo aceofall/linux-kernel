@@ -13,4 +13,5 @@
 		.text
 
 // ARM10C 20130907 
+// KID 20140203
 bitop	_set_bit, orr

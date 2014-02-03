@@ -335,6 +335,9 @@ static struct page_address_map page_address_maps[LAST_PKMAP];
 // - ____cacheline_aligned_in_smp는 64byte align 시키는 attribute.
 // - 배열 사이즈: 1<<PA_HASH_ORDER = 1<<7 = 128
 // ARM10C 20140125
+// KID 20140203
+// PA_HASH_ORDER: 7
+// sizeof(struct page_address_slot): 8bytes
 static struct page_address_slot {
 	struct list_head lh;			/* List of page_address_maps */
 	spinlock_t lock;			/* Protect this bucket's list */

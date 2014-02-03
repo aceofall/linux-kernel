@@ -24,6 +24,7 @@ typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
  * You should only assume nr_cpu_ids bits of this mask are valid.  This is
  * a macro so it's const-correct.
  */
+// KID 20140203
 #define cpumask_bits(maskp) ((maskp)->bits)
 
 #if NR_CPUS == 1
@@ -110,9 +111,10 @@ extern const struct cpumask *const cpu_active_mask;
 
 /* verify cpu argument to cpumask_* operators */
 // ARM10C 20130907 
+// KID 20140203
 static inline unsigned int cpumask_check(unsigned int cpu)
 {
-#ifdef CONFIG_DEBUG_PER_CPU_MAPS
+#ifdef CONFIG_DEBUG_PER_CPU_MAPS // CONFIG_DEBUG_PER_CPU_MAPS=n
 	WARN_ON_ONCE(cpu >= nr_cpumask_bits);
 #endif /* CONFIG_DEBUG_PER_CPU_MAPS */
 	return cpu;

@@ -1,6 +1,7 @@
 #include <asm/unwind.h>
 
 #if __LINUX_ARM_ARCH__ >= 6
+// KID 20140203
 	.macro	bitop, name, instr
 ENTRY(	\name		)
 UNWIND(	.fnstart	)
