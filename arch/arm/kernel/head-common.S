@@ -158,6 +158,7 @@ __mmap_switched_data:
 /*
  * This provides a C-API version of __lookup_processor_type
  */
+// KID 20140204
 ENTRY(lookup_processor_type)
 	stmfd	sp!, {r4 - r6, r9, lr}
 	mov	r9, r0
@@ -190,6 +191,7 @@ ENDPROC(lookup_processor_type)
  *       물리적인 주조 공간에서 proc_info 포인터
  *	r9 = cpuid (preserved)
  */
+// KID 20140204
 __lookup_processor_type:
 	adr	r3, __lookup_processor_type_data
 	ldmia	r3, {r4 - r6}
@@ -204,6 +206,7 @@ __lookup_processor_type:
 	and	r4, r4, r9			@ mask wanted bits
 	teq	r3, r4
 	beq	2f
+	// PROC_INFO_SZ: 52
 	add	r5, r5, #PROC_INFO_SZ		@ sizeof(proc_info_list)
 	cmp	r5, r6
 	blo	1b

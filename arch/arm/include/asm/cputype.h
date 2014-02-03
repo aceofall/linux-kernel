@@ -4,6 +4,7 @@
 #include <linux/stringify.h>
 #include <linux/kernel.h>
 
+// KID 20140204
 #define CPUID_ID	0
 #define CPUID_CACHETYPE	1
 #define CPUID_TCM	2
@@ -90,7 +91,7 @@
 
 extern unsigned int processor_id;
 
-#ifdef CONFIG_CPU_CP15
+#ifdef CONFIG_CPU_CP15 // CONFIG_CPU_CP15=y
 // ARM10C 20130824
 // 인라인 어셈블리 링크 참조
 // http://wiki.kldp.org/wiki.php/DocbookSgml/GCC_Inline_Assembly-KLDP
@@ -164,8 +165,11 @@ static inline unsigned int __attribute_const__ read_cpuid_ext(unsigned offset)
  * rather than directly reading processor_id or read_cpuid() directly.
  */
 // ARM10C 20130914 this
+// KID 20140204
 static inline unsigned int __attribute_const__ read_cpuid_id(void)
 {
+	// CPUID_ID: 0
+	// read_cpuid(CPUID_ID): A.R.M: B4.1.105 MIDR, Main ID Register, VMSA
 	return read_cpuid(CPUID_ID);
 }
 

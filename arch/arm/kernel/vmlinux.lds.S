@@ -9,6 +9,9 @@
 #include <asm/memory.h>
 #include <asm/page.h>
 	
+/*
+// KID 20140204
+*/
 #define PROC_INFO							\
 	. = ALIGN(4);							\
 	VMLINUX_SYMBOL(__proc_info_begin) = .;				\

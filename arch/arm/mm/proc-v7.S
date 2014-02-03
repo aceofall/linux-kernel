@@ -409,6 +409,7 @@ __v7_setup_stack:
 	string	cpu_elf_name, "v7"
 	.align
 
+	// KID 20140204
 	.section ".proc.info.init", #alloc, #execinstr
 
 	/*
@@ -434,7 +435,7 @@ __v7_setup_stack:
 	.long	v7_cache_fns
 .endm
 
-#ifndef CONFIG_ARM_LPAE
+#ifndef CONFIG_ARM_LPAE // CONFIG_ARM_LPAE=n
 	/*
 	 * ARM Ltd. Cortex A5 processor.
 	 */
@@ -460,7 +461,7 @@ __v7_ca9mp_proc_info:
 	/*
 	 * Marvell PJ4B processor.
 	 */
-#ifdef CONFIG_CPU_PJ4B
+#ifdef CONFIG_CPU_PJ4B // CONFIG_CPU_PJ4B=n
 	.type   __v7_pj4b_proc_info, #object
 __v7_pj4b_proc_info:
 	.long	0x560f5800
@@ -493,6 +494,7 @@ __v7_ca7mp_proc_info:
 	 * ARM Ltd. Cortex A15 processor.
 	 */
 	.type	__v7_ca15mp_proc_info, #object
+// KID 20140204
 __v7_ca15mp_proc_info:
 	.long	0x410fc0f0
 	.long	0xff0ffff0
