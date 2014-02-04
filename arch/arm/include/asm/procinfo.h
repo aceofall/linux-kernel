@@ -40,8 +40,8 @@ struct proc_info_list {
 	const char		*cpu_name;
 	struct processor	*proc;
 	struct cpu_tlb_fns	*tlb;
-    // arch/arm/mm/tlb-v7.S
-    // arch/arm/mm/proc-macros.S::define_tlb_functions  여기에 정의되어 있음.
+	// arch/arm/mm/tlb-v7.S
+	// arch/arm/mm/proc-macros.S::define_tlb_functions  여기에 정의되어 있음.
 	struct cpu_user_fns	*user;
 	struct cpu_cache_fns	*cache;
 };
