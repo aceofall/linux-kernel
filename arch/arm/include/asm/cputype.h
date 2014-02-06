@@ -6,6 +6,7 @@
 
 // KID 20140204
 #define CPUID_ID	0
+// KID 20140206
 #define CPUID_CACHETYPE	1
 #define CPUID_TCM	2
 #define CPUID_TLBTYPE	3
@@ -13,7 +14,7 @@
 // KID 20140108
 #define CPUID_MPIDR	5
 
-#ifdef CONFIG_CPU_V7M
+#ifdef CONFIG_CPU_V7M // CONFIG_CPU_V7M=n
 #define CPUID_EXT_PFR0	0x40
 #define CPUID_EXT_PFR1	0x44
 #define CPUID_EXT_DFR0	0x48
@@ -37,6 +38,7 @@
 #define CPUID_EXT_MMFR1	"c1, 5"
 #define CPUID_EXT_MMFR2	"c1, 6"
 #define CPUID_EXT_MMFR3	"c1, 7"
+// KID 20140206
 #define CPUID_EXT_ISAR0	"c2, 0"
 #define CPUID_EXT_ISAR1	"c2, 1"
 #define CPUID_EXT_ISAR2	"c2, 2"
@@ -205,8 +207,10 @@ static inline unsigned int __attribute_const__ xscale_cpu_arch_version(void)
 }
 
 // ARM10C 20130914
+// KID 20140206
 static inline unsigned int __attribute_const__ read_cpuid_cachetype(void)
 {
+	// CPUID_CACHETYPE: 1
 	return read_cpuid(CPUID_CACHETYPE);
 }
 

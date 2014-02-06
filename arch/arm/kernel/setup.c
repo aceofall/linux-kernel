@@ -81,6 +81,7 @@ unsigned int processor_id;
 EXPORT_SYMBOL(processor_id);
 unsigned int __machine_arch_type __read_mostly;
 EXPORT_SYMBOL(__machine_arch_type);
+// KID 20140206
 unsigned int cacheid __read_mostly;
 EXPORT_SYMBOL(cacheid);
 
@@ -301,10 +302,13 @@ static int cpu_has_aliasing_icache(unsigned int arch)
 	// PIPT가 아닐 경우 아래 코드 수행
 	switch (arch) {
 	case CPU_ARCH_ARMv7:
+		// T.R.M: 4.3.24 Cache Size Selection Register
+		// [0]: InD: Instruction not Data bit : 1 - instruction cache
 		asm("mcr	p15, 2, %0, c0, c0, 0 @ set CSSELR"
 		    : /* No output operands */
 		    : "r" (1));
 		isb();
+		// T.R.M: 4.3.21 Cache Size ID Register
 		asm("mrc	p15, 1, %0, c0, c0, 0 @ read CCSIDR"
 		    : "=r" (id_reg));
 		line_size = 4 << ((id_reg & 0x7) + 2);
@@ -325,7 +329,7 @@ static int cpu_has_aliasing_icache(unsigned int arch)
 // ARM10C 20130914
 static void __init cacheid_init(void)
 {
-    // arch = CPU_ARCH_ARMv7
+	// arch = CPU_ARCH_ARMv7
 	unsigned int arch = cpu_architecture();
 
 	if (arch == CPU_ARCH_ARMv7M) {
@@ -336,7 +340,9 @@ static void __init cacheid_init(void)
 		if ((cachetype & (7 << 29)) == 4 << 29) {
 			/* ARMv7 register format */
 			arch = CPU_ARCH_ARMv7;
+			// CACHEID_VIPT_NONALIASING: 0x2
 			cacheid = CACHEID_VIPT_NONALIASING;
+			// cacheid: 0x2
 
 			// L1ip: b11, (Physical index, physical tag)
 			switch (cachetype & (3 << 14)) {
@@ -344,7 +350,9 @@ static void __init cacheid_init(void)
 				cacheid |= CACHEID_ASID_TAGGED;
 				break;
 			case (3 << 14):	// this
+				// CACHEID_PIPT: 0x20
 				cacheid |= CACHEID_PIPT;
+				// cacheid: 0x22
 				break;
 			}
 		} else {
@@ -356,6 +364,7 @@ static void __init cacheid_init(void)
 		}
 // 2013/09/14 종료
 // 2013/09/28 시작
+		// arch = CPU_ARCH_ARMv7
 		// cpu_has_aliasing_icache(arch) 리턴값 : 0
 		if (cpu_has_aliasing_icache(arch))
 			cacheid |= CACHEID_VIPT_I_ALIASING;
@@ -366,6 +375,9 @@ static void __init cacheid_init(void)
 	// T.R.M: 6.1 About the L1 memory system
 	// prink 출력값
 	// CPU: PIPT / VIPT nonaliasing data cache, PIPT instruction cache 
+	//  
+	// cache_is_vivt(): 0, cache_is_vipt_nonaliasing(): 0x2	
+	// cacheid_is(0x20): 0x20
 	printk("CPU: %s data cache, %s instruction cache\n",
 		cache_is_vivt() ? "VIVT" :
 		cache_is_vipt_aliasing() ? "VIPT aliasing" :
