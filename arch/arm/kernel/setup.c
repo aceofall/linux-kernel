@@ -140,6 +140,8 @@ struct stack {
 
 #ifndef CONFIG_CPU_V7M
 // ARM10C 20130928
+// KID 20140207
+// NR_CPUS: 4
 static struct stack stacks[NR_CPUS];
 #endif
 
@@ -486,6 +488,7 @@ void notrace cpu_init(void)
 #ifdef CONFIG_THUMB2_KERNEL	// not defined
 #define PLC	"r"
 #else
+// KID 20140207
 #define PLC	"I"
 #endif
 
