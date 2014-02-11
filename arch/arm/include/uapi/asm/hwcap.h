@@ -4,13 +4,23 @@
 /*
  * HWCAP flags - for elf_hwcap (in kernel) and AT_HWCAP
  */
+// KID 20140211
+// HWCAP_SWP: 0x1
 #define HWCAP_SWP	(1 << 0)
+// KID 20140211
+// HWCAP_HALF: 0x2
 #define HWCAP_HALF	(1 << 1)
+// KID 20140211
+// HWCAP_THUMB: 0x4
 #define HWCAP_THUMB	(1 << 2)
 #define HWCAP_26BIT	(1 << 3)	/* Play it safe */
+// KID 20140211
+// HWCAP_FAST_MULT: 0x10
 #define HWCAP_FAST_MULT	(1 << 4)
 #define HWCAP_FPA	(1 << 5)
 #define HWCAP_VFP	(1 << 6)
+// KID 20140211
+// HWCAP_EDSP: 0x80
 #define HWCAP_EDSP	(1 << 7)
 #define HWCAP_JAVA	(1 << 8)
 #define HWCAP_IWMMXT	(1 << 9)
@@ -19,9 +29,15 @@
 #define HWCAP_NEON	(1 << 12)
 #define HWCAP_VFPv3	(1 << 13)
 #define HWCAP_VFPv3D16	(1 << 14)	/* also set for VFPv4-D16 */
+// KID 20140211
+// HWCAP_TLS: 0x8000
 #define HWCAP_TLS	(1 << 15)
 #define HWCAP_VFPv4	(1 << 16)
+// KID 20140211
+// HWCAP_IDIVA: 0x20000	
 #define HWCAP_IDIVA	(1 << 17)
+// KID 20140211
+// HWCAP_IDIVT: 0x40000	
 #define HWCAP_IDIVT	(1 << 18)
 #define HWCAP_VFPD32	(1 << 19)	/* set if VFP has 32 regs (not 16) */
 #define HWCAP_IDIV	(HWCAP_IDIVA | HWCAP_IDIVT)

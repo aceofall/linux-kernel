@@ -639,6 +639,7 @@ static void __init smp_build_mpidr_hash(void)
 #endif
 
 // ARM10C 20130914
+// KID 20140211
 static void __init setup_processor(void)
 {
 	struct proc_info_list *list;
@@ -680,6 +681,7 @@ static void __init setup_processor(void)
 	printk("CPU: %s [%08x] revision %d (ARMv%s), cr=%08lx\n",
 	       cpu_name, read_cpuid_id(), read_cpuid_id() & 15,
 	       proc_arch[cpu_architecture()], cr_alignment);
+	// cr_alignment: 0x10c5387d
 
 	// init_utsname()->machine: "arm", __NEW_UTS_LEN: 64
 	// list->arch_name: "armv7", ENDIANNESS: 'l'
@@ -690,12 +692,18 @@ static void __init setup_processor(void)
 		 list->elf_name, ENDIANNESS);
 	
 	// HWCAP_SWP | HWCAP_HALF | HWCAP_THUMB | HWCAP_FAST_MULT | HWCAP_EDSP | HWCAP_TLS
+	// elf_hwcap: HWCAP_SWP | HWCAP_HALF | HWCAP_THUMB | HWCAP_FAST_MULT | HWCAP_EDSP | HWCAP_TLS
 	// elf와 hwcap 이름의 관계?
 	// http://blee74.tistory.com/entry/setupprocessor-archarmkernelsetupc
 	elf_hwcap = list->elf_hwcap;
+	// HWCAP_SWP: 0x1, HWCAP_HALF: 0x2, HWCAP_THUMB: 0x4, HWCAP_FAST_MULT: 0x10 
+	// HWCAP_EDSP: 0x80, HWCAP_TLS: 0x8000
+	// elf_hwcap: 0x8097
 
-	// elf_hwcap |= HWCAP_IDIVA | HWCAP_IDIVT;
+	// elf_hwcap |= HWCAP_IDIVA(HWCAP_IDIVT);
 	cpuid_init_hwcaps();
+	// HWCAP_IDIVA: 0x20000, HWCAP_IDIVT: 0x40000	
+	// elf_hwcap: 0x28097 or 0x48097
 
 #ifndef CONFIG_ARM_THUMB // CONFIG_ARM_THUMB = n
 	elf_hwcap &= ~(HWCAP_THUMB | HWCAP_IDIVT);
