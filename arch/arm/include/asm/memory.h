@@ -30,6 +30,9 @@
  */
 #define UL(x) _AC(x, UL)
 
+/*
+// KID 20140212
+*/
 #ifdef CONFIG_MMU // CONFIG_MMU=y
 
 /*
@@ -193,7 +196,9 @@
  */
 #define __PV_BITS_31_24	0x81000000
 
+// KID 20140212
 extern unsigned long __pv_phys_offset;
+// KID 20140212
 #define PHYS_OFFSET __pv_phys_offset
 
 /*
@@ -238,8 +243,15 @@ static inline unsigned long __phys_to_virt(unsigned long x)
 
 #ifndef PHYS_OFFSET
 #ifdef PLAT_PHYS_OFFSET
+/*
+// KID 20140212
+// PHYS_OFFSET이 exynos5420용으로 kernel config에 제대로 들어가있지 않은 것으로 보임
+// 현재 : PLAT_PHYS_OFFSET: 0x40000000 - exynos4 default 값임
+*/
 #define PHYS_OFFSET	PLAT_PHYS_OFFSET
 #else
+// KID 20140212
+// 예상: PLAT_PHYS_OFFSET: 0x20000000 값이 CONFIG_PHYS_OFFSET 로 들어와야 할 것으로 보임
 #define PHYS_OFFSET	UL(CONFIG_PHYS_OFFSET)
 #endif
 #endif

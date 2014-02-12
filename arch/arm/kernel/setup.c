@@ -87,6 +87,10 @@ EXPORT_SYMBOL(cacheid);
 
 // ARM10C 20130928
 // FIXME: __atags_pointer은 왜 EXPORT_SYMBOL 을 하지 않는지?
+// KID 20140212
+// ATAG: 아래 문서 참고
+// Documentation/arm/Booting
+// Documentation/kernel-parameters.txt
 unsigned int __atags_pointer __initdata;
 
 unsigned int system_rev;
