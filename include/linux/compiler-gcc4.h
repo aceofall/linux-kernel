@@ -9,6 +9,12 @@
 # endif
 #endif
 
+// KID 20140213
+// This attribute, attached to a function, means that code must be emitted for the
+// function even if it appears that the function is not referenced. This is useful,
+// for example, when the function is referenced only in inline assembly.
+// When applied to a member function of a C++ class template, the attribute also
+// means that the function is instantiated if the class itself is instantiated.
 #define __used			__attribute__((__used__))
 #define __must_check 		__attribute__((warn_unused_result))
 #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)

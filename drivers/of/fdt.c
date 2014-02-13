@@ -28,10 +28,14 @@
 // ARM10C 20131005
 // ARM10C 20140208
 // blob : DTB 시작 주소, offset : property 이름의 offset
+// KID 20140213
+// blob: devtree의 주소, noff: 현재 offset위치의 property의  name offset 값 (property name)
 char *of_fdt_get_string(struct boot_param_header *blob, u32 offset)
 {
 	return ((char *)blob) +
 		be32_to_cpu(blob->off_dt_strings) + offset;
+	// devtree 주소를 기준으로 devtree string offset 시작위치에서 name offset 위치만큼 
+	// 떨이진  곳에 존재하는 string 주소를 리턴
 }
 
 /**
@@ -39,42 +43,74 @@ char *of_fdt_get_string(struct boot_param_header *blob, u32 offset)
  * the property ptr
  */
 // ARM10C 20131005
+// KID 20140213
+// blob: devtree의 주소, node: devtree의 dt_struct의 위치 (주소),"compatible", &cplen
 void *of_fdt_get_property(struct boot_param_header *blob,
 		       unsigned long node, const char *name,
 		       unsigned long *size)
 {
 	unsigned long p = node;
+        // p: node 주소 할당
 
 	do {
 		u32 tag = be32_to_cpup((__be32 *)p);
+                // tag: node의 현재 주소의 값을 big endian으로 변환하여 할당
 		u32 sz, noff;
 		const char *nstr;
 
 		p += 4;
+                // tag의 주소만큼 offset 이동
+
+		// OF_DT_NOP: 0x4
 		if (tag == OF_DT_NOP)
 			continue;
+			// tag가 OF_DT_NOP면 skip
+
+		// OF_DT_PROP: 0x3
 		if (tag != OF_DT_PROP)
 			return NULL;
-
+			// tag가 OF_DT_PROP가 아니면  NULL 리턴 
+		// tag가 OF_DT_PROP으로 확인
+		
 		sz = be32_to_cpup((__be32 *)p);
+		// sz: 현재 offset위치의 property의  size 값
+		
 		noff = be32_to_cpup((__be32 *)(p + 4));
+		// noff: 현재 offset위치의 property의  name offset 값 (property name)
+		
 		p += 8;
+		// property의 size 값, name offset 값의 주소만큼 offset 이동
+
+		// be32_to_cpu(blob->version): devtree의 version 정보 - 0x11
+		// devtree의 주소에서 20byte 떨어진 위치에 version 정보 값이 있음
 		if (be32_to_cpu(blob->version) < 0x10)
 			p = ALIGN(p, sz >= 8 ? 8 : 4);
 
+		// blob: devtree의 주소, noff: 현재 offset위치의 property의  name offset 값 (property name)
 		nstr = of_fdt_get_string(blob, noff);
+		// nstr: property의 name string 주소
+
 		if (nstr == NULL) {
 			pr_warning("Can't find property index name !\n");
 			return NULL;
 		}
-		// name: "compatible"
+
+		// name: "compatible", nstr: property의 name string 주소
 		if (strcmp(name, nstr) == 0) {
+			// "compatible" 문자열을 찾음
 			if (size)
 				*size = sz;
+				// "compatible"  property의 size  값을 저장
+
 			return (void *)p;
+			// "compatible" property를 찾은 이후에 devtree의 offset 위치를 return
+			//  p: "compatible" property의 값의 주소임
 		}
 		p += sz;
+		// "compatible" 못찾음, property의 size값 만큼 devtree의 offset 위치를 이동
+
 		p = ALIGN(p, 4);
+		// property의 size이 4byte align 되로록 함
 	} while (1);
 }
 
@@ -89,22 +125,35 @@ void *of_fdt_get_property(struct boot_param_header *blob,
  * specific compatible values.
  */
 // ARM10C 20131005
+// KID 20140213
+// blob: devtree의 주소, node: devtree의 dt_struct의 위치 (주소),
+// compat: compatible 문자열 배열 주소 "samsung,exynos5250", "samsung,exynos5250", "samsung,exynos5250"
 int of_fdt_is_compatible(struct boot_param_header *blob,
 		      unsigned long node, const char *compat)
 {
 	const char *cp;
 	unsigned long cplen, l, score = 0;
 
+        // blob: devtree의 주소, node: devtree의 dt_struct의 위치 (주소),"compatible", &cplen
 	cp = of_fdt_get_property(blob, node, "compatible", &cplen);
+	// cp: "compatible" property의 값의 주소
+
 	if (cp == NULL)
 		return 0;
+
+	// cplen: "compatible" property의 값의 size 값
 	while (cplen > 0) {
 		score++;
+		// score: 루프롤 돈 횟수
+
+		// devtree의 compatible string 과 target의 compatible string을 비교
 		if (of_compat_cmp(cp, compat, strlen(compat)) == 0)
 			return score;
+			// compatible string 값이 매칭 되었을 경우의 looping count 값을 리턴, 최소 1 이상임
 		l = strlen(cp) + 1;
 		cp += l;
 		cplen -= l;
+		// compatible string이 매치 안되었을  경우에 다음 문자열로 이동
 	}
 
 	return 0;
@@ -113,6 +162,9 @@ int of_fdt_is_compatible(struct boot_param_header *blob,
 /**
  * of_fdt_match - Return true if node matches a list of compatible values
  */
+// KID 20140213
+// initial_boot_params: devtree의 주소, node: devtree의 dt_struct의 위치 (주소),
+// compat: compatible 문자열 배열 주소 "samsung,exynos5250", "samsung,exynos5250", "samsung,exynos5250"
 int of_fdt_match(struct boot_param_header *blob, unsigned long node,
                  const char *const *compat)
 {
@@ -121,14 +173,24 @@ int of_fdt_match(struct boot_param_header *blob, unsigned long node,
 	if (!compat)
 		return 0;
 
+	// target의 compatible string 이 없을때까지 찾음 
 	while (*compat) {
+                // blob: devtree의 주소, node: devtree의 dt_struct의 위치 (주소),
+                // compat: compatible 문자열 배열 주소 "samsung,exynos5250", 
+                // "samsung,exynos5250", "samsung,exynos5250"
 		tmp = of_fdt_is_compatible(blob, node, *compat);
+		// tmp: devtree에 target과 맞는 compatible 이  존재시 tmp값은 1이상의 값을 가짐
+		// 찾지 못하면 tmp 값은 0
+
 		if (tmp && (score == 0 || (tmp < score)))
 			score = tmp;
+			// 가장 낮은 score 값을 가지는 문자열을 찾음
 		compat++;
 	}
 
 	return score;
+	// 가장 낮은 score 값을 가지는 문자열의 인덱스를 리턴 
+	// 0은 매칭되는 compatible이 없는 것을 의미함
 }
 
 // ARM10C 20140208
@@ -675,7 +737,7 @@ unsigned long __init of_get_flat_dt_root(void)
 	while (be32_to_cpup((__be32 *)p) == OF_DT_NOP)
 		p += 4;
 
-	// OF_DT_BEGIN_NOD: 0x1
+	// OF_DT_BEGIN_NODE: 0x1
 	BUG_ON(be32_to_cpup((__be32 *)p) != OF_DT_BEGIN_NODE);
 	p += 4;
 	return ALIGN(p + strlen((char *)p) + 1, 4);
@@ -708,9 +770,17 @@ int __init of_flat_dt_is_compatible(unsigned long node, const char *compat)
 /**
  * of_flat_dt_match - Return true if node matches a list of compatible values
  */
+// KID 20140213
+// dt_root: devtree의 dt_struct의 위치 (주소)
+// mdesc->dt_compat[0]: "samsung,exynos5250"
+// mdesc->dt_compat[1]: "samsung,exynos5420"
+// mdesc->dt_compat[2]: "samsung,exynos5440"
 int __init of_flat_dt_match(unsigned long node, const char *const *compat)
 {
+        // initial_boot_params: devtree의 주소, node: devtree의 dt_struct의 위치 (주소),
+        // compat: compatible 문자열 배열 주소 "samsung,exynos5250", "samsung,exynos5250", "samsung,exynos5250"
 	return of_fdt_match(initial_boot_params, node, compat);
+	// devtree와 가장 잘 매칭되는 compatible string의 index를 리턴
 }
 
 #ifdef CONFIG_BLK_DEV_INITRD // CONFIG_BLK_DEV_INITRD=y

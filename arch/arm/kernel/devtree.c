@@ -219,10 +219,17 @@ struct machine_desc * __init setup_machine_fdt(unsigned int dt_phys)
 	for_each_machine_desc(mdesc) {
 		// 아래 경로의 dtcompat 값 비교
 		// arch/arm/mach-exynos/mach-exynos5-dt.c
+                // dt_root: devtree의 dt_struct의 위치 (주소)
+                // mdesc->dt_compat[0]: "samsung,exynos5250"
+                // mdesc->dt_compat[1]: "samsung,exynos5420"
+                // mdesc->dt_compat[2]: "samsung,exynos5440"
 		score = of_flat_dt_match(dt_root, mdesc->dt_compat);
+                // score: compatible 의  string 값을 매칭한 score 값
+
 		if (score > 0 && score < mdesc_score) {
 			mdesc_best = mdesc;
 			mdesc_score = score;
+                        // score 값이 가장 낮은 target의 descriptor를 찾음 
 		}
 	}
 

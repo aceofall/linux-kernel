@@ -50,6 +50,7 @@ static void __init exynos5_dt_machine_init(void)
 	of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
 }
 
+// KID 20140213
 static char const *exynos5_dt_compat[] __initdata = {
 	"samsung,exynos5250",
 	"samsung,exynos5420",
@@ -75,6 +76,8 @@ static void __init exynos5_reserve(void)
 
 // ARM10C 20131005
 // ARM10C 20131012
+// KID 20140213
+// __used: 
 /*
 //static const struct machine_desc __mach_desc_EXYNOS5_DT	\
 // __used							\
