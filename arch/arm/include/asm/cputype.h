@@ -12,6 +12,7 @@
 #define CPUID_TLBTYPE	3
 #define CPUID_MPUIR	4
 // KID 20140108
+// ARM10C 20140215
 #define CPUID_MPIDR	5
 
 #ifdef CONFIG_CPU_V7M // CONFIG_CPU_V7M=n
@@ -53,23 +54,33 @@
 #define MPIDR_MT_BITMASK (0x1 << 24)
 
 // KID 20140108
+// ARM10C 20140215
 #define MPIDR_HWID_BITMASK 0xFFFFFF
 
 // KID 20140108
+// ARM10C 20140215
 // MPIDR_INVALID: 0xFF000000
 #define MPIDR_INVALID (~MPIDR_HWID_BITMASK)
 
 // KID 20140108
+// ARM10C 20140215
 #define MPIDR_LEVEL_BITS 8
 
 // KID 20140108
 // MPIDR_LEVEL_BITS: 8
 // MPIDR_LEVEL_MASK: 256 - 1 : 255
+// ARM10C 20140215
+// MPIDR_LEVEL_MASK: 0xFF
 #define MPIDR_LEVEL_MASK ((1 << MPIDR_LEVEL_BITS) - 1)
 
 // KID 20140108
 // MPIDR_LEVEL_BITS: 8
 // MPIDR_LEVEL_MASK: 0xFF
+// ARM10C 20140215
+// MPIDR_LEVEL_BITS 8, MPIDR_LEVEL_MASK: 0xFF
+// #define MPIDR_AFFINITY_LEVEL(0x3, 0)
+//	((0x3 >> (8 * 0)) & 0xFF)
+// MPIDR_AFFINITY_LEVEL(0x3, 0): 0x3
 #define MPIDR_AFFINITY_LEVEL(mpidr, level) \
 	((mpidr >> (MPIDR_LEVEL_BITS * level)) & MPIDR_LEVEL_MASK)
 
@@ -81,6 +92,7 @@
 #define ARM_CPU_PART_ARM1176		0xB760
 #define ARM_CPU_PART_ARM11MPCORE	0xB020
 #define ARM_CPU_PART_CORTEX_A8		0xC080
+// ARM10C 20140215
 #define ARM_CPU_PART_CORTEX_A9		0xC090
 #define ARM_CPU_PART_CORTEX_A5		0xC050
 #define ARM_CPU_PART_CORTEX_A15		0xC0F0
@@ -168,11 +180,14 @@ static inline unsigned int __attribute_const__ read_cpuid_ext(unsigned offset)
  */
 // ARM10C 20130914 this
 // KID 20140204
+// ARM10C 20140215
 static inline unsigned int __attribute_const__ read_cpuid_id(void)
 {
 	// CPUID_ID: 0
 	// read_cpuid(CPUID_ID): A.R.M: B4.1.105 MIDR, Main ID Register, VMSA
+        // CPUID_ID: 0
 	return read_cpuid(CPUID_ID);
+        // read_cpuid(0): 0x413FC0F3
 }
 
 #elif defined(CONFIG_CPU_V7M)
@@ -196,9 +211,12 @@ static inline unsigned int __attribute_const__ read_cpuid_implementor(void)
 	return (read_cpuid_id() & 0xFF000000) >> 24;
 }
 
+// ARM10C 20140215
 static inline unsigned int __attribute_const__ read_cpuid_part_number(void)
 {
+        // read_cpuid_id(): 0x413FC0F3
 	return read_cpuid_id() & 0xFFF0;
+        // return 0x0000C0F0
 }
 
 static inline unsigned int __attribute_const__ xscale_cpu_arch_version(void)
@@ -222,6 +240,8 @@ static inline unsigned int __attribute_const__ read_cpuid_tcmstatus(void)
 // ARM10C 20130824
 // __attribute_const__ 정보 아래링크 참조 
 // http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0348bk/Cacgigch.html
+// ARM10C 20140215
+// A.R.M: B4.1.106 MPIDR, Multiprocessor Affinity Register, VMSA
 static inline unsigned int __attribute_const__ read_cpuid_mpidr(void)
 {
 	return read_cpuid(CPUID_MPIDR);

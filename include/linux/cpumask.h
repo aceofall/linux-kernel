@@ -25,11 +25,14 @@ typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
  * a macro so it's const-correct.
  */
 // KID 20140203
+// ARM10C 20140215
 #define cpumask_bits(maskp) ((maskp)->bits)
 
 #if NR_CPUS == 1
 #define nr_cpu_ids		1
 #else
+// ARM10C 20140215
+// nr_cpu_ids: 4
 extern int nr_cpu_ids;
 #endif
 
@@ -39,6 +42,7 @@ extern int nr_cpu_ids;
 #define nr_cpumask_bits	nr_cpu_ids
 #else
 // KID 20140113
+// ARM10C 20140215
 // NR_CPUS: 4
 // nr_cpumask_bits: 4
 #define nr_cpumask_bits	NR_CPUS
@@ -91,6 +95,9 @@ extern const struct cpumask *const cpu_active_mask;
 
 #if NR_CPUS > 1
 #define num_online_cpus()	cpumask_weight(cpu_online_mask)
+// ARM10C 20140215
+// cpu_possible_mask: 0xF
+// num_possible_cpus(): 4
 #define num_possible_cpus()	cpumask_weight(cpu_possible_mask)
 #define num_present_cpus()	cpumask_weight(cpu_present_mask)
 #define num_active_cpus()	cpumask_weight(cpu_active_mask)
@@ -177,12 +184,17 @@ static inline unsigned int cpumask_first(const struct cpumask *srcp)
  *
  * Returns >= nr_cpu_ids if no further cpus set.
  */
+// ARM10C 20140215
+// n: -1, srcp: cpu_possible_mask
 static inline unsigned int cpumask_next(int n, const struct cpumask *srcp)
 {
 	/* -1 is a legal arg here. */
+	// n: -1
 	if (n != -1)
 		cpumask_check(n);
+	// cpumask_bits(cpu_possible_mask): cpu_possible_mask->bits: 0xF, nr_cpumask_bits: 4, n: -1+1
 	return find_next_bit(cpumask_bits(srcp), nr_cpumask_bits, n+1);
+	// return 0
 }
 
 /**
@@ -210,6 +222,7 @@ int cpumask_any_but(const struct cpumask *mask, unsigned int cpu);
  *
  * After the loop, cpu is >= nr_cpu_ids.
  */
+// ARM10C 20140215
 #define for_each_cpu(cpu, mask)				\
 	for ((cpu) = -1;				\
 		(cpu) = cpumask_next((cpu), (mask)),	\
@@ -470,9 +483,13 @@ static inline bool cpumask_full(const struct cpumask *srcp)
  * cpumask_weight - Count of bits in *srcp
  * @srcp: the cpumask to count bits (< nr_cpu_ids) in.
  */
+// ARM10C 20140215
+// cpu_possible_mask: 0xF
 static inline unsigned int cpumask_weight(const struct cpumask *srcp)
 {
+	// cpumask_bits(cpu_possible_mask): cpu_possible_mask->bits, nr_cpumask_bits: 4
 	return bitmap_weight(cpumask_bits(srcp), nr_cpumask_bits);
+	// return 4
 }
 
 /**
@@ -733,6 +750,9 @@ extern const DECLARE_BITMAP(cpu_all_bits, NR_CPUS);
 /* First bits of cpu_bit_bitmap are in fact unset. */
 #define cpu_none_mask to_cpumask(cpu_bit_bitmap[0])
 
+// ARM10C 20140215
+// #define for_each_cpu(i, cpu_possible_mask)
+//	for ((i) = -1; (i) = cpumask_next((i), (cpu_possible_mask)), (i) < nr_cpu_ids; )
 #define for_each_possible_cpu(cpu) for_each_cpu((cpu), cpu_possible_mask)
 #define for_each_online_cpu(cpu)   for_each_cpu((cpu), cpu_online_mask)
 #define for_each_present_cpu(cpu)  for_each_cpu((cpu), cpu_present_mask)
@@ -758,6 +778,7 @@ void init_cpu_online(const struct cpumask *src);
  */
 // ARM10C 20130831
 // 1 ? (bitmap) : bitmap의 type을 체크하기 위해
+// ARM10C 20140215
 #define to_cpumask(bitmap)						\
 	((struct cpumask *)(1 ? (bitmap)				\
 			    : (void *)sizeof(__check_is_bitmap(bitmap))))

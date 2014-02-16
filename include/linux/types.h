@@ -7,6 +7,8 @@
 #ifndef __ASSEMBLY__
 
 // KID 20140113
+// ARM10C 20140215
+// cpu_possible_bits[1]
 #define DECLARE_BITMAP(name,bits) \
 	unsigned long name[BITS_TO_LONGS(bits)]
 
