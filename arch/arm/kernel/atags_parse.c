@@ -40,6 +40,7 @@ static char default_command_line[COMMAND_LINE_SIZE] __initdata = CONFIG_CMDLINE;
 #endif
 
 // ARM10C 20131012
+// KID 20140227
 static struct {
 	struct tag_header hdr1;
 	struct tag_core   core;
@@ -183,6 +184,7 @@ static void __init squash_mem_tags(struct tag *tag)
 }
 
 // ARM10C 20131012
+// KID 20140227
 struct machine_desc * __init setup_machine_tags(phys_addr_t __atags_pointer,
 						unsigned int machine_nr)
 {

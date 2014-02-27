@@ -23,6 +23,8 @@
 #define ATAG_NONE	0x00000000
 
 // ARM10C 20131012
+// KID 20140227
+// sizeof(struct tag_header): 8 bytes
 struct tag_header {
 	__u32 size;
 	__u32 tag;
@@ -32,6 +34,8 @@ struct tag_header {
 // ARM10C 20131012
 #define ATAG_CORE	0x54410001
 
+// KID 20140227
+// sizeof(struct tag_core): 12 bytes
 struct tag_core {
 	__u32 flags;		/* bit 0 = read-only */
 	__u32 pagesize;
@@ -42,6 +46,8 @@ struct tag_core {
 // ARM10C 20131012
 #define ATAG_MEM	0x54410002
 
+// KID 20140227
+// sizeof(struct tag_mem32): 8 bytes
 struct tag_mem32 {
 	__u32	size;
 	__u32	start;	/* physical start address */
@@ -50,6 +56,8 @@ struct tag_mem32 {
 /* VGA text type displays */
 #define ATAG_VIDEOTEXT	0x54410003
 
+// KID 20140227
+// sizeof(struct tag_videotext): 12 bytes
 struct tag_videotext {
 	__u8		x;
 	__u8		y;
@@ -65,6 +73,8 @@ struct tag_videotext {
 /* describes how the ramdisk will be used in kernel */
 #define ATAG_RAMDISK	0x54410004
 
+// KID 20140227
+// sizeof(struct tag_ramdisk): 12 bytes
 struct tag_ramdisk {
 	__u32 flags;	/* bit 0 = load, bit 1 = prompt */
 	__u32 size;	/* decompressed ramdisk size in _kilo_ bytes */
@@ -81,6 +91,8 @@ struct tag_ramdisk {
 /* describes where the compressed ramdisk image lives (physical address) */
 #define ATAG_INITRD2	0x54420005
 
+// KID 20140227
+// sizeof(struct tag_initrd): 8 bytes
 struct tag_initrd {
 	__u32 start;	/* physical start address */
 	__u32 size;	/* size of compressed ramdisk image in bytes */
@@ -89,6 +101,8 @@ struct tag_initrd {
 /* board serial number. "64 bits should be enough for everybody" */
 #define ATAG_SERIAL	0x54410006
 
+// KID 20140227
+// sizeof(struct tag_serialnr): 8 bytes
 struct tag_serialnr {
 	__u32 low;
 	__u32 high;
@@ -97,6 +111,8 @@ struct tag_serialnr {
 /* board revision */
 #define ATAG_REVISION	0x54410007
 
+// KID 20140227
+// sizeof(struct tag_revision): 4 bytes
 struct tag_revision {
 	__u32 rev;
 };
@@ -106,6 +122,8 @@ struct tag_revision {
  */
 #define ATAG_VIDEOLFB	0x54410008
 
+// KID 20140227
+// sizeof(struct tag_videolfb): 24 bytes
 struct tag_videolfb {
 	__u16		lfb_width;
 	__u16		lfb_height;
@@ -126,6 +144,8 @@ struct tag_videolfb {
 /* command line: \0 terminated string */
 #define ATAG_CMDLINE	0x54410009
 
+// KID 20140227
+// sizeof(struct tag_cmdline): 1 bytes
 struct tag_cmdline {
 	char	cmdline[1];	/* this is the minimum size */
 };
@@ -133,6 +153,8 @@ struct tag_cmdline {
 /* acorn RiscPC specific information */
 #define ATAG_ACORN	0x41000101
 
+// KID 20140227
+// sizeof(struct tag_acorn): 10 bytes
 struct tag_acorn {
 	__u32 memc_control_reg;
 	__u32 vram_pages;
@@ -143,11 +165,28 @@ struct tag_acorn {
 /* footbridge memory clock, see arch/arm/mach-footbridge/arch.c */
 #define ATAG_MEMCLK	0x41000402
 
+// KID 20140227
+// sizeof(struct tag_memclk): 4 bytes
 struct tag_memclk {
 	__u32 fmemclk;
 };
 
 // ARM10C 20131012
+// KID 20140227
+// sizeof(struct tag_header): 8 bytes
+// sizeof(struct tag_core): 12 bytes
+// sizeof(struct tag_mem32): 8 bytes
+// sizeof(struct tag_videotext): 12 bytes
+// sizeof(struct tag_ramdisk): 12 bytes
+// sizeof(struct tag_initrd): 8 bytes
+// sizeof(struct tag_serialnr): 8 bytes
+// sizeof(struct tag_revision): 4 bytes
+// sizeof(struct tag_videolfb): 24 bytes
+// sizeof(struct tag_cmdline): 1 bytes
+// sizeof(struct tag_acorn): 10 bytes
+// sizeof(struct tag_memclk): 4 bytes
+//
+// sizeof(struct tag): sizeof(struct tag_header) + sizeof(struct tag_videolfb): 32 bytes
 struct tag {
 	struct tag_header hdr;
 	union {

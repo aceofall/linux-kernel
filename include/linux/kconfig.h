@@ -16,10 +16,35 @@
  * When CONFIG_BOOGER is not defined, we generate a (... 1, 0) pair, and when
  * the last step cherry picks the 2nd arg, we get a zero.
  */
+/*
+// KID 20140227
+*/
 #define __ARG_PLACEHOLDER_1 0,
+/*
+// KID 20140227
+// CONFIG_DEBUG_LL: not configured.
+// config_enabled(CONFIG_DEBUG_LL): _config_enabled(CONFIG_DEBUG_LL)
+// _config_enabled(CONFIG_DEBUG_LL): __config_enabled(__ARG_PLACEHOLDER_)
+// __config_enabled(__ARG_PLACEHOLDER_): ___config_enabled(__ARG_PLACEHOLDER_ 1, 0)
+// ___config_enabled(__ARG_PLACEHOLDER_ 1, 0): 0
+// ===============================================================================
+// config_enabled(CONFIG_DEBUG_LL): 0
+*/
 #define config_enabled(cfg) _config_enabled(cfg)
+/*
+// KID 20140227
+// _config_enabled(CONFIG_DEBUG_LL): __config_enabled(__ARG_PLACEHOLDER_)
+*/
 #define _config_enabled(value) __config_enabled(__ARG_PLACEHOLDER_##value)
+/*
+// KID 20140227
+// __config_enabled(__ARG_PLACEHOLDER_): ___config_enabled(__ARG_PLACEHOLDER_ 1, 0)
+*/
 #define __config_enabled(arg1_or_junk) ___config_enabled(arg1_or_junk 1, 0)
+/*
+// KID 20140227
+// ___config_enabled(__ARG_PLACEHOLDER_ 1, 0): 0
+*/
 #define ___config_enabled(__ignored, val, ...) val
 
 /*

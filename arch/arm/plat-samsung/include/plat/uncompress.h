@@ -18,7 +18,9 @@ typedef unsigned int upf_t;	/* cannot include linux/serial_core.h */
 
 /* uart setup */
 
+// KID 20140227
 unsigned int fifo_mask;
+// KID 20140227
 unsigned int fifo_max;
 
 volatile u8 *uart_base;
@@ -71,6 +73,7 @@ uart_rd(unsigned int reg)
  * waiting for tx to happen...
 */
 
+// KID 20140227
 static void putc(int ch)
 {
 	if (!config_enabled(CONFIG_DEBUG_LL))
@@ -98,6 +101,7 @@ static void putc(int ch)
 	uart_wr(S3C2410_UTXH, ch);
 }
 
+// KID 20140227
 static inline void flush(void)
 {
 }
@@ -107,7 +111,7 @@ static inline void flush(void)
 		*((volatile unsigned int __force *)(ad)) = (d); \
 	} while (0)
 
-#ifdef CONFIG_S3C_BOOT_ERROR_RESET
+#ifdef CONFIG_S3C_BOOT_ERROR_RESET // CONFIG_S3C_BOOT_ERROR_RESET=n
 
 static void arch_decomp_error(const char *x)
 {
@@ -125,11 +129,13 @@ static void arch_decomp_error(const char *x)
 #define arch_error arch_decomp_error
 #endif
 
-#ifdef CONFIG_S3C_BOOT_UART_FORCE_FIFO
+#ifdef CONFIG_S3C_BOOT_UART_FORCE_FIFO // CONFIG_S3C_BOOT_UART_FORCE_FIFO=y
+// KID 20140227
 static inline void arch_enable_uart_fifo(void)
 {
 	u32 fifocon;
 
+	// config_enabled(CONFIG_DEBUG_LL): 0
 	if (!config_enabled(CONFIG_DEBUG_LL))
 		return;
 
@@ -152,6 +158,7 @@ static inline void arch_enable_uart_fifo(void)
 #endif
 
 
+// KID 20140227
 static void
 arch_decomp_setup(void)
 {

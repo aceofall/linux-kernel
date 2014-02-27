@@ -1,4 +1,4 @@
-#ifdef STATIC
+#ifdef STATIC // defined
 /* Pre-boot environment: included */
 
 /* prevent inclusion of _LINUX_KERNEL_H in pre-boot environment: lots
