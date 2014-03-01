@@ -152,6 +152,8 @@ extern int bitmap_ord_to_pos(const unsigned long *bitmap, int n, int bits);
 // ARM10C 20140215
 // BITS_PER_LONG: 32
 // BITMAP_LAST_WORD_MASK(4): 0xF
+// ARM10C 20140301
+// BITMAP_LAST_WORD_MASK(8): 0xFF
 #define BITMAP_LAST_WORD_MASK(nbits)					\
 (									\
 	((nbits) % BITS_PER_LONG) ?					\
@@ -164,6 +166,8 @@ extern int bitmap_ord_to_pos(const unsigned long *bitmap, int n, int bits);
 // BITS_PER_LONG: 32
 // ARM10C 20140215
 // nbits: 4
+// ARM10C 20140301
+// nbits: 8
 #define small_const_nbits(nbits) \
 	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
 
@@ -177,14 +181,25 @@ static inline void bitmap_zero(unsigned long *dst, int nbits)
 	}
 }
 
+// ARM10C 20140301
+// dst: schunk->populated, nbits: 8
+// dst: dchunk->populated, nbits: 8
 static inline void bitmap_fill(unsigned long *dst, int nbits)
 {
+	// nbits: 8, BITS_TO_LONGS(8): 1
 	size_t nlongs = BITS_TO_LONGS(nbits);
+	// nlongs: 1
+
+	// nbits: 8, small_const_nbits(8): 1
 	if (!small_const_nbits(nbits)) {
 		int len = (nlongs - 1) * sizeof(unsigned long);
 		memset(dst, 0xff,  len);
 	}
+
+	// dst: schunk->populated, nlongs: 1, nbits: 8, BITMAP_LAST_WORD_MASK(8): 0xFF
 	dst[nlongs - 1] = BITMAP_LAST_WORD_MASK(nbits);
+	// schunk->populated[0]: 0xFF
+	// dchunk->populated[0]: 0xFF
 }
 
 static inline void bitmap_copy(unsigned long *dst, const unsigned long *src,
