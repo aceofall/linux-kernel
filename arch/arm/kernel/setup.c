@@ -1058,6 +1058,8 @@ void __init setup_arch(char **cmdline_p)
 	mdesc = setup_machine_fdt(__atags_pointer);
 	if (!mdesc)
 		mdesc = setup_machine_tags(__atags_pointer, __machine_arch_type);
+		// dtb를 찾지 못했을 경우 atags를 사용하여 machine 정보 설정
+
 	machine_desc = mdesc;
 	machine_name = mdesc->name;
 

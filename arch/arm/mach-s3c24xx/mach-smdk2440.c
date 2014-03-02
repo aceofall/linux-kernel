@@ -173,6 +173,24 @@ static void __init smdk2440_machine_init(void)
 	smdk_machine_init();
 }
 
+// KID 20140302
+// this comments just for atag code analysis
+// -----------------------------------------------------------
+// __used: __attribute__((__used__))
+// MACH_TYPE_S3C2440: 362
+// static const struct machine_desc __mach_desc_S3C2440
+//  __used
+//  __attribute__((__section__(".arch.info.init"))) = {
+//	.nr		= MACH_TYPE_S3C2440,
+//	.name		= "SMDK2440",
+//	.atag_offset	= 0x100,
+//	.init_irq	= s3c2440_init_irq,
+//	.map_io		= smdk2440_map_io,
+//	.init_machine	= smdk2440_machine_init,
+//	.init_time	= samsung_timer_init,
+//	.restart	= s3c244x_restart,
+// };
+
 MACHINE_START(S3C2440, "SMDK2440")
 	/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
 	.atag_offset	= 0x100,

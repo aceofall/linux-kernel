@@ -128,6 +128,7 @@ extern void softirq_init(void);
 
 /* Untouched command line saved by arch-specific code. */
 // ARM10C 20140222
+// KID 20140302
 char __initdata boot_command_line[COMMAND_LINE_SIZE];
 
 /* Untouched saved command line (eg. for /proc) */

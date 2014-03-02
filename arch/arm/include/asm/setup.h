@@ -17,7 +17,9 @@
 #include <uapi/asm/setup.h>
 
 
+// KID 20140302
 #define __tag __used __attribute__((__section__(".taglist.init")))
+// KID 20140302
 #define __tagtable(tag, fn) \
 static const struct tagtable __tagtable_##fn __tag = { tag, fn }
 

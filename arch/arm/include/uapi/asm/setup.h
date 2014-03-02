@@ -212,6 +212,7 @@ struct tag {
 	} u;
 };
 
+// KID 20140302
 struct tagtable {
 	__u32 tag;
 	int (*parse)(const struct tag *);
@@ -223,6 +224,7 @@ struct tagtable {
 
 #define tag_next(t)	((struct tag *)((__u32 *)(t) + (t)->hdr.size))
 // ARM10C 20131012
+// KID 20140302
 #define tag_size(type)	((sizeof(struct tag_header) + sizeof(struct type)) >> 2)
 
 #define for_each_tag(t,base)		\

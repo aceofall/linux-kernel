@@ -40,6 +40,7 @@ static char * __initdata root_device_name;
 static char __initdata saved_root_name[64];
 static int root_wait;
 
+// KID 20140302
 dev_t ROOT_DEV;
 
 static int __init load_ramdisk(char *str)

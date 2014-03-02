@@ -75,6 +75,7 @@ extern struct machine_desc *machine_desc;
  */
 extern struct machine_desc __arch_info_begin[], __arch_info_end[];
 // ARM10C 20131005
+// KID 20140302
 #define for_each_machine_desc(p)			\
 	for (p = __arch_info_begin; p < __arch_info_end; p++)
 

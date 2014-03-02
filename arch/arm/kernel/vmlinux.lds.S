@@ -194,6 +194,9 @@ SECTIONS
 		__arch_info_end = .;
 	}
 	.init.tagtable : {
+	/*
+	// KID 20140302
+	*/
 		__tagtable_begin = .;
 		*(.taglist.init)
 		__tagtable_end = .;
