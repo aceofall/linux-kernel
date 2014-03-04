@@ -36,12 +36,14 @@ struct sym_entry {
 	unsigned char *sym;
 };
 
+// KID 20140304
 struct text_range {
 	const char *stext, *etext;
 	unsigned long long start, end;
 };
 
 // ARM10C 20140125
+// KID 20140304
 static unsigned long long _text;
 static struct text_range text_ranges[] = {
 	{ "_stext",     "_etext"     },

@@ -377,6 +377,9 @@
 /* RODATA & RO_DATA provided for backward compatibility.
  * All archs are supposed to use RO_DATA() */
 #define RODATA          RO_DATA_SECTION(4096)
+/*
+// KID 20140304
+*/
 #define RO_DATA(align)  RO_DATA_SECTION(align)
 
 #define SECURITY_INIT							\
@@ -437,6 +440,9 @@
 #endif
 
 /* Section used for early init (in .S files) */
+/*
+// KID 20140304
+*/
 #define HEAD_TEXT  *(.head.text)
 
 #define HEAD_TEXT_SECTION							\

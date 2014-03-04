@@ -324,11 +324,12 @@ struct mm_rss_stat {
 };
 
 // ARM10C 20131012
+// KID 20140304
 struct mm_struct {
 	struct vm_area_struct * mmap;		/* list of VMAs */
 	struct rb_root mm_rb;
 	struct vm_area_struct * mmap_cache;	/* last find_vma result */
-#ifdef CONFIG_MMU
+#ifdef CONFIG_MMU // CONFIG_MMU=y
 	unsigned long (*get_unmapped_area) (struct file *filp,
 				unsigned long addr, unsigned long len,
 				unsigned long pgoff, unsigned long flags);
@@ -384,11 +385,11 @@ struct mm_struct {
 	unsigned long flags; /* Must use atomic bitops to access the bits */
 
 	struct core_state *core_state; /* coredumping support */
-#ifdef CONFIG_AIO
+#ifdef CONFIG_AIO // CONFIG_AIO=y
 	spinlock_t		ioctx_lock;
 	struct hlist_head	ioctx_list;
 #endif
-#ifdef CONFIG_MM_OWNER
+#ifdef CONFIG_MM_OWNER // CONFIG_MM_OWNER=n
 	/*
 	 * "owner" points to a task that is regarded as the canonical
 	 * user/owner of this mm. All of the following must be true in
@@ -404,16 +405,16 @@ struct mm_struct {
 
 	/* store ref to file /proc/<pid>/exe symlink points to */
 	struct file *exe_file;
-#ifdef CONFIG_MMU_NOTIFIER
+#ifdef CONFIG_MMU_NOTIFIER // CONFIG_MMU_NOTIFIER=n
 	struct mmu_notifier_mm *mmu_notifier_mm;
 #endif
-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+#ifdef CONFIG_TRANSPARENT_HUGEPAGE // CONFIG_TRANSPARENT_HUGEPAGE=n
 	pgtable_t pmd_huge_pte; /* protected by page_table_lock */
 #endif
-#ifdef CONFIG_CPUMASK_OFFSTACK
+#ifdef CONFIG_CPUMASK_OFFSTACK // CONFIG_CPUMASK_OFFSTACK=n
 	struct cpumask cpumask_allocation;
 #endif
-#ifdef CONFIG_NUMA_BALANCING
+#ifdef CONFIG_NUMA_BALANCING // CONFIG_NUMA_BALANCING=n
 	/*
 	 * numa_next_scan is the next time that the PTEs will be marked
 	 * pte_numa. NUMA hinting faults will gather statistics and migrate

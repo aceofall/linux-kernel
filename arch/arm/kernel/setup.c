@@ -156,9 +156,13 @@ EXPORT_SYMBOL(elf_platform);
 
 static const char *cpu_name;
 // ARM10C 20131012
+// KID 20140303
+// machine_name: "SAMSUNG EXYNOS5 (Flattened Device Tree)"
 static const char *machine_name;
 static char __initdata cmd_line[COMMAND_LINE_SIZE];
 // ARM10C 20131012
+// KID 20140303
+// machine_desc: __mach_desc_EXYNOS5_DT
 struct machine_desc *machine_desc __initdata;
 
 // ARM10C 20130914
@@ -1060,12 +1064,18 @@ void __init setup_arch(char **cmdline_p)
 		mdesc = setup_machine_tags(__atags_pointer, __machine_arch_type);
 		// dtb를 찾지 못했을 경우 atags를 사용하여 machine 정보 설정
 
+	// mdesc: __mach_desc_EXYNOS5_DT
 	machine_desc = mdesc;
+	// machine_desc: __mach_desc_EXYNOS5_DT
+
+	// mdesc->name: "SAMSUNG EXYNOS5 (Flattened Device Tree)"
 	machine_name = mdesc->name;
+	// machine_name: "SAMSUNG EXYNOS5 (Flattened Device Tree)"
 
 	// 우리는 안함.
 	setup_dma_zone(mdesc);
 
+	// mdesc->reboot_mode: REBOOT_COLD
 	if (mdesc->reboot_mode != REBOOT_HARD)
 		reboot_mode = mdesc->reboot_mode;
 
@@ -1076,6 +1086,7 @@ void __init setup_arch(char **cmdline_p)
 
 // 2013/10/12 종료
 // 2013/10/19 시작
+
 	/* populate cmd_line too for later use, preserving boot_command_line */
 	strlcpy(cmd_line, boot_command_line, COMMAND_LINE_SIZE);
 	*cmdline_p = cmd_line;

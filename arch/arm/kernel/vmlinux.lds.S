@@ -73,24 +73,32 @@ SECTIONS
 		ARM_EXIT_DISCARD(EXIT_TEXT)
 		ARM_EXIT_DISCARD(EXIT_DATA)
 		EXIT_CALL
-#ifndef CONFIG_MMU
+#ifndef CONFIG_MMU // CONFIG_MMU=y
 		*(.fixup)
 		*(__ex_table)
 #endif
-#ifndef CONFIG_SMP_ON_UP
+#ifndef CONFIG_SMP_ON_UP // CONFIG_SMP_ON_UP=y
 		*(.alt.smp.init)
 #endif
 		*(.discard)
 		*(.discard.*)
 	}
 
-#ifdef CONFIG_XIP_KERNEL
+#ifdef CONFIG_XIP_KERNEL // CONFIG_XIP_KERNEL=n
 	. = XIP_VIRT_ADDR(CONFIG_XIP_PHYS_ADDR);
 #else
+	/*
+	// KID 20140304
+	// PAGE_OFFSET: 0xC0000000, TEXT_OFFSET: 0x8000
+	*/
 	. = PAGE_OFFSET + TEXT_OFFSET;
 #endif
 	.head.text : {
 		_text = .;
+		/*
+		// KID 20140304
+		// HEAD_TEX:  *(.head.text)
+		*/
 		HEAD_TEXT
 	}
 	.text : {			/* Real text segment		*/
@@ -104,7 +112,7 @@ SECTIONS
 			LOCK_TEXT
 			KPROBES_TEXT
 			IDMAP_TEXT
-#ifdef CONFIG_MMU
+#ifdef CONFIG_MMU // CONFIG_MMU=y
 			*(.fixup)
 #endif
 			*(.gnu.warning)
@@ -114,7 +122,10 @@ SECTIONS
 		*(.got)			/* Global offset table		*/
 			ARM_CPU_KEEP(PROC_INFO)
 	}
-
+	/*
+	// KID 20140304
+	// PAGE_SIZE: 0x00001000
+	*/
 	RO_DATA(PAGE_SIZE)
 
 	. = ALIGN(4);
