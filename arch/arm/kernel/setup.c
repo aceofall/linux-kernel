@@ -159,6 +159,7 @@ static const char *cpu_name;
 // KID 20140303
 // machine_name: "SAMSUNG EXYNOS5 (Flattened Device Tree)"
 static const char *machine_name;
+// KID 20140305
 static char __initdata cmd_line[COMMAND_LINE_SIZE];
 // ARM10C 20131012
 // KID 20140303
@@ -1088,8 +1089,13 @@ void __init setup_arch(char **cmdline_p)
 // 2013/10/19 시작
 
 	/* populate cmd_line too for later use, preserving boot_command_line */
+	// boot_command_line: "console=ttySAC2,115200 init=/linuxrc", COMMAND_LINE_SIZE: 1024
 	strlcpy(cmd_line, boot_command_line, COMMAND_LINE_SIZE);
+	// cmd_line: "console=ttySAC2,115200 init=/linuxrc"
+
+	// cmdline_p: start_kernel함수의 local char pointer
 	*cmdline_p = cmd_line;
+	// *cmdline_p: "console=ttySAC2,115200 init=/linuxrc"
 
 	// command arg에서 각 요소들을 파싱하여 early init section으로 설정된 디바이스 초기화.
 	// 우리는 serial device가 검색이 되지만 config설정은 없어서 아무것도 안함.

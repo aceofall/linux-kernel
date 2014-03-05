@@ -294,6 +294,7 @@ struct machine_desc * __init setup_machine_fdt(unsigned int dt_phys)
 	/* Retrieve various information from the /chosen node */
 	// dt에서 chosen 노드를 찾고 정보를 저장 
 	of_scan_flat_dt(early_init_dt_scan_chosen, boot_command_line);
+	// boot_command_line: "console=ttySAC2,115200 init=/linuxrc"
 
 	/* Initialize {size,address}-cells info */
 	// dt에서 root 노드에 있는 정보를 저장

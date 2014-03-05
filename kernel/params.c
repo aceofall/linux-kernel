@@ -88,6 +88,9 @@ bool parameq(const char *a, const char *b)
 
 // ARM10C 20131019
 // parse_one( param, val, "early options", "NULL, 0, 0, 0, do_early_param);
+// KID 20140305
+// param: "console", val: "ttySAC2,115200", doing: "early options",
+// params: NULL, num: 0, min_level: 0, max_level: 0, unknown: do_early_param
 static int parse_one(char *param,
 		     char *val,
 		     const char *doing,
@@ -102,6 +105,7 @@ static int parse_one(char *param,
 	int err;
 
 	/* Find parameter */
+	// num_params: 0
 	for (i = 0; i < num_params; i++) {
 		if (parameq(param, params[i].name)) {
 			if (params[i].level < min_level
@@ -120,10 +124,14 @@ static int parse_one(char *param,
 		}
 	}
 
+	// handle_unknown: do_early_param
 	if (handle_unknown) {
-		// 출력값 
-		// doing early options: console='ttySAC2,115200'
+		// doing: "early options", param: "console", val: "ttySAC2,115200"
 		pr_debug("doing %s: %s='%s'\n", doing, param, val);
+		// 출력값: doing early options: console='ttySAC2,115200'
+
+		// handle_unknown: do_early_param
+		// param: "console", val: "ttySAC2,115200", doing: "early options"
 		return handle_unknown(param, val, doing);
 	}
 
@@ -135,50 +143,83 @@ static int parse_one(char *param,
 /* Hyphens and underscores equivalent in parameter names. */
 // ARM10C 20131019
 // "console=ttySAC2,115200 init=/linuxrc"
+// KID 20140305
+// args: "console=ttySAC2,115200 init=/linuxrc"
 static char *next_arg(char *args, char **param, char **val)
 {
 	unsigned int i, equals = 0;
 	int in_quote = 0, quoted = 0;
 	char *next;
 
+	// *args: c
 	if (*args == '"') {
 		args++;
+
 		in_quote = 1;
+
 		quoted = 1;
 	}
 
-	// equals 값은 "=" string index 값
+	// args: "console=ttySAC2,115200 init=/linuxrc"
 	for (i = 0; args[i]; i++) {
+		// i: 0, args[0]: c, in_quote: 0
+		// i: 22, args[22]: ' ', in_quote: 0
 		if (isspace(args[i]) && !in_quote)
 			break;
+			// i: 22
+
+		// i: 0, equals: 0
 		if (equals == 0) {
+			// i: 0, args[0]: c
+			// i: 7, args[7]: =
 			if (args[i] == '=')
 				equals = i;
+				// i: 7, equal: 7
 		}
+		// i: 0, args[0]: c
 		if (args[i] == '"')
 			in_quote = !in_quote;
 	}
+	// equals 값은 "=" string index 값
 
+	// args: "console=ttySAC2,115200 init=/linuxrc"
 	*param = args;
+	// *param: "console=ttySAC2,115200 init=/linuxrc"
+
+	// equals: 7
 	if (!equals)
 		*val = NULL;
 	else {
+		// args: "console=ttySAC2,115200 init=/linuxrc"
 		args[equals] = '\0';
+		// args: console
+
+		// equals: 7
 		*val = args + equals + 1;
+		// *val: "ttySAC2,115200 init=/linuxrc"
 
 		/* Don't include quotes in value. */
+		// **val: t
 		if (**val == '"') {
 			(*val)++;
+
 			if (args[i-1] == '"')
 				args[i-1] = '\0';
 		}
+
+		// quoted: 0, i: 22, args[22]: ' '
 		if (quoted && args[i-1] == '"')
 			args[i-1] = '\0';
 	}
 
+	// i: 22, args[22]: ' '
 	if (args[i]) {
 		args[i] = '\0';
+		// i: 22, args[22]: '\0'
+
 		next = args + i + 1;
+		// next: "init=/linuxrc"
+
 	} else
 		next = args + i;
 
@@ -189,6 +230,9 @@ static char *next_arg(char *args, char **param, char **val)
 /* Args looks like "foo=bar,bar2 baz=fuz wiz". */
 // ARM10C 20131019
 // parse_args("early options", cmdline, NULL, 0, 0, 0, do_early_param);
+// KID 20140305
+// "early options", cmdline: "console=ttySAC2,115200 init=/linuxrc"
+// NULL, 0, 0, 0, do_early_param
 int parse_args(const char *doing,
 	       char *args,
 	       const struct kernel_param *params,
@@ -204,16 +248,24 @@ int parse_args(const char *doing,
 	args = skip_spaces(args);
 
 	// dtb 에서 복사된 값
-	// "console=ttySAC2,115200 init=/linuxrc" 이 args 값임
+	// args: "console=ttySAC2,115200 init=/linuxrc" 이 args 값임
 	if (*args)
+		// doing: "early options"
 		pr_debug("doing %s, parsing ARGS: '%s'\n", doing, args);
 
+	// args: "console=ttySAC2,115200 init=/linuxrc"
 	while (*args) {
 		int ret;
 		int irq_was_disabled;
 
+		// args: "console=ttySAC2,115200 init=/linuxrc"
 		args = next_arg(args, &param, &val);
+		// args: "init=/linuxrc", param: "console", val: "ttySAC2,115200" 
+
 		irq_was_disabled = irqs_disabled();
+
+		// param: "console", val: "ttySAC2,115200", doing: "early options",
+		// params: NULL, num: 0, min_level: 0, max_level: 0, unknown: do_early_param
 		ret = parse_one(param, val, doing, params, num,
 				min_level, max_level, unknown);
 		// irq 값이 바뀌었는지 확인

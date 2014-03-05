@@ -129,6 +129,8 @@ extern void softirq_init(void);
 /* Untouched command line saved by arch-specific code. */
 // ARM10C 20140222
 // KID 20140302
+// KID 20140305
+// boot_command_line: "console=ttySAC2,115200 init=/linuxrc"
 char __initdata boot_command_line[COMMAND_LINE_SIZE];
 
 /* Untouched saved command line (eg. for /proc) */
@@ -425,13 +427,17 @@ static int __init do_early_param(char *param, char *val, const char *unused)
 }
 
 // ARM10C 20131019
+// KID 20140305
+// tmp_cmdline: "console=ttySAC2,115200 init=/linuxrc"
 void __init parse_early_options(char *cmdline)
 {
+	// cmdline: "console=ttySAC2,115200 init=/linuxrc"
 	parse_args("early options", cmdline, NULL, 0, 0, 0, do_early_param);
 }
 
 /* Arch code calls this early on, or if not, just before other parsing. */
 // ARM10C 20131019
+// KID 20140305
 void __init parse_early_param(void)
 {
 	static __initdata int done = 0;
@@ -441,7 +447,10 @@ void __init parse_early_param(void)
 		return;
 
 	/* All fall through to do_early_param. */
+	// boot_command_line: "console=ttySAC2,115200 init=/linuxrc"
 	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
+	// tmp_cmdline: "console=ttySAC2,115200 init=/linuxrc"
+
 	parse_early_options(tmp_cmdline);
 	done = 1;
 }

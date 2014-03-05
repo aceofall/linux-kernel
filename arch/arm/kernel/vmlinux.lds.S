@@ -131,13 +131,13 @@ SECTIONS
 	. = ALIGN(4);
 	__ex_table : AT(ADDR(__ex_table) - LOAD_OFFSET) {
 		__start___ex_table = .;
-#ifdef CONFIG_MMU
+#ifdef CONFIG_MMU // CONFIG_MMU=y
 		*(__ex_table)
 #endif
 		__stop___ex_table = .;
 	}
 
-#ifdef CONFIG_ARM_UNWIND
+#ifdef CONFIG_ARM_UNWIND // CONFIG_ARM_UNWIND=y
 	/*
 	 * Stack unwinding tables
 	 */
@@ -158,7 +158,7 @@ SECTIONS
 
 	_etext = .;			/* End of text and rodata section */
 
-#ifndef CONFIG_XIP_KERNEL
+#ifndef CONFIG_XIP_KERNEL // CONFIG_XIP_KERNEL=n
 	. = ALIGN(PAGE_SIZE);
 	__init_begin = .;
 #endif
@@ -212,7 +212,7 @@ SECTIONS
 		*(.taglist.init)
 		__tagtable_end = .;
 	}
-#ifdef CONFIG_SMP_ON_UP
+#ifdef CONFIG_SMP_ON_UP // ONFIG_SMP_ON_UP=y
 	.init.smpalt : {
 		__smpalt_begin = .;
 		*(.alt.smp.init)
@@ -225,7 +225,7 @@ SECTIONS
 		__pv_table_end = .;
 	}
 	.init.data : {
-#ifndef CONFIG_XIP_KERNEL
+#ifndef CONFIG_XIP_KERNEL // CONFIG_XIP_KERNEL=n
 		INIT_DATA
 #endif
 		INIT_SETUP(16)
@@ -234,17 +234,17 @@ SECTIONS
 		SECURITY_INITCALL
 		INIT_RAM_FS
 	}
-#ifndef CONFIG_XIP_KERNEL
+#ifndef CONFIG_XIP_KERNEL // CONFIG_XIP_KERNEL=n
 	.exit.data : {
 		ARM_EXIT_KEEP(EXIT_DATA)
 	}
 #endif
 
-#ifdef CONFIG_SMP
+#ifdef CONFIG_SMP // CONFIG_SMP=y
 	PERCPU_SECTION(L1_CACHE_BYTES)
 #endif
 
-#ifdef CONFIG_XIP_KERNEL
+#ifdef CONFIG_XIP_KERNEL // CONFIG_XIP_KERNEL=n
 	__data_loc = ALIGN(4);		/* location in binary */
 	. = PAGE_OFFSET + TEXT_OFFSET;
 #else
@@ -263,7 +263,7 @@ SECTIONS
 		 */
 		INIT_TASK_DATA(THREAD_SIZE)
 
-#ifdef CONFIG_XIP_KERNEL
+#ifdef CONFIG_XIP_KERNEL // CONFIG_XIP_KERNEL=n
 		. = ALIGN(PAGE_SIZE);
 		__init_begin = .;
 		INIT_DATA
@@ -286,7 +286,7 @@ SECTIONS
 	}
 	_edata_loc = __data_loc + SIZEOF(.data);
 
-#ifdef CONFIG_HAVE_TCM
+#ifdef CONFIG_HAVE_TCM // CONFIG_HAVE_TCM=n
         /*
 	 * We align everything to a page boundary so we can
 	 * free it after init has commenced and TCM contents have

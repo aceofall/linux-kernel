@@ -344,6 +344,7 @@ EXPORT_SYMBOL(strnchr);
  * Returns a pointer to the first non-whitespace character in @str.
  */
 // ARM10C 20131019
+// KID 20140305
 char *skip_spaces(const char *str)
 {
 	while (isspace(*str))
