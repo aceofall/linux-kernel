@@ -30,7 +30,7 @@ static const struct tagtable __tagtable_##fn __tag = { tag, fn }
 // CONFIG_ARM_NR_BANKS=8
 // ARM은 default가 8임
 // KID 20140306
-// NR_BANKS: 8	
+// NR_BANKS: 8
 #define NR_BANKS	CONFIG_ARM_NR_BANKS
 
 // ARM10C 20131012

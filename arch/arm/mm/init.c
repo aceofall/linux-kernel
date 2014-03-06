@@ -94,6 +94,7 @@ void __init early_init_dt_setup_initrd_arch(unsigned long start, unsigned long e
 // ARM10C 20131012
 // ARM10C 20131207
 // KID 20140306
+// meminfo.nr_banks: 1
 struct meminfo meminfo;
 
 void show_mem(unsigned int filter)

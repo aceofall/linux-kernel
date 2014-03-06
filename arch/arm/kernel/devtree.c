@@ -315,8 +315,8 @@ struct machine_desc * __init setup_machine_fdt(unsigned int dt_phys)
 
 	/* Change machine number to match the mdesc we're using */
 	// FIXME: machine_arch_type값이 0xFFFFFFFF 가 맞는지?
-	// __machine_arch_type = 0xFFFFFFFF 
 	__machine_arch_type = mdesc_best->nr;
+	// __machine_arch_type = 0xFFFFFFFF
 
 	return mdesc_best;
 }

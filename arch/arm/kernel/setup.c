@@ -792,8 +792,11 @@ void __init dump_machine_table(void)
 // base: 0x20000000, size: 0x80000000
 int __init arm_add_memory(phys_addr_t start, phys_addr_t size)
 {
+	// meminfo.nr_banks: 0
 	struct membank *bank = &meminfo.bank[meminfo.nr_banks];
+	// bank: &meminfo.bank[0]
 
+	// meminfo.nr_banks: 0, NR_BANKS: 8
 	if (meminfo.nr_banks >= NR_BANKS) {
 		printk(KERN_CRIT "NR_BANKS too low, "
 			"ignoring memory at 0x%08llx\n", (long long)start);
@@ -807,12 +810,14 @@ int __init arm_add_memory(phys_addr_t start, phys_addr_t size)
 	// start=0x20000000 , size=0x80000000
 	// PAGE_MASK=(~((1 << 12) - 1)) : 0xFFFFF000, 4k
 	// size = 0x80000000 - (0x20000000 & 0x00000FFF)
-	// size = 0x80000000
 	size -= start & ~PAGE_MASK;
-	// bank->start=0x20000000
-	bank->start = PAGE_ALIGN(start);
+	// size: 0x80000000
 
-#ifndef CONFIG_ARM_LPAE	// not defined
+	// start: 0x20000000, PAGE_ALIGN(start): 0x20000000
+	bank->start = PAGE_ALIGN(start);
+	// bank->start: 0x20000000
+
+#ifndef CONFIG_ARM_LPAE	// CONFIG_ARM_LPAE=n
 	if (bank->start + size < bank->start) {
 		printk(KERN_CRIT "Truncating memory at 0x%08llx to fit in "
 			"32-bit physical address space\n", (long long)start);
@@ -825,17 +830,22 @@ int __init arm_add_memory(phys_addr_t start, phys_addr_t size)
 	}
 #endif
 
-	// bank->size=0x80000000
+	// size: 0x80000000, PAGE_SIZE: 0x1000
 	bank->size = size & ~(phys_addr_t)(PAGE_SIZE - 1);
+	// bank->size: 0x80000000
 
 	/*
 	 * Check whether this memory region has non-zero size or
 	 * invalid node number.
 	 */
+	// bank->size: 0x80000000
 	if (bank->size == 0)
 		return -EINVAL;
 
+	// meminfo.nr_banks: 0
 	meminfo.nr_banks++;
+	// meminfo.nr_banks: 1
+
 	return 0;
 }
 
@@ -1106,9 +1116,9 @@ void __init setup_arch(char **cmdline_p)
 
 	// page frame number 기준으로 정렬
 	// 어드래스로 비교안하는 이유?
-	// meminfo.nr_banks: 0, sizeof(meminfo.bank[0]): 12 bytes
+	// meminfo.nr_banks: 1, sizeof(meminfo.bank[0]): 12 bytes
 	sort(&meminfo.bank, meminfo.nr_banks, sizeof(meminfo.bank[0]), meminfo_cmp, NULL);
-	// meminfo.nr_banks이 0이라 sort할 내용이 없음.
+	// meminfo.nr_banks이 1이라 sort할 내용이 없음.
 
 	// memory bank에서 bank하나가  valloc limit 을 넘으면 2개로 쪼갬.bank[0]:low bank[1]:high
 	sanity_check_meminfo();
