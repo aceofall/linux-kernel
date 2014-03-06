@@ -169,6 +169,7 @@ const char * envp_init[MAX_INIT_ENVS+2] = { "HOME=/", "TERM=linux", NULL, };
 static const char *panic_later, *panic_param;
 
 // ARM10C 20131019
+// KID 20140306
 extern const struct obs_kernel_param __setup_start[], __setup_end[];
 
 static int __init obsolete_checksetup(char *line)
@@ -409,21 +410,30 @@ static noinline void __init_refok rest_init(void)
 
 /* Check for early params. */
 // ARM10C 20131019
+// KID 20140306
+// param: "console", val: "ttySAC2,115200", doing: "early options"
 static int __init do_early_param(char *param, char *val, const char *unused)
 {
 	const struct obs_kernel_param *p;
 
+	// early_param("earlycon", setup_early_serial8250_console)
 	for (p = __setup_start; p < __setup_end; p++) {
+		// p: __setup_setup_early_serial8250_console	
+		// p->early: 1, param: "console", p->str: "earlycon"
+		// parameq("console", "earlycon"): 0
 		if ((p->early && parameq(param, p->str)) ||
 		    (strcmp(param, "console") == 0 &&
 		     strcmp(p->str, "earlycon") == 0)
 		) {
+			// p->setup_func: setup_early_serial8250_console, val: "ttySAC2,115200"
+			// setup_early_serial8250_console("ttySAC2,115200"): 0
 			if (p->setup_func(val) != 0)
 				pr_warn("Malformed early option '%s'\n", param);
 		}
 	}
 	/* We accept everything at this stage. */
 	return 0;
+	// return 0
 }
 
 // ARM10C 20131019
@@ -443,6 +453,7 @@ void __init parse_early_param(void)
 	static __initdata int done = 0;
 	static __initdata char tmp_cmdline[COMMAND_LINE_SIZE];
 
+	// done: 0
 	if (done)
 		return;
 
@@ -453,6 +464,7 @@ void __init parse_early_param(void)
 
 	parse_early_options(tmp_cmdline);
 	done = 1;
+	// done: 1
 }
 
 /*

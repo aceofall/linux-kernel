@@ -161,9 +161,10 @@ typedef unsigned __bitwise__ gfp_t;
 typedef unsigned __bitwise__ fmode_t;
 typedef unsigned __bitwise__ oom_flags_t;
 
-#ifdef CONFIG_PHYS_ADDR_T_64BIT
+#ifdef CONFIG_PHYS_ADDR_T_64BIT // CONFIG_PHYS_ADDR_T_64BIT=n
 typedef u64 phys_addr_t;
 #else
+// KID 20140306
 typedef u32 phys_addr_t;
 #endif
 

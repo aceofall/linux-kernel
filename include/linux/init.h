@@ -234,6 +234,7 @@ extern bool initcall_debug;
 	__used __section(.security_initcall.init) = fn
 
 // ARM10C 20131019
+// KID 20140306
 struct obs_kernel_param {
 	const char *str;
 	int (*setup_func)(char *);

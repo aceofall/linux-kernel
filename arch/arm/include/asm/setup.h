@@ -29,10 +29,14 @@ static const struct tagtable __tagtable_##fn __tag = { tag, fn }
 // ARM10C 20131012
 // CONFIG_ARM_NR_BANKS=8
 // ARM은 default가 8임
+// KID 20140306
+// NR_BANKS: 8	
 #define NR_BANKS	CONFIG_ARM_NR_BANKS
 
 // ARM10C 20131012
 // ARM10C 20131207
+// KID 20140306
+// sizeof(struct membank): 12 bytes
 struct membank {
 	phys_addr_t start;
 	phys_addr_t size;
@@ -41,8 +45,10 @@ struct membank {
 
 // ARM10C 20131012
 // ARM10C 20131207
+// KID 20140306
 struct meminfo {
 	int nr_banks;
+	// NR_BANKS: 8
 	struct membank bank[NR_BANKS];
 };
 
@@ -54,6 +60,7 @@ extern struct meminfo meminfo;
 
 // ARM10C 20131019
 // ARM10C 20131207
+// KID 20140306
 #define bank_pfn_start(bank)	__phys_to_pfn((bank)->start)
 // ARM10C 20131207
 #define bank_pfn_end(bank)	__phys_to_pfn((bank)->start + (bank)->size)

@@ -788,6 +788,8 @@ void __init dump_machine_table(void)
 }
 
 // ARM10C 20131012
+// KID 20140306
+// base: 0x20000000, size: 0x80000000
 int __init arm_add_memory(phys_addr_t start, phys_addr_t size)
 {
 	struct membank *bank = &meminfo.bank[meminfo.nr_banks];
@@ -1025,6 +1027,7 @@ static inline void reserve_crashkernel(void) {}
 #endif /* CONFIG_KEXEC */
 
 // ARM10C 20131019
+// KID 20140306
 static int __init meminfo_cmp(const void *_a, const void *_b)
 {
 	const struct membank *a = _a, *b = _b;
@@ -1103,7 +1106,9 @@ void __init setup_arch(char **cmdline_p)
 
 	// page frame number 기준으로 정렬
 	// 어드래스로 비교안하는 이유?
+	// meminfo.nr_banks: 0, sizeof(meminfo.bank[0]): 12 bytes
 	sort(&meminfo.bank, meminfo.nr_banks, sizeof(meminfo.bank[0]), meminfo_cmp, NULL);
+	// meminfo.nr_banks이 0이라 sort할 내용이 없음.
 
 	// memory bank에서 bank하나가  valloc limit 을 넘으면 2개로 쪼갬.bank[0]:low bank[1]:high
 	sanity_check_meminfo();

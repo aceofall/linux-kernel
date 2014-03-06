@@ -299,6 +299,7 @@ static inline void *phys_to_virt(phys_addr_t x)
  */
 /*
 // ARM10C 20131019
+// KID 20140306
 */
 #define __pa(x)			__virt_to_phys((unsigned long)(x))
 /*

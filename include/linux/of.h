@@ -128,12 +128,21 @@ extern struct device_node *of_find_all_nodes(struct device_node *prev);
 
 /* Helper to read a big number; size is in cells (not bytes) */
 // ARM10C 20131012
+// KID 20140306
+// p: reg, s: 1
 static inline u64 of_read_number(const __be32 *cell, int size)
 {
 	u64 r = 0;
+
+	// size: 1
 	while (size--)
+		// cell: reg
 		r = (r << 32) | be32_to_cpu(*(cell++));
+		// r: 0x0000000020000000, reg: reg + 1
+		// r: 0x0000000080000000, reg: reg + 1
 	return r;
+	// return 0x0000000020000000
+	// return 0x0000000080000000
 }
 
 /* Like of_read_number, but we want an unsigned long result */
@@ -149,7 +158,9 @@ static inline unsigned long of_read_ulong(const __be32 *cell, int size)
 /* Default #address and #size cells.  Allow arch asm/prom.h to override */
 #if !defined(OF_ROOT_NODE_ADDR_CELLS_DEFAULT)
 // ARM10C 20131012
+// KID 20140306
 #define OF_ROOT_NODE_ADDR_CELLS_DEFAULT 1
+// KID 20140306
 #define OF_ROOT_NODE_SIZE_CELLS_DEFAULT 1
 #endif
 

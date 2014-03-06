@@ -61,6 +61,7 @@ static void maybe_kfree_parameter(void *param)
 }
 
 // ARM10C 20131019
+// KID 20140306
 static char dash2underscore(char c)
 {
 	if (c == '-')
@@ -69,21 +70,32 @@ static char dash2underscore(char c)
 }
 
 // ARM10C 20131019
+// KID 20140306
+// a: "console", b: "earlycon", strlen(a)+1: 8
 bool parameqn(const char *a, const char *b, size_t n)
 {
 	size_t i;
 
+	// n: 8
 	for (i = 0; i < n; i++) {
+		// a: "console", b: "earlycon"
+		// i: 0, a[0]: 'c', b[0]: 'e', 
 		if (dash2underscore(a[i]) != dash2underscore(b[i]))
+			// dash2underscore(a[0]): 'c', dash2underscore(b[0]): 'e'
 			return false;
+			// return false;
 	}
 	return true;
 }
 
 // ARM10C 20131019
+// KID 20140306
+// param: "console", p->str: "earlycon"
 bool parameq(const char *a, const char *b)
 {
+	// a: "console", b: "earlycon", strlen(a)+1: 8
 	return parameqn(a, b, strlen(a)+1);
+	// return false
 }
 
 // ARM10C 20131019
@@ -132,7 +144,9 @@ static int parse_one(char *param,
 
 		// handle_unknown: do_early_param
 		// param: "console", val: "ttySAC2,115200", doing: "early options"
+		// do_early_param("console", "ttySAC2,115200", "early options"): 0
 		return handle_unknown(param, val, doing);
+		// return 0
 	}
 
 	pr_debug("Unknown argument '%s'\n", param);
@@ -268,11 +282,14 @@ int parse_args(const char *doing,
 		// params: NULL, num: 0, min_level: 0, max_level: 0, unknown: do_early_param
 		ret = parse_one(param, val, doing, params, num,
 				min_level, max_level, unknown);
+		// ret: 0
+
 		// irq 값이 바뀌었는지 확인
 		if (irq_was_disabled && !irqs_disabled())
 			pr_warn("%s: option '%s' enabled irq's!\n",
 				doing, param);
 
+		// ret: 0
 		switch (ret) {
 		case -ENOENT:
 			pr_err("%s: Unknown parameter `%s'\n", doing, param);
@@ -282,6 +299,7 @@ int parse_args(const char *doing,
 			       doing, val ?: "", param);
 			return ret;
 		case 0:
+			// ret: 0
 			break;
 		default:
 			pr_err("%s: `%s' invalid for parameter `%s'\n",
@@ -292,6 +310,7 @@ int parse_args(const char *doing,
 
 	/* All parsed OK. */
 	return 0;
+	// return 0
 }
 
 /* Lazy bastard, eh? */

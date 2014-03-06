@@ -241,16 +241,25 @@ static int __init early_serial8250_setup(char *options)
 }
 
 // ARM10C 20131019
+// KID 20140306
+// setup_early_serial8250_console("ttySAC2,115200")
 int __init setup_early_serial8250_console(char *cmdline)
 {
 	char *options;
 	int err;
 
+	// cmdline: "ttySAC2,115200"
 	options = strstr(cmdline, "uart8250,");
+	// options: NULL
+
 	if (!options) {
+		// cmdline: "ttySAC2,115200"
 		options = strstr(cmdline, "uart,");
+		// options: NULL
+
 		if (!options)
 			return 0;
+			// return 0
 	}
 
 	options = strchr(cmdline, ',') + 1;
@@ -287,4 +296,5 @@ int serial8250_find_port_for_earlycon(void)
 }
 
 // ARM10C 20131019
+// KID 20140306
 early_param("earlycon", setup_early_serial8250_console);

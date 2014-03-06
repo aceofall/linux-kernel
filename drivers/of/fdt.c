@@ -654,7 +654,11 @@ EXPORT_SYMBOL_GPL(of_fdt_unflatten_tree);
 
 /* Everything below here references initial_boot_params directly. */
 // ARM10C 20131012
+// KID 20140306
+// dt_root_size_cells: 1
 int __initdata dt_root_addr_cells;
+// KID 20140306
+// dt_root_size_cells: 1
 int __initdata dt_root_size_cells;
 
 // ARM10C 20131026
@@ -820,6 +824,7 @@ inline void early_init_dt_check_for_initrd(unsigned long node)
  * early_init_dt_scan_root - fetch the top level address and size cells
  */
 // ARM10C 20131012
+// KID 20140306
 int __init early_init_dt_scan_root(unsigned long node, const char *uname,
 				   int depth, void *data)
 {
@@ -828,20 +833,32 @@ int __init early_init_dt_scan_root(unsigned long node, const char *uname,
 	if (depth != 0)
 		return 0;
 
-	// dt_root_size_cells=1, dt_root_addr_cells=1
+	// OF_ROOT_NODE_SIZE_CELLS_DEFAULT: 1
 	dt_root_size_cells = OF_ROOT_NODE_SIZE_CELLS_DEFAULT;
+	// dt_root_size_cells: 1
+
+	// OF_ROOT_NODE_ADDR_CELLS_DEFAULT: 1
 	dt_root_addr_cells = OF_ROOT_NODE_ADDR_CELLS_DEFAULT;
+	// dt_root_addr_cells: 1
 
 	prop = of_get_flat_dt_prop(node, "#size-cells", NULL);
-	if (prop)
-		dt_root_size_cells = be32_to_cpup(prop);
+	// prop: "#size-cells"의 값이 위치한 devtree의 주소
 
-	// dt_root_size_cells=1
+	if (prop)
+		// be32_to_cpup(prop): 1
+		dt_root_size_cells = be32_to_cpup(prop);
+		// dt_root_size_cells: 1
+
+	// dt_root_size_cells: 1
 	pr_debug("dt_root_size_cells = %x\n", dt_root_size_cells);
 
 	prop = of_get_flat_dt_prop(node, "#address-cells", NULL);
+	// prop: "#address-cells"의 값이 위치한 devtree의 주소
+
 	if (prop)
+		// be32_to_cpup(prop): 1
 		dt_root_addr_cells = be32_to_cpup(prop);
+		// dt_root_addr_cells: 1
 
 	// dt_root_addr_cells=1
 	pr_debug("dt_root_addr_cells = %x\n", dt_root_addr_cells);
@@ -851,26 +868,39 @@ int __init early_init_dt_scan_root(unsigned long node, const char *uname,
 }
 
 // ARM10C 20131012
+// KID 20140306
+// dt_root_addr_cells: 1, &reg
+// dt_root_size_cells: 1, &reg
 u64 __init dt_mem_next_cell(int s, __be32 **cellp)
 {
 	__be32 *p = *cellp;
+	// p: reg
 
+	// cellp: &reg, s: 1
 	*cellp = p + s;
+	// reg: reg + 1
+
+	// p: reg, s: 1
 	return of_read_number(p, s);
+	// return 0x0000000020000000
+	// return 0x0000000080000000
 }
 
 /**
  * early_init_dt_scan_memory - Look for an parse memory nodes
  */
 // ARM10C 20131012
+// KID 20140306
 int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
 				     int depth, void *data)
 {
 	char *type = of_get_flat_dt_prop(node, "device_type", NULL);
+	// type: "device_type"의 값이 위치한 devtree의 주소
 	__be32 *reg, *endp;
 	unsigned long l;
 
 	/* We are scanning "memory" nodes only */
+	// type: "device_type"의 값이 위치한 devtree의 주소
 	if (type == NULL) {
 		/*
 		 * The longtrail doesn't have a device_type on the
@@ -883,31 +913,46 @@ int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
 
 	// memory 노드 안의 프로퍼티를 찾음 
 	reg = of_get_flat_dt_prop(node, "linux,usable-memory", &l);
+	// reg: NULL
 
 	// 프로퍼터의 length값 l = 8
 	if (reg == NULL)
 		reg = of_get_flat_dt_prop(node, "reg", &l);
+		// reg: "reg"의 값이 위치한 devtree의 주소, l: 8
+
 	if (reg == NULL)
 		return 0;
 
 	// memory의 reg 값의 끝 위치를 계산
+	// reg: "reg"의 값이 위치한 devtree의 주소, l: 8, sizeof(__be32): 4
 	endp = reg + (l / sizeof(__be32));
+	// endp: "reg"의 값이 위치한 devtree의 주소 + 2
 
+	// uname: "/memory", 1: 8
+	// reg[0]: 0x20000000, reg[1]: 0x80000000, reg[2]: 0x00000002, reg[3]: 0x00000001
 	pr_debug("memory scan node %s, reg size %ld, data: %x %x %x %x,\n",
 	    uname, l, reg[0], reg[1], reg[2], reg[3]);
 
+	// endp - reg: 2, dt_root_addr_cells: 1, dt_root_size_cells: 1
 	while ((endp - reg) >= (dt_root_addr_cells + dt_root_size_cells)) {
 		u64 base, size;
 
-		// base=0x20000000 , size=0x80000000
+		// dt_root_addr_cells: 1
 		base = dt_mem_next_cell(dt_root_addr_cells, &reg);
+		// base: 0x20000000
+
+		// dt_root_size_cells: 1
 		size = dt_mem_next_cell(dt_root_size_cells, &reg);
+		// size: 0x80000000
 
 		if (size == 0)
 			continue;
+
+		// base: 0x20000000, size: 0x80000000
 		pr_debug(" - %llx ,  %llx\n", (unsigned long long)base,
 		    (unsigned long long)size);
 
+		// base: 0x20000000, size: 0x80000000
 		early_init_dt_add_memory_arch(base, size);
 	}
 

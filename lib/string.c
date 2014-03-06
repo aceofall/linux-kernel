@@ -696,6 +696,7 @@ EXPORT_SYMBOL(memscan);
  * @s1: The string to be searched
  * @s2: The string to search for
  */
+// KID 20140306
 char *strstr(const char *s1, const char *s2)
 {
 	size_t l1, l2;

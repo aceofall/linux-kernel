@@ -1166,6 +1166,7 @@ void __init debug_ll_io_init(void)
 // VMALLOC_END: 0xff000000, VMALLOC_OFFSET: (8*1024*1024)=0x00800000
 // (240 << 20): 0x0f000000
 // vmalloc_min: 0xef800000
+// KID 20140306
 static void * __initdata vmalloc_min =
 	(void *)(VMALLOC_END - (240 << 20) - VMALLOC_OFFSET);
 
@@ -1201,12 +1202,14 @@ early_param("vmalloc", early_vmalloc);
 phys_addr_t arm_lowmem_limit __initdata = 0;
 
 // ARM10C 20131019
+// KID 20140306
 void __init sanity_check_meminfo(void)
 {
 	phys_addr_t memblock_limit = 0;
 	int i, j, highmem = 0;
-	// vmalloc_limit: 0x4f800000 = __pa(0xef800000 - 1) + 1
+	// vmalloc_min: 0xef800000
 	phys_addr_t vmalloc_limit = __pa(vmalloc_min - 1) + 1;
+	// vmalloc_limit: 0x4f800000 = __pa(0xef800000 - 1) + 1
 
 	// meminfo.nr_banks = 1
 	for (i = 0, j = 0; i < meminfo.nr_banks; i++) {

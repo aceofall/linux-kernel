@@ -27,8 +27,11 @@
 #include <asm/mach-types.h>
 
 // ARM10C 20131012
+// KID 20140306
+// base: 0x20000000, size: 0x80000000
 void __init early_init_dt_add_memory_arch(u64 base, u64 size)
 {
+	// base: 0x20000000, size: 0x80000000
 	arm_add_memory(base, size);
 }
 
@@ -232,6 +235,7 @@ struct machine_desc * __init setup_machine_fdt(unsigned int dt_phys)
 
 // 2013/09/28 종료
 // 2013/10/05 시작
+
 	devtree = phys_to_virt(dt_phys);
 
 	/* check device tree validity */
@@ -281,16 +285,21 @@ struct machine_desc * __init setup_machine_fdt(unsigned int dt_phys)
 	}
 
 	model = of_get_flat_dt_prop(dt_root, "model", NULL);
+	// model: "Samsung SMDK5420 board based on EXYNOS5420"
 
 	// model 명이 없으면 compatible 의 문자열을 가져옴 
 	if (!model)
 		model = of_get_flat_dt_prop(dt_root, "compatible", NULL);
 	if (!model)
 		model = "<unknown>";
+
+	// mdesc_best->name: "SAMSUNG EXYNOS5 (Flattened Device Tree)"
+	// model: "Samsung SMDK5420 board based on EXYNOS5420"
 	pr_info("Machine: %s, model: %s\n", mdesc_best->name, model);
 
 // 2013/10/05 종료
 // 2013/10/12 시작
+
 	/* Retrieve various information from the /chosen node */
 	// dt에서 chosen 노드를 찾고 정보를 저장 
 	of_scan_flat_dt(early_init_dt_scan_chosen, boot_command_line);
