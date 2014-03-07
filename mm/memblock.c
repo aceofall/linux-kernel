@@ -21,11 +21,25 @@
 #include <linux/memblock.h>
 
 // ARM10C 20131019
+// KID 20140307
+// INIT_MEMBLOCK_REGIONS: 128
+// memblock_memory_init_regions[0].base: 0x20000000
+// memblock_memory_init_regions[0].size: 0x2f800000
+// memblock_memory_init_regions[1].base: 0x4f800000
+// memblock_memory_init_regions[1].size: 0x50800000
 static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
 static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
 
 // ARM10C 20131019
 // ARM10C 20131026
+// KID 20140307
+// memblock.current_limit: 0x4f800000
+// memblock.memory.total_size: 0x80000000
+// memblock.memory.cnt: 2
+// memblock.memory.regions[0].base: 0x20000000
+// memblock.memory.regions[0].size: 0x80000000
+// memblock.memory.regions[1].base: 0x4f800000
+// memblock.memory.regions[1].size: 0x50800000
 struct memblock memblock __initdata_memblock = {
 	.memory.regions		= memblock_memory_init_regions,
 	.memory.cnt		= 1,	/* empty dummy entry */
@@ -62,11 +76,13 @@ memblock_type_name(struct memblock_type *type)
 /* adjust *@size so that (@base + *@size) doesn't overflow, return new size */
 // ARM10C 20131019
 // base: 0x20000000, size: 0x2f800000
+// KID 20140307
+// base: 0x20000000, size: 0x2f800000
 static inline phys_addr_t memblock_cap_size(phys_addr_t base, phys_addr_t *size)
 {
-	// ULLONG_MAX: 0xFFFF FFFF FFFF FFFF
-	// size: 0x2f800000
+	// *size: 0x2f800000, ULLONG_MAX: 0xFFFFFFFFFFFFFFFF, base: 0x20000000
 	return *size = min(*size, (phys_addr_t)ULLONG_MAX - base);
+	// *size: 0x2f800000
 }
 
 /*
@@ -328,23 +344,29 @@ static int __init_memblock memblock_double_array(struct memblock_type *type,
  * Scan @type and merge neighboring compatible regions.
  */
 // ARM10C 20131026
+// KID 20140307
+// [repeat] type: &memblock.memory
 static void __init_memblock memblock_merge_regions(struct memblock_type *type)
 {
 	int i = 0;
 
 	/* cnt never goes below 1 */
-	// type->cnt: 2
+	// i: 0, type->cnt: memblock.memory.cnt: 2
 	while (i < type->cnt - 1) {
-		// this
-		// type->regions[0].base: 0x20000000
-		// type->regions[0].size: 0x2f800000
-		// next
-		// type->regions[1].base: 0x3f800000
-		// type->regions[1].size: 0x50800000
+		// i:0, &type->regions[0]: &memblock.memory.regions[0]
 		struct memblock_region *this = &type->regions[i];
-		struct memblock_region *next = &type->regions[i + 1];
+		// this: &memblock.memory.regions[0]
+		// memblock.memory.regions[0].base: 0x20000000
+		// memblock.memory.regions[0].size: 0x2f800000
 
-		// this->base + this->size: 0x4f800000, next->base: 0x4f800000
+		// i:0, &type->regions[1]: &memblock.memory.regions[1]
+		struct memblock_region *next = &type->regions[i + 1];
+		// next: &memblock.memory.regions[1]
+		// memblock.memory.regions[1].base: 0x4f800000
+		// memblock.memory.regions[1].size: 0x50800000
+
+		// this->base: 0x20000000, this->size: 0x2f800000, next->base: 0x4f800000
+		// this->base + this->size: 0x4f800000
 		if (this->base + this->size != next->base ||
 		    memblock_get_region_node(this) !=
 		    memblock_get_region_node(next)) {
@@ -354,12 +376,18 @@ static void __init_memblock memblock_merge_regions(struct memblock_type *type)
 		}
 
 		// this->size: 0x2f800000, next->size: 0x50800000
-		// this->size: 0xA0000000
 		this->size += next->size;
+		// this->size: 0x80000000
+
 		/* move forward from next + 1, index of which is i + 2 */
-		// type->cnt: 2, type->cnt - (i + 2): 0
+		// next: &memblock.memory.regions[1], next+1: &memblock.memory.regions[2]
+		// type->cnt: memblock.memory.cnt: 2, i: 0,
+		// type->cnt - (i + 2): 0, sizeof(*next): 8
 		memmove(next, next + 1, (type->cnt - (i + 2)) * sizeof(*next));
+
+		// type->cnt: memblock.memory.cnt: 2
 		type->cnt--;
+		// type->cnt: memblock.memory.cnt: 1
 	}
 }
 
@@ -376,24 +404,41 @@ static void __init_memblock memblock_merge_regions(struct memblock_type *type)
  */
 // ARM10C 20131026
 // i: 1, base: 0x4f800000, end - base: 0x50800000, nid: 1
+// KID 20140307
+// type: &memblock.memory, i: 1, base: 0x4f800000, end - base: 0x50800000, nid: 1
 static void __init_memblock memblock_insert_region(struct memblock_type *type,
 						   int idx, phys_addr_t base,
 						   phys_addr_t size, int nid)
 {
+	// idx: 1, type->regions[1]: memblock.memory.regions[1]
 	struct memblock_region *rgn = &type->regions[idx];
+	// rgn: &memblock.memory.regions[1]
 
-	// type->cnt: 1, type->max: 128
+	// type->cnt: memblock.memory.cnt: 1, type->max: memblock.memory.max 128
 	BUG_ON(type->cnt >= type->max);
-	// type->cnt - idx: 0
+
+	// rgn+1: &memblock.memory.regions[2], rgn: &memblock.memory.regions[1],
+	// type->cnt: memblock.memory.cnt: 1, idx: 1, sizeof(*rgn): 8
 	memmove(rgn + 1, rgn, (type->cnt - idx) * sizeof(*rgn));
-	// base: 0x6f800000, size: 0x30800000
+
+	// base: 0x4f800000
 	rgn->base = base;
+	// rgn->base: memblock.memory.regions[1].base: 0x4f800000
+
+	// size: 0x50800000
 	rgn->size = size;
+	// rgn->size: memblock.memory.regions[1].size: 0x50800000
+
+	// rgn: &memblock.memory.regions[1], nid: 1
 	memblock_set_region_node(rgn, nid);
-	// type->cnt: 2
+
+	// type->cnt: memblock.memory.cnt: 1
 	type->cnt++;
-	// type->total_size: 0x80000000
+	// type->cnt: memblock.memory.cnt: 2
+
+	// type->total_size: memblock.memory.total_size: 0x2f800000, size: 0x50800000
 	type->total_size += size;
+	// type->total_size: memblock.memory.total_size: 0x80000000
 }
 
 /**
@@ -414,31 +459,54 @@ static void __init_memblock memblock_insert_region(struct memblock_type *type,
 // ARM10C 20131019
 // base: 0x20000000, size: 0x2f800000, nid: 1
 // base: 0x4f800000, size: 0x50800000, nid: 1
+// KID 20140307
+// &memblock.memory, base: 0x20000000, size: 0x2f800000, MAX_NUMNODES: 1
+// &memblock.memory, base: 0x4f800000, size: 0x50800000, MAX_NUMNODES: 1
 static int __init_memblock memblock_add_region(struct memblock_type *type,
 				phys_addr_t base, phys_addr_t size, int nid)
 {
 	bool insert = false;
+	// base: 0x20000000
+	// base: 0x4f800000
 	phys_addr_t obase = base;
-	// end = 0x20000000 + 0x2f800000: 0x4f800000
-	// end = 0x4f800000 + 0x50800000: 0xA0000000
+	// obase: 0x20000000
+	// obase: 0x4f800000
+
+	// base: 0x20000000, size: 0x2f800000
+	// base: 0x4f800000, size: 0x50800000
 	phys_addr_t end = base + memblock_cap_size(base, &size);
+	// end: 0x20000000 + 0x2f800000: 0x4f800000
+	// end: 0x4f800000 + 0x50800000: 0xA0000000
 	int i, nr_new;
 
 	if (!size)
 		return 0;
 
 	/* special case for empty array */
-	// 2번째 루프에선 size값이 0이 아님
+	// type: &memblock.memory
+	// 2번째 call에선 size값이 0이 아님
+	// [1st]: type->regions[0].size: memblock.memory.regions[0].size: 0
+	// [2nd]: type->regions[0].size: memblock.memory.regions[0].size: 0x2f800000
 	if (type->regions[0].size == 0) {
+		// type->cnt: memblock.memory.regions[0].cnt: 1
+		// type->total_size: memblock.memory.regions[0].total_size: 0
 		WARN_ON(type->cnt != 1 || type->total_size);
 
-		// type->regions[0].base: 0x20000000
-		// type->regions[0].size: 0x2f800000
+		// base: 0x20000000
 		type->regions[0].base = base;
+		// type->regions[0].base: memblock.memory.regions[0].base: 0x20000000
+
+		// size: 0x2f800000
 		type->regions[0].size = size;
+		// type->regions[0].size: memblock.memory.regions[0].size: 0x2f800000
+
+		// type->regions[0]: memblock.memory.regions[0], nid: 1
 		memblock_set_region_node(&type->regions[0], nid);
-		// type->total_size: 0x2f800000
+
+		// size: 0x2f800000
 		type->total_size = size;
+		// type->total_size: memblock.memory.total_size: 0x2f800000
+
 		return 0;
 	}
 repeat:
@@ -447,23 +515,35 @@ repeat:
 	 * then with %true.  The first counts the number of regions needed
 	 * to accomodate the new area.  The second actually inserts them.
 	 */
-	// base: 0x4f800000
+	// base: 0x4f800000, obase: 0x4f800000
 	base = obase;
+	// base: 0x4f800000
+
 	nr_new = 0;
+	// nr_new: 0
 
-	// type->cnt: 1
+	// type: &memblock.memory, type->cnt: memblock.memory.cnt: 1
 	for (i = 0; i < type->cnt; i++) {
+		// i: 0, type->regions[0]: memblock.memory.regions[0]
 		struct memblock_region *rgn = &type->regions[i];
-		// rbase: 0x2000_0000, rend: 0x4f80_0000
-		phys_addr_t rbase = rgn->base;
-		phys_addr_t rend = rbase + rgn->size;
+		// rgn: &memblock.memory.regions[0]
 
+		// rgn->base: memblock.memory.regions[0].base: 0x20000000
+		phys_addr_t rbase = rgn->base;
+		// rbase: 0x20000000
+
+		// rgn->size: memblock.memory.regions[0].size: 0x2f800000
+		phys_addr_t rend = rbase + rgn->size;
+		// rend: 0x4f800000
+
+		// rbase: 0x20000000, end: 0xA0000000
 		if (rbase >= end)
 			break;
-		// rend: 04f80_0000,  base: 0x4f80_0000
+
+		// rend: 0x4f800000, base: 0x4f800000
 		if (rend <= base)
-			// 루프 빠져 나감
 			continue;
+			// 루프 빠져 나감
 		/*
 		 * @rgn overlaps.  If it separates the lower part of new
 		 * area, insert that portion.
@@ -482,11 +562,15 @@ repeat:
 	/* insert the remaining portion */
 	// base: 0x4f800000, end: 0xA0000000
 	if (base < end) {
-		// nr_new: 1
+		// nr_new: 0
 		nr_new++;
+		// nr_new: 1
+
 		// insert: 0
+		// [repeat] insert: 1
 		if (insert)
 			// repeat로 jump후 들어옴
+			// type: &memblock.memory
 			// i: 1, base: 0x4f800000, end - base: 0x50800000, nid: 1
 			memblock_insert_region(type, i, base, end - base, nid);
 	}
@@ -496,18 +580,24 @@ repeat:
 	 * insertions; otherwise, merge and return.
 	 */
 	// insert: 0
+	// [repeat] insert: 1
 	if (!insert) {
-		// type->cnt: 1, nr_new: 1, type->max: 128
+		// type->cnt: memblock.memory.cnt: 1, nr_new: 1,
+		// type->max: memblock.memory.max: 128
 		while (type->cnt + nr_new > type->max)
 			if (memblock_double_array(type, obase, size) < 0)
 				return -ENOMEM;
-		// insert: 1
 		insert = true;
+		// insert: 1
+
 		goto repeat;
 	} else {
-		// 연속된 메모리 영역을 합침.
-        // 우리도 0x2000_0000~0x4f80_0000, 0x4f80_0000~0x5080_0000 이므로 합쳐짐.
+		// [repeat] type: &memblock.memory
 		memblock_merge_regions(type);
+		// 연속된 메모리 영역을 합침.
+		// 우리도 0x20000000~0x4f800000, 0x4f800000~0x50800000 이므로 합쳐짐.
+		// 합쳐진 영역 0x20000000~0xA0000000 으로 regions 1개로 변경됨
+
 		return 0;
 	}
 }
@@ -521,9 +611,16 @@ int __init_memblock memblock_add_node(phys_addr_t base, phys_addr_t size,
 // ARM10C 20131019
 // base: 0x20000000, size: 0x2f800000
 // base: 0x4f800000, size: 0x50800000
+// KID 20140307
+// i: 0, mi->bank[0].start: 0x20000000, mi->bank[0].size: 0x2f800000
+// i: 1, mi->bank[1].start: 0x4f800000, mi->bank[1].size: 0x50800000
 int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
 {
+	// base: 0x20000000, size: 0x2f800000, MAX_NUMNODES: 1
+	// base: 0x4f800000, size: 0x50800000, MAX_NUMNODES: 1
 	return memblock_add_region(&memblock.memory, base, size, MAX_NUMNODES);
+	// return 0
+	// return 0
 }
 
 /**
@@ -1109,10 +1206,13 @@ void __init_memblock memblock_trim_memory(phys_addr_t align)
 }
 
 // ARM10C 20131019
+// KID 20140307
+// memblock_limit: 0x4f800000
 void __init_memblock memblock_set_current_limit(phys_addr_t limit)
 {
-	// memblock.current_limit: 0x4f800000
+	// limit: 0x4f800000
 	memblock.current_limit = limit;
+	// memblock.current_limit: 0x4f800000
 }
 
 // ARM10C 20131026

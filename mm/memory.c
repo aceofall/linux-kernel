@@ -91,6 +91,8 @@ EXPORT_SYMBOL(mem_map);
  */
 // ARM10C 20131019
 // ARM10C 20131102
+// KID 20140307
+// high_memory: 0xef800000
 void * high_memory;
 
 EXPORT_SYMBOL(high_memory);

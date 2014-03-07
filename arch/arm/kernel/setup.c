@@ -1127,6 +1127,7 @@ void __init setup_arch(char **cmdline_p)
 // 2013/10/26 시작
 
 	// meminfo를 참조하여 메모리 블록 구조체를 초기화
+	// mdesc: __mach_desc_EXYNOS5_DT
 	arm_memblock_init(&meminfo, mdesc);
 
 // 2013/10/26 종료

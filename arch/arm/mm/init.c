@@ -94,7 +94,13 @@ void __init early_init_dt_setup_initrd_arch(unsigned long start, unsigned long e
 // ARM10C 20131012
 // ARM10C 20131207
 // KID 20140306
-// meminfo.nr_banks: 1
+// meminfo.nr_banks: 2
+// meminfo.bank[0].start: 0x20000000
+// meminfo.bank[0].size:  0x2f800000
+// meminfo.bank[0].highmem: 0
+// meminfo.bank[1].start: 0x4f800000
+// meminfo.bank[1].size:  0x50800000
+// meminfo.bank[1].highmem: 1
 struct meminfo meminfo;
 
 void show_mem(unsigned int filter)
@@ -404,13 +410,17 @@ phys_addr_t __init arm_memblock_steal(phys_addr_t size, phys_addr_t align)
 }
 
 // ARM10C 20131019
+// KID 20140307
+// &meminfo, mdesc: __mach_desc_EXYNOS5_DT
 void __init arm_memblock_init(struct meminfo *mi, struct machine_desc *mdesc)
 {
 	int i;
 
 	// 메모리 영역을 검사 후 추가 혹은 합치는 작업 수행.
-	// mi->nr_banks: 2
+	// mi: &meminfo  mi->nr_banks: meminfo.nr_banks: 2
 	for (i = 0; i < mi->nr_banks; i++)
+		// i: 0, mi->bank[0].start: 0x20000000, mi->bank[0].size: 0x2f800000
+		// i: 1, mi->bank[1].start: 0x4f800000, mi->bank[1].size: 0x50800000
 		memblock_add(mi->bank[i].start, mi->bank[i].size);
 
 	/* Register the kernel text, kernel data and initrd with memblock. */

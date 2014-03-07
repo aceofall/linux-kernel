@@ -17,9 +17,12 @@
 #include <linux/init.h>
 #include <linux/mm.h>
 
+// KID 20140307
 #define INIT_MEMBLOCK_REGIONS	128
 
 // ARM10C 20131019
+// KID 20140307
+// sizeof(struct memblock_region): 8 bytes
 struct memblock_region {
 	phys_addr_t base;
 	phys_addr_t size;
@@ -30,6 +33,7 @@ struct memblock_region {
 
 // ARM10C 20131019
 // ARM10C 20131207
+// KID 20140307
 struct memblock_type {
 	unsigned long cnt;	/* number of regions */
 	unsigned long max;	/* size of the allocated array */
@@ -39,6 +43,7 @@ struct memblock_type {
 
 // ARM10C 20131019
 // ARM10C 20131207
+// KID 20140307
 struct memblock {
 	phys_addr_t current_limit;
 	struct memblock_type memory;
@@ -139,6 +144,7 @@ static inline int memblock_get_region_node(const struct memblock_region *r)
 }
 #else
 // ARM10C 20131019
+// KID 20140307
 static inline void memblock_set_region_node(struct memblock_region *r, int nid)
 {
 }
