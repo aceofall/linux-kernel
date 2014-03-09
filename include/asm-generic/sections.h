@@ -33,6 +33,7 @@ extern char _sinittext[], _einittext[];
 // KID 20140304
 extern char _end[];
 // ARM10C 20140301
+// ARM10C 20140308
 extern char __per_cpu_load[], __per_cpu_start[], __per_cpu_end[];
 extern char __kprobes_text_start[], __kprobes_text_end[];
 extern char __entry_text_start[], __entry_text_end[];

@@ -428,6 +428,7 @@ extern bool early_boot_irqs_disabled;
 
 /* Values used for system_state */
 // KID 20140114
+// ARM10C 20140308
 extern enum system_states {
 	SYSTEM_BOOTING,
 	SYSTEM_RUNNING,
