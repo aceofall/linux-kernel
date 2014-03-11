@@ -51,6 +51,8 @@ struct memblock {
 };
 
 extern struct memblock memblock;
+
+// KID 20140311
 extern int memblock_debug;
 
 #define memblock_dbg(fmt, ...) \
@@ -66,6 +68,7 @@ int memblock_add_node(phys_addr_t base, phys_addr_t size, int nid);
 int memblock_add(phys_addr_t base, phys_addr_t size);
 int memblock_remove(phys_addr_t base, phys_addr_t size);
 int memblock_free(phys_addr_t base, phys_addr_t size);
+// KID 20140311
 int memblock_reserve(phys_addr_t base, phys_addr_t size);
 void memblock_trim_memory(phys_addr_t align);
 
@@ -149,6 +152,7 @@ static inline void memblock_set_region_node(struct memblock_region *r, int nid)
 {
 }
 
+// KID 20140307
 static inline int memblock_get_region_node(const struct memblock_region *r)
 {
 	return 0;
@@ -182,6 +186,7 @@ int memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
 extern void __memblock_dump_all(void);
 
 // ARM10C 20131026
+// KID 20140311
 static inline void memblock_dump_all(void)
 {
 	// memblock_debug: 0

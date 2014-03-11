@@ -91,9 +91,12 @@ extern __init void add_static_vm_early(struct static_vm *svm);
 extern phys_addr_t arm_dma_limit;
 #else
 // ARM10C 20131026
+// KID 20140311
+// arm_dma_limit: 0xFFFFFFFF
 #define arm_dma_limit ((phys_addr_t)~0)
 #endif
 
+// KID 20140311
 extern phys_addr_t arm_lowmem_limit;
 
 void __init bootmem_init(void);

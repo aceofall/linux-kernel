@@ -1464,6 +1464,7 @@ static inline void prepare_page_table(void)
 // ARM10C 20131026
 // PTRS_PER_PGD: 2048, sizeof(pgd_t): 8 byte
 // SWAPPER_PG_DIR_SIZE: 0x4000 - 16 Kbytes
+// KID 20140311
 #define SWAPPER_PG_DIR_SIZE	(PTRS_PER_PGD * sizeof(pgd_t))
 #endif
 
@@ -1471,6 +1472,7 @@ static inline void prepare_page_table(void)
  * Reserve the special regions of memory
  */
 // ARM10C 20131026
+// KID 20140311
 void __init arm_mm_memblock_reserve(void)
 {
 	/*
@@ -1478,7 +1480,8 @@ void __init arm_mm_memblock_reserve(void)
 	 * and can only be in node 0.
 	 */
 	// mmu가 사용하는 page table 있는 위치
-	// swapper_pg_dir: 0xc0004000, __pa(swapper_pg_dir); 0x40004000
+	// swapper_pg_dir: 0xc0004000, __pa(swapper_pg_dir); 0x20004000
+	// SWAPPER_PG_DIR_SIZE: 0x4000
 	memblock_reserve(__pa(swapper_pg_dir), SWAPPER_PG_DIR_SIZE);
 
 #ifdef CONFIG_SA1111 // CONFIG_SA1111=n

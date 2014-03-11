@@ -78,10 +78,10 @@ static void __init exynos5_reserve(void)
 // ARM10C 20131012
 // KID 20140213
 // __used: __attribute__((__used__))
-//static const struct machine_desc __mach_desc_EXYNOS5_DT	\
-// __used							\
-// __attribute__((__section__(".arch.info.init"))) = {	\
-//	.nr		= ~0,				\
+//static const struct machine_desc __mach_desc_EXYNOS5_DT
+// __used
+// __attribute__((__section__(".arch.info.init"))) = {
+//	.nr		= ~0,
 //	.name		= "SAMSUNG EXYNOS5 (Flattened Device Tree)",
 //	.smp		= smp_ops(exynos_smp_ops),
 //	.map_io		= exynos_init_io,

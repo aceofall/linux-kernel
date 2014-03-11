@@ -37,7 +37,9 @@
 #include "mm.h"
 
 // ARM10C 20131012
+// KID 20140311
 static phys_addr_t phys_initrd_start __initdata = 0;
+// KID 20140311
 static unsigned long phys_initrd_size __initdata = 0;
 
 static int __init early_initrd(char *p)
@@ -394,6 +396,8 @@ static void __init arm_memory_present(void)
 #endif
 
 // ARM10C 20131026
+// KID 20140311
+// arm_memblock_steal_permitted: 0
 static bool arm_memblock_steal_permitted = true;
 
 phys_addr_t __init arm_memblock_steal(phys_addr_t size, phys_addr_t align)
@@ -428,11 +432,12 @@ void __init arm_memblock_init(struct meminfo *mi, struct machine_desc *mdesc)
 	memblock_reserve(__pa(_sdata), _end - _sdata);
 #else
 	// kernel이 사용하는 영역으로 reserve 함.
-	// _stext: 0xC0008000, __pa(_stext): 0x40008000
+	// _stext: 0xC0008000, __pa(_stext): 0x20008000, _end: 0xC0526D20 (compile map 결과)
+	// _end - _stext: 0xC0526D20 - 0xC0008000: 0x0051ED20
 	memblock_reserve(__pa(_stext), _end - _stext);
 #endif
 #ifdef CONFIG_BLK_DEV_INITRD // CONFIG_BLK_DEV_INITRD=y
-	// initrd로 넘어온 메모리 영역이 memblock.memory 안에 있는지 체크 
+	// initrd로 넘어온 메모리 영역이 memblock.memory 안에 있는지 체크
 	if (phys_initrd_size &&
 	    !memblock_is_region_memory(phys_initrd_start, phys_initrd_size)) {
 		pr_err("INITRD: 0x%08llx+0x%08lx is not a memory region - disabling initrd\n",
@@ -458,12 +463,15 @@ void __init arm_memblock_init(struct meminfo *mi, struct machine_desc *mdesc)
 
 	// memblock.reserved 안에 page table을 추가
 	arm_mm_memblock_reserve();
+
 	// memblock.reserved 안에 dtb을 추가
 	arm_dt_memblock_reserve();
 
 	/* reserve any platform specific memblock areas */
 	// chip관련 특별한 메모리 영역을 reserve 함
+	// mdesc->reserve: __mach_desc_EXYNOS5_DT.exynos5_reserve
 	if (mdesc->reserve)
+		// mdesc->reserve: __mach_desc_EXYNOS5_DT.exynos5_reserve
 		mdesc->reserve();
 
 	/*
@@ -471,13 +479,13 @@ void __init arm_memblock_init(struct meminfo *mi, struct machine_desc *mdesc)
 	 * must come from DMA area inside low memory
 	 */
 	// arm_dma_limit: 0xFFFFFFFF, arm_lowmem_limit: 0
-	//
 	// DMA 메모리 영역을 reserve 함 (현재 설정에 따라 해당 사항 없음)
-	dma_contiguous_reserve(min(arm_dma_limit, arm_lowmem_limit));
+	dma_contiguous_reserve(min(arm_dma_limit, arm_lowmem_limit)); // null function
 
 	// 메모리를 할당시 steal 가능여부 설정
 	arm_memblock_steal_permitted = false;
 	memblock_allow_resize();
+
 	// debug 용도록 메모리 영역의 base, size를 출력
 	memblock_dump_all();
 }

@@ -57,7 +57,7 @@ struct cma;
 struct page;
 struct device;
 
-#ifdef CONFIG_CMA
+#ifdef CONFIG_CMA // CONFIG_CMA=n
 
 /*
  * There is always at least global CMA area and a few optional device
@@ -80,6 +80,7 @@ bool dma_release_from_contiguous(struct device *dev, struct page *pages,
 
 #define MAX_CMA_AREAS	(0)
 
+// KID 20140311
 static inline void dma_contiguous_reserve(phys_addr_t limit) { }
 
 static inline

@@ -43,15 +43,18 @@ void * __init early_init_dt_alloc_memory_arch(u64 size, u64 align)
 }
 
 // ARM10C 20131026
+// KID 20140311
 void __init arm_dt_memblock_reserve(void)
 {
 	u64 *reserve_map, base, size;
 
-	// initial_boot_params: atag 의 위치 값
+	// initial_boot_params: atag / devtree의 위치 하고 있는 가상 주소 값
 	if (!initial_boot_params)
 		return;
 
 	/* Reserve the dtb region */
+	// virt_to_phys(initial_boot_params): atag / devtree의 위치 하고 있는 물리 주소 값
+	// be32_to_cpu(initial_boot_params->totalsize): 0x3236
 	memblock_reserve(virt_to_phys(initial_boot_params),
 			 be32_to_cpu(initial_boot_params->totalsize));
 
@@ -61,14 +64,23 @@ void __init arm_dt_memblock_reserve(void)
 	 * doesn't hurt anything
 	 */
 	// offset to memory reserve map
+	// be32_to_cpu(initial_boot_params->off_mem_rsvmap): 0x28
 	reserve_map = ((void*)initial_boot_params) +
 			be32_to_cpu(initial_boot_params->off_mem_rsvmap);
+	// reserve_map: devtree에서 가지고 있는 reserve map 정보의 가상 주소 값
+
 	while (1) {
 		// detree 값이 big endian이므로 little로 변환
 		base = be64_to_cpup(reserve_map++);
+		// base: 0x0
+
 		size = be64_to_cpup(reserve_map++);
+		// size: 0x0
+
 		if (!size)
 			break;
+			// break
+
 		memblock_reserve(base, size);
 	}
 }
