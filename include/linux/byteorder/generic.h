@@ -92,6 +92,7 @@
 #define be64_to_cpu __be64_to_cpu
 #define cpu_to_be32 __cpu_to_be32
 // ARM10C 20131005
+// KID 20140313
 #define be32_to_cpu __be32_to_cpu
 #define cpu_to_be16 __cpu_to_be16
 #define be16_to_cpu __be16_to_cpu

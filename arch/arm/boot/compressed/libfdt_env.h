@@ -7,6 +7,7 @@
 
 #define fdt16_to_cpu(x)		be16_to_cpu(x)
 #define cpu_to_fdt16(x)		cpu_to_be16(x)
+// KID 20140313
 #define fdt32_to_cpu(x)		be32_to_cpu(x)
 #define cpu_to_fdt32(x)		cpu_to_be32(x)
 #define fdt64_to_cpu(x)		be64_to_cpu(x)

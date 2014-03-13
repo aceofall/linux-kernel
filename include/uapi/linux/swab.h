@@ -55,6 +55,7 @@ static inline __attribute_const__ __u16 __fswab16(__u16 val)
 }
 
 // ARM10C 20131005
+// KID 20140313
 static inline __attribute_const__ __u32 __fswab32(__u32 val)
 {
 #ifdef __HAVE_BUILTIN_BSWAP32__	// not defined

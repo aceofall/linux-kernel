@@ -28,6 +28,7 @@ static inline __attribute_const__ __u32 __arch_swahb32(__u32 x)
 #define __arch_swab16(x) ((__u16)__arch_swahb32(x))
 
 // ARM10C 20131005
+// KID 20140313
 static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
 {
 	__asm__ ("rev %0, %1" : "=r" (x) : "r" (x));

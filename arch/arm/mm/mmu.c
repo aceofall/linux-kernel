@@ -1672,6 +1672,7 @@ static void __init map_lowmem(void)
  * maps, and sets up the zero page, bad page and bad page tables.
  */
 // ARM10C 20131026
+// KID 20140312
 void __init paging_init(struct machine_desc *mdesc)
 {
 	void *zero_page;

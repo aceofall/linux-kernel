@@ -104,36 +104,70 @@ static void merge_fdt_bootargs(void *fdt, const char *fdt_cmdline)
  *    = 1 -> bad ATAG (may retry with another possible ATAG pointer)
  *    < 0 -> error from libfdt
  */
-//arch/arm/boot/compressed/head.S 에서 호출됨
-//void *atag_list = r0 = atags/device tree pointer
-//void *fdt = r1 = _edata
-//int total_space = r2 = (sp - _edata)
+// ARM10C 20130720
+// arch/arm/boot/compressed/head.S 에서 호출됨
+// void *atag_list = r0 = atags/device tree pointer
+// void *fdt = r1 = _edata
+// int total_space = r2 = (sp - _edata)
+// KID 20140313
+// atag_list: atags/device tree pointer, fdt: _edata, total_space: sp - _edata
 int atags_to_fdt(void *atag_list, void *fdt, int total_space)
 {
+	// atag_list: bootloader에서 넘겨 받은 ATAG(DTB) 주소
 	struct tag *atag = atag_list;
+	// atag: bootloader에서 넘겨 받은 ATAG(DTB) 주소
+
 	/* In the case of 64 bits memory size, need to reserve 2 cells for
 	 * address and size for each bank */
-	//NR_BANKS = 8
+	// NR_BANKS: 8
 	uint32_t mem_reg_property[2 * 2 * NR_BANKS];
 	int memcount = 0;
 	int ret, memsize;
 
 	/* make sure we've got an aligned pointer */
-	if ((u32)atag_list & 0x3)   //4BYTE align 확인(유효한 atag_list인지 확인)
+	// 4BYTE align 확인 (유효한 atag_list인지 확인)
+	if ((u32)atag_list & 0x3)
 		return 1;
 
 	/* if we get a DTB here we're done already */
-	if (*(u32 *)atag_list == fdt32_to_cpu(FDT_MAGIC)) // fdt32_to_cpu() CONFIG 설정에 맞추어 FDT_MAGIC를 바이트오더함
-	       return 0;
+	// fdt32_to_cpu() endian CONFIG 설정에 맞추어 FDT_MAGIC를 바이트오더 변경
+	// FDT_MAGIC: 0xd00dfeed, fdt32_to_cpu(0xd00dfeed): 0xedfe0dd0
+	if (*(u32 *)atag_list == fdt32_to_cpu(FDT_MAGIC))
+		// atags의 위치 주소가 DTB형태로 만들어져 왔음
+		return 0;
+		// return 0
+	
+	// ATAG가 왔다고 가정하고 코드 분석
+	// ATAG_CORE: 0x54410001, ATAG_MEM: 0x54410002, ATAG_NONE: 0x00000000
+	// PAGE_SIZE: 4096 (4K), MEM_SIZE: 0x1000000 (16MB)
+	// tag_size(tag_core): 20, tag_size(tag_mem32): 16
+	//
+	// static struct {
+	// 	struct tag_header hdr1;
+	// 	struct tag_core   core;
+	// 	struct tag_header hdr2;
+	// 	struct tag_mem32  mem;
+	// 	struct tag_header hdr3;
+	// } default_tags __initdata = {
+	// 	{ 20, 0x54410001 },
+	// 	{ 1, 4096, 0xff },
+	// 	{ 16, 0x54410002 },
+	// 	{ 0x1000000 },
+	// 	{ 0, 0x00000000 }
+	// };
 
 	/* validate the ATAG */
+	// ATAG_CORE: 0x54410001, atag->hdr.tag: 0x54410001,
+	// atag->hdr.size: 20, tag_size(tag_core): 20
 	if (atag->hdr.tag != ATAG_CORE ||
 	    (atag->hdr.size != tag_size(tag_core) &&
 	     atag->hdr.size != 2))
 		return 1;
 
 	/* let's give it all the room it could need */
-	//ftd의 struct alloc/초기화 해준다.
+	// ftd의 struct alloc 초기화 해준다.
+	// _edata: data영역의 끝 위치이며 fdt의 시작위치를 뜻함.
+	// fdt: _edata (data영역의 끝 위치) , total_space: sp - _edata (실제로 사용할 수 있는 memory 공간)
 	ret = fdt_open_into(fdt, fdt, total_space);
 	if (ret < 0)
 		return ret;
