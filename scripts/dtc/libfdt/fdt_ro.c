@@ -96,13 +96,20 @@ int fdt_get_mem_rsv(const void *fdt, int n, uint64_t *address, uint64_t *size)
 	return 0;
 }
 
+// KID 20140314
+// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임
 int fdt_num_mem_rsv(const void *fdt)
 {
 	int i = 0;
 
+	// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임
+	// _fdt_mem_rsv(fdt, 0): memory reserve map 정보가 있는 위치 + 0
+	// fdt64_to_cpu(_fdt_mem_rsv(fdt, i)->size: 0
 	while (fdt64_to_cpu(_fdt_mem_rsv(fdt, i)->size) != 0)
 		i++;
+	// i: 0
 	return i;
+	// return 0
 }
 
 static int _nextprop(const void *fdt, int offset)

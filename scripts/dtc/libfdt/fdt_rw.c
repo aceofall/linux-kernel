@@ -55,9 +55,16 @@
 
 #include "libfdt_internal.h"
 
+// KID 20140314
+// fdt: fdt의 시작위치, mem_rsv_size: 16 struct_size: 0x3074
 static int _fdt_blocks_misordered(const void *fdt,
 			      int mem_rsv_size, int struct_size)
 {
+	// fdt_off_mem_rsvmap(fdt): 0x28, sizeof(struct fdt_header): 40, 
+	// FDT_ALIGN(40, 8): 0x28
+	// fdt_off_dt_struct(fdt): 0x38, mem_rsv_size: 16 
+	// fdt_off_dt_strings(fdt): 0x30ac, struct_size: 0x3074
+	// fdt_totalsize(fdt): 0x3236, fdt_size_dt_strings(fdt): 0x18a
 	return (fdt_off_mem_rsvmap(fdt) < FDT_ALIGN(sizeof(struct fdt_header), 8))
 		|| (fdt_off_dt_struct(fdt) <
 		    (fdt_off_mem_rsvmap(fdt) + mem_rsv_size))
@@ -415,33 +422,53 @@ static void _fdt_packblocks(const char *old, char *new,
 	fdt_set_size_dt_strings(new, fdt_size_dt_strings(old));
 }
 
-//void *fdt = r0 = atags/device tree pointer
-//void *buf = r0 = atags/device tree pointer
-//int bufsize = r2 = (sp - _edata)
+// ARM10C 20130720
+// void *fdt = r0 = atags/device tree pointer
+// void *buf = r0 = atags/device tree pointer
+// int bufsize = r2 = (sp - _edata)
+// KID 20140314
+// fdt: _edata (data영역의 끝 위치) , total_space: sp - _edata (실제로 사용할 수 있는 memory 공간)
 int fdt_open_into(const void *fdt, void *buf, int bufsize)
 {
 	int err;
 	int mem_rsv_size, struct_size;
 	int newsize;
+	// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임
 	const char *fdtstart = fdt;
+	// fdtstart: fdt의 시작위치
+
+	// fdt_totalsize(fdt): fdt 해더의 totalsize 값
 	const char *fdtend = fdtstart + fdt_totalsize(fdt);
+	// fdtend: fdt의 끝 위치
 	char *tmp;
 
+	// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임
 	FDT_CHECK_HEADER(fdt);
 
+	// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임
+	// fdt_num_mem_rsv(fdt): 0, sizeof(struct fdt_reserve_entry): 16
 	mem_rsv_size = (fdt_num_mem_rsv(fdt)+1)
 		* sizeof(struct fdt_reserve_entry);
+	// mem_rsv_size: 16
 
+	// fdt_version(fdt): 11
 	if (fdt_version(fdt) >= 17) {
 		struct_size = fdt_size_dt_struct(fdt);
 	} else {
 		struct_size = 0;
+		// struct_size: 0
+
+		// FDT_END: 0x9
 		while (fdt_next_tag(fdt, struct_size, &struct_size) != FDT_END)
 			;
+		// fdt의 tag가 END가 될때 까지 순회하여 struct_size 값을 계산
+
+		// struct_size: 0x3074
 		if (struct_size < 0)
 			return struct_size;
 	}
 
+	// fdt: fdt의 시작위치, mem_rsv_size: 16 struct_size: 0x3074
 	if (!_fdt_blocks_misordered(fdt, mem_rsv_size, struct_size)) {
 		/* no further work necessary */
 		err = fdt_move(fdt, buf, bufsize);

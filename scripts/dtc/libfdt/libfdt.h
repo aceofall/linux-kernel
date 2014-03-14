@@ -54,7 +54,9 @@
 #include <libfdt_env.h>
 #include <fdt.h>
 
+// KID 20140314
 #define FDT_FIRST_SUPPORTED_VERSION	0x10
+// KID 20140314
 #define FDT_LAST_SUPPORTED_VERSION	0x11
 
 /* Error codes: informative error codes */
@@ -87,6 +89,7 @@
 	 * not sufficiently complete for the requested operation. */
 
 /* Error codes: codes for bad device tree blobs */
+// KID 20140314
 #define FDT_ERR_TRUNCATED	8
 	/* FDT_ERR_TRUNCATED: Structure block of the given device tree
 	 * ends without an FDT_END tag. */
@@ -94,11 +97,13 @@
 	/* FDT_ERR_BADMAGIC: Given "device tree" appears not to be a
 	 * device tree at all - it is missing the flattened device
 	 * tree magic number. */
+// KID 20140314
 #define FDT_ERR_BADVERSION	10
 	/* FDT_ERR_BADVERSION: Given device tree has a version which
 	 * can't be handled by the requested operation.  For
 	 * read-write functions, this may mean that fdt_open_into() is
 	 * required to convert the tree to the expected version. */
+// KID 20140314
 #define FDT_ERR_BADSTRUCTURE	11
 	/* FDT_ERR_BADSTRUCTURE: Given device tree has a corrupt
 	 * structure block or other serious error (e.g. misnested
@@ -140,16 +145,24 @@ int fdt_next_node(const void *fdt, int offset, int *depth);
 /* General functions                                                  */
 /**********************************************************************/
 
+// KID 20140314
 #define fdt_get_header(fdt, field) \
 	(fdt32_to_cpu(((const struct fdt_header *)(fdt))->field))
+// KID 20140314
 #define fdt_magic(fdt) 			(fdt_get_header(fdt, magic))
+// KID 20140314
 #define fdt_totalsize(fdt)		(fdt_get_header(fdt, totalsize))
+// KID 20140314
 #define fdt_off_dt_struct(fdt)		(fdt_get_header(fdt, off_dt_struct))
 #define fdt_off_dt_strings(fdt)		(fdt_get_header(fdt, off_dt_strings))
+// KID 20140314
 #define fdt_off_mem_rsvmap(fdt)		(fdt_get_header(fdt, off_mem_rsvmap))
+// KID 20140314
 #define fdt_version(fdt)		(fdt_get_header(fdt, version))
+// KID 20140314
 #define fdt_last_comp_version(fdt) 	(fdt_get_header(fdt, last_comp_version))
 #define fdt_boot_cpuid_phys(fdt) 	(fdt_get_header(fdt, boot_cpuid_phys))
+// KID 20140314
 #define fdt_size_dt_strings(fdt) 	(fdt_get_header(fdt, size_dt_strings))
 #define fdt_size_dt_struct(fdt)		(fdt_get_header(fdt, size_dt_struct))
 

@@ -3,6 +3,8 @@
 
 #ifndef __ASSEMBLY__
 
+// KID 20140314
+// sizeof(struct fdt_header): 40 bytes
 struct fdt_header {
 	uint32_t magic;			 /* magic word FDT_MAGIC */
 	uint32_t totalsize;		 /* total size of DT block */
@@ -22,6 +24,8 @@ struct fdt_header {
 	uint32_t size_dt_struct;	 /* size of the structure block */
 };
 
+// KID 20140314
+// sizeof(struct fdt_reserve_entry): 16 bytes
 struct fdt_reserve_entry {
 	uint64_t address;
 	uint64_t size;
@@ -41,14 +45,19 @@ struct fdt_property {
 
 #endif /* !__ASSEMBLY */
 
+// KID 20140314
 #define FDT_MAGIC	0xd00dfeed	/* 4: version, 4: total size */
+// KID 20140314
+// FDT_TAGSIZE: 4
 #define FDT_TAGSIZE	sizeof(uint32_t)
 
+// KID 20140314
 #define FDT_BEGIN_NODE	0x1		/* Start node: full name */
 #define FDT_END_NODE	0x2		/* End node */
 #define FDT_PROP	0x3		/* Property: name off,
 					   size, content */
 #define FDT_NOP		0x4		/* nop */
+// KID 20140314
 #define FDT_END		0x9
 
 #define FDT_V1_SIZE	(7*sizeof(uint32_t))
