@@ -595,6 +595,7 @@ asmlinkage void __init start_kernel(void)
 	build_all_zonelists(NULL, NULL);
 
 // 2014/03/08 종료
+// 2014/03/15 시작
 
 	page_alloc_init();
 

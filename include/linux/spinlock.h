@@ -107,6 +107,11 @@ do {								\
 	do { *(lock) = __RAW_SPIN_LOCK_UNLOCKED(lock); } while (0)
 #endif
 
+// ARM10C 20140315
+// raw_spin_is_locked : 1
+// lock->rlock: cpu_add_remove_lock->wait_lock->rlock
+// raw_spin_is_locked(&cpu_add_remove_lock->wait_lock->rlock):
+// arch_spin_is_locked(&cpu_add_remove_lock->wait_lock->rlock->raw_lock)
 #define raw_spin_is_locked(lock)	arch_spin_is_locked(&(lock)->raw_lock)
 
 #ifdef CONFIG_GENERIC_LOCKBREAK
@@ -378,8 +383,12 @@ static inline void spin_unlock_wait(spinlock_t *lock)
 	raw_spin_unlock_wait(&lock->rlock);
 }
 
+// ARM10C 20140315
+// spin_is_locked(&cpu_add_remove_lock->wait_lock)
 static inline int spin_is_locked(spinlock_t *lock)
 {
+	// lock->rlock: cpu_add_remove_lock->wait_lock->rlock
+	// raw_spin_is_locked(&cpu_add_remove_lock->wait_lock->rlock): 1
 	return raw_spin_is_locked(&lock->rlock);
 }
 

@@ -77,27 +77,24 @@ static inline void dsb_sev(void)
 // ARM10C 20130831
 // http://lwn.net/Articles/267968/
 // http://studyfoss.egloos.com/5144295 <- 필독! spin_lock 설명
-//
+// ARM10C 20140315
+// TICKET_SHIFT: 16
 static inline void arch_spin_lock(arch_spinlock_t *lock)
 {
 	unsigned long tmp;
-        // 다음 next 값
-	u32 newval;
-        // 현재 next 값
-	arch_spinlock_t lockval;
-
+	u32 newval; //다음 next 값
+	arch_spinlock_t lockval; //현재 next 값
 // ARM10C 20130907
-// TICKET_SHIFT: 16
-// "1:	ldrex	lockval, &lock->slock\n"
+// 1:	ldrex	lockval, &lock->slock
 // 현재 next(lockval)는 받아 놓고,
-// "	add	newval, lockval, (1<<TICKET_SHIFT)\n" tickets.next += 1
+// 	add	newval, lockval, (1<<TICKET_SHIFT) // tickets.next += 1
 // 다음 next(newval) 는 += 1하고 저장 한다.
-// "	strex	tmp, newval, &lock->slock\n"
-// "	teq	tmp, #0\n"
-// "	bne	1b"
+// 	strex	tmp, newval, &lock->slock
+// 	teq	tmp, #0\n
+// 	bne	1b
+	// lock->slock에서 실제 데이터를 쓸때 (next+=1) 까지 루프
+	// next+=1 의 의미는 표를 받기위해 번호표 발행
 
-	// lock->slock에서 실제 데이터를 쓸때(next+=1) 까지 루프
-	// next+=1 의 의미는 표를 받기위해 번호표발행
 	__asm__ __volatile__(
 "1:	ldrex	%0, [%3]\n"
 "	add	%1, %0, %4\n"
@@ -109,13 +106,14 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 	: "cc");
 
 	// 실재 lock을 걸기 위해 busylock 한다.
-	// 받은 번호표의 순을 기다린다.(unlock에서 owner을 증가 시켜서)
+	// 받은 번호표의 순을 기다린다. (unlock에서 owner을 증가 시켜서)
 	while (lockval.tickets.next != lockval.tickets.owner) {
-                // ARM10C 이벤트대기(irq,frq,부정확한 중단 또는 디버그 시작 요청 대기. 구현되지 않은 경우 NOP
+		// 이벤트대기 (irq, frq,부정확한 중단 또는 디버그 시작 요청 대기. 구현되지 않은 경우 NOP)
 		wfe();
-	        // arch_spin_unlock()의 dsb_sev();가 호출될때 깨어남
+		// arch_spin_unlock()의 dsb_sev()가 호출될때 깨어남
+
 		lockval.tickets.owner = ACCESS_ONCE(lock->tickets.owner);
-		// ARM10C local owner값 업데이트
+		// local owner값 업데이트
 	}
 
 	smp_mb();
@@ -170,10 +168,18 @@ static inline void arch_spin_unlock(arch_spinlock_t *lock)
 	dsb_sev();
 }
 
+// ARM10C 20140315
+// arch_spin_is_locked(&cpu_add_remove_lock->wait_lock->rlock->raw_lock)
 static inline int arch_spin_is_locked(arch_spinlock_t *lock)
 {
+	// lock->tickets: cpu_add_remove_lock->wait_lock->rlock->raw_lock->tickets
+        // ACCESS_ONCE(cpu_add_remove_lock->wait_lock->rlock->raw_lock->tickets):
+	// (*(volatile struct __raw_tickets *)&(cpu_add_remove_lock->wait_lock->rlock->raw_lock->tickets))
 	struct __raw_tickets tickets = ACCESS_ONCE(lock->tickets);
+
+	// tickets.owner: 0, tickets.next: 1
 	return tickets.owner != tickets.next;
+	// return 1
 }
 
 static inline int arch_spin_is_contended(arch_spinlock_t *lock)

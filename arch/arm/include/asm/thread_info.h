@@ -81,6 +81,22 @@ struct thread_info {
 
 // ARM10C 20130824
 // INIT_PREEMPT_COUNT: 0x40000001
+// ARM10C 20140315
+// INIT_PREEMPT_COUNT: 0x40000001
+// INIT_THREAD_INFO(init_task):
+// {
+// 	.task		= &init_task,
+// 	.exec_domain	= &default_exec_domain,
+// 	.flags		= 0,
+// 	.preempt_count	= 0x40000001,
+// 	.addr_limit	= KERNEL_DS,
+// 	.cpu_domain	= domain_val(DOMAIN_USER, DOMAIN_MANAGER) |
+// 			  domain_val(DOMAIN_KERNEL, DOMAIN_MANAGER) |
+// 			  domain_val(DOMAIN_IO, DOMAIN_CLIENT),
+// 	.restart_block	= {
+// 		.fn	= do_no_restart_syscall,
+// 	},
+// }
 #define INIT_THREAD_INFO(tsk)						\
 {									\
 	.task		= &tsk,						\
@@ -97,6 +113,7 @@ struct thread_info {
 }
 
 // ARM10C 20130824
+// ARM10C 20140315
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
 
@@ -108,12 +125,13 @@ static inline struct thread_info *current_thread_info(void) __attribute_const__;
 // ARM10C 20130824
 // 모기향책: 133p
 // ARM10C 20140308
+// ARM10C 20140315
 static inline struct thread_info *current_thread_info(void)
 {
 	// stack이 8K로 정렬되어 있기 때문에 13비트를 clear시키면 stack의 맨 앞을 가리키게 된다.
 	register unsigned long sp asm ("sp");
 
-        // THREAD_SIZE: 8192
+	// THREAD_SIZE: 8192, ~(THREAD_SIZE - 1): 0xffffe000
 	return (struct thread_info *)(sp & ~(THREAD_SIZE - 1));
 }
 
@@ -151,6 +169,9 @@ extern int vfp_restore_user_hwstate(struct user_vfp __user *,
  * We use bit 30 of the preempt_count to indicate that kernel
  * preemption is occurring.  See <asm/hardirq.h>.
  */
+/*
+// ARM10C 20140315
+*/
 #define PREEMPT_ACTIVE	0x40000000
 
 /*

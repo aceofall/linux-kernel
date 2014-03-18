@@ -141,6 +141,7 @@ print_cfs_rq(struct seq_file *m, int cpu, struct cfs_rq *cfs_rq);
  */
 #define TASK_RUNNING		0
 #define TASK_INTERRUPTIBLE	1
+// ARM10C 20140315
 #define TASK_UNINTERRUPTIBLE	2
 #define __TASK_STOPPED		4
 #define __TASK_TRACED		8
@@ -294,6 +295,7 @@ static inline void lockup_detector_init(void)
 #endif
 
 /* Attach to any functions which should be ignored in wchan output. */
+// ARM10C 20140315
 #define __sched		__attribute__((__section__(".sched.text")))
 
 /* Linker adds these: start and end of __sched functions */
@@ -443,6 +445,7 @@ struct task_cputime {
  * before the scheduler is active -- see should_resched().
  */
 // KID 20140113
+// ARM10C 20140315
 // PREEMPT_ACTIVE: 0x40000000
 // INIT_PREEMPT_COUNT: 0x40000001
 #define INIT_PREEMPT_COUNT	(1 + PREEMPT_ACTIVE)    /* PREEMPT_ACTIVE = 0x40000000*/
@@ -1026,7 +1029,7 @@ enum perf_event_task_context {
 	perf_sw_context,
 	perf_nr_task_contexts,
 };
-
+// ARM10C 20140315
 struct task_struct {
 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
 	void *stack;
@@ -1246,7 +1249,7 @@ struct task_struct {
 	struct rt_mutex_waiter *pi_blocked_on;
 #endif
 
-#ifdef CONFIG_DEBUG_MUTEXES
+#ifdef CONFIG_DEBUG_MUTEXES // CONFIG_DEBUG_MUTEXES=y
 	/* mutex deadlock detection */
 	struct mutex_waiter *blocked_on;
 #endif
@@ -1920,6 +1923,7 @@ void yield(void);
 extern struct exec_domain	default_exec_domain;
 
 // KID 20140113
+// ARM10C 20140315
 union thread_union {
 	struct thread_info thread_info;
 	unsigned long stack[THREAD_SIZE/sizeof(long)];
@@ -2293,6 +2297,8 @@ static inline void threadgroup_unlock(struct task_struct *tsk) {}
 
 #ifndef __HAVE_THREAD_FUNCTIONS
 
+// ARM10C 20140315
+// task_thread_info(init_task): ((struct thread_info *)(init_task)->stack)
 #define task_thread_info(task)	((struct thread_info *)(task)->stack)
 #define task_stack_page(task)	((task)->stack)
 
