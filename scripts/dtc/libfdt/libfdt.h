@@ -60,6 +60,7 @@
 #define FDT_LAST_SUPPORTED_VERSION	0x11
 
 /* Error codes: informative error codes */
+// KID 20140318
 #define FDT_ERR_NOTFOUND	1
 	/* FDT_ERR_NOTFOUND: The requested node or property does not exist */
 #define FDT_ERR_EXISTS		2
@@ -166,21 +167,81 @@ int fdt_next_node(const void *fdt, int offset, int *depth);
 #define fdt_size_dt_strings(fdt) 	(fdt_get_header(fdt, size_dt_strings))
 #define fdt_size_dt_struct(fdt)		(fdt_get_header(fdt, size_dt_struct))
 
+// KID 20140318
 #define __fdt_set_hdr(name) \
 	static inline void fdt_set_##name(void *fdt, uint32_t val) \
 	{ \
 		struct fdt_header *fdth = (struct fdt_header*)fdt; \
 		fdth->name = cpu_to_fdt32(val); \
 	}
+// static inline void fdt_set_magic(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->magic = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(magic);
+
+// static inline void fdt_set_totalsize(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->totalsize = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(totalsize);
+
+// static inline void fdt_set_off_dt_struct(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->off_dt_struct = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(off_dt_struct);
+
+// static inline void fdt_set_off_dt_strings(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->off_dt_strings = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(off_dt_strings);
+
+// static inline void fdt_set_off_mem_rsvmap(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->off_mem_rsvmap = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(off_mem_rsvmap);
+
+// static inline void fdt_set_version(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->version = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(version);
+
+// static inline void fdt_set_last_comp_version(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->last_comp_version = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(last_comp_version);
+
+// static inline void fdt_set_boot_cpuid_phys(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->boot_cpuid_phys = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(boot_cpuid_phys);
+
+// static inline void fdt_set_size_dt_strings(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->size_dt_strings = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(size_dt_strings);
+
+// static inline void fdt_set_size_dt_struct(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->size_dt_struct = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(size_dt_struct);
 #undef __fdt_set_hdr
 

@@ -36,6 +36,7 @@ struct fdt_node_header {
 	char name[0];
 };
 
+// KID 20140318
 struct fdt_property {
 	uint32_t tag;
 	uint32_t len;

@@ -202,8 +202,11 @@ int _fdt_check_node_offset(const void *fdt, int offset)
 	return offset;
 }
 
+// KID 20140318
+// fdt: _edata (data영역의 끝 위치), offset: 0
 int _fdt_check_prop_offset(const void *fdt, int offset)
 {
+	// offset: 0, FDT_TAGSIZE: 4, FDT_PROP: 0x3
 	if ((offset < 0) || (offset % FDT_TAGSIZE)
 	    || (fdt_next_tag(fdt, offset, &offset) != FDT_PROP))
 		return -FDT_ERR_BADOFFSET;
@@ -263,13 +266,20 @@ const char *_fdt_find_string(const char *strtab, int tabsize, const char *s)
 	return NULL;
 }
 
+// KID 20140318
+// fdt: fdt의 시작위치, buf: _edata (data영역의 끝 위치),
+// bufsize: sp - _edata (실제로 사용할 수 있는 memory 공간)
 int fdt_move(const void *fdt, void *buf, int bufsize)
 {
+	// fdt: fdt의 시작위치
 	FDT_CHECK_HEADER(fdt);
 
+	// fdt_totalsize(fdt): 0x3236, bufsize: 64K - _edata
 	if (fdt_totalsize(fdt) > bufsize)
 		return -FDT_ERR_NOSPACE;
 
+	// fdt: fdt의 시작위치, buf: _edata (data영역의 끝 위치), fdt_totalsize(fdt): 0x3236
 	memmove(buf, fdt, fdt_totalsize(fdt));
+	// _edata (data영역의 끝 위치)에 fdt를 이동시킴
 	return 0;
 }

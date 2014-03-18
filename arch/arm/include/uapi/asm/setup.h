@@ -45,6 +45,7 @@ struct tag_core {
 
 /* it is allowed to have multiple ATAG_MEM nodes */
 // ARM10C 20131012
+// KID 20140318
 #define ATAG_MEM	0x54410002
 
 // KID 20140227
@@ -90,6 +91,7 @@ struct tag_ramdisk {
 #define ATAG_INITRD	0x54410005
 
 /* describes where the compressed ramdisk image lives (physical address) */
+// KID 20140318
 #define ATAG_INITRD2	0x54420005
 
 // KID 20140227
@@ -143,6 +145,7 @@ struct tag_videolfb {
 };
 
 /* command line: \0 terminated string */
+// KID 20140318
 #define ATAG_CMDLINE	0x54410009
 
 // KID 20140227
@@ -188,6 +191,7 @@ struct tag_memclk {
 // sizeof(struct tag_memclk): 4 bytes
 //
 // sizeof(struct tag): sizeof(struct tag_header) + sizeof(struct tag_videolfb): 32 bytes
+// KID 20140318
 struct tag {
 	struct tag_header hdr;
 	union {
@@ -223,11 +227,14 @@ struct tagtable {
 	((unsigned long)(&((struct tag *)0L)->member + 1)	\
 		<= (tag)->hdr.size * 4)
 
+// KID 20140318
 #define tag_next(t)	((struct tag *)((__u32 *)(t) + (t)->hdr.size))
+
 // ARM10C 20131012
 // KID 20140302
 #define tag_size(type)	((sizeof(struct tag_header) + sizeof(struct type)) >> 2)
 
+// KID 20140318
 #define for_each_tag(t,base)		\
 	for (t = base; t->hdr.size; t = tag_next(t))
 

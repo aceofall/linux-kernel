@@ -43,21 +43,30 @@ static int setprop_cell(void *fdt, const char *node_path,
 	return fdt_setprop_cell(fdt, offset, property, val);
 }
 
+// KID 20140318
+// fdt: _edata (data영역의 끝 위치), "/", "#size-cells", &len
 static const void *getprop(const void *fdt, const char *node_path,
 			   const char *property, int *len)
 {
+	// fdt: _edata (data영역의 끝 위치), node_path: "/"
 	int offset = fdt_path_offset(fdt, node_path);
+	// offset: 0
 
+	// FDT_ERR_NOTFOUND: 1
 	if (offset == -FDT_ERR_NOTFOUND)
 		return NULL;
 
+	// fdt: _edata (data영역의 끝 위치), offset: 0, property: "#size-cells"
 	return fdt_getprop(fdt, offset, property, len);
 }
 
+// KID 20140318
+// fdt: _edata (data영역의 끝 위치)
 static uint32_t get_cell_size(const void *fdt)
 {
 	int len;
 	uint32_t cell_size = 1;
+	// fdt: _edata (data영역의 끝 위치)
 	const uint32_t *size_len =  getprop(fdt, "/", "#size-cells", &len);
 
 	if (size_len)
@@ -169,12 +178,17 @@ int atags_to_fdt(void *atag_list, void *fdt, int total_space)
 	// _edata: data영역의 끝 위치이며 fdt의 시작위치를 뜻함.
 	// fdt: _edata (data영역의 끝 위치) , total_space: sp - _edata (실제로 사용할 수 있는 memory 공간)
 	ret = fdt_open_into(fdt, fdt, total_space);
+	// _edata (data영역의 끝 위치)위치부터 fdt를 복사함. fdt의 header 정보 업데이트 수행
+
 	if (ret < 0)
 		return ret;
 
-	//atag_list hdr의 tag(type)을 보고 ftd를 append 한다 
+	// atag_list hdr의 tag(type)을 보고 ftd를 append 한다.
+	// atag: bootloader에서 넘겨 받은 ATAG(DTB) 주소, atag_list: bootloader에서 넘겨 받은 ATAG(DTB) 주소
 	for_each_tag(atag, atag_list) {
-		if (atag->hdr.tag == ATAG_CMDLINE) {
+	// for (atag = atag_list; atag->hdr.size; atag = tag_next(atag))
+
+		if (atag->hdr.tag == ATAG_CMDLINE) { // ATAG_CMDLINE: 0x54410009
 			/* Append the ATAGS command line to the device tree
 			 * command line.
 			 * NB: This means that if the same parameter is set in
@@ -187,11 +201,17 @@ int atags_to_fdt(void *atag_list, void *fdt, int total_space)
 			else
 				setprop_string(fdt, "/chosen", "bootargs",
 					       atag->u.cmdline.cmdline);
-		} else if (atag->hdr.tag == ATAG_MEM) {
+		} else if (atag->hdr.tag == ATAG_MEM) { // ATAG_MEM: 0x54410002
+			// atag->hdr.tag: 0x54410002
+			// memcount: 0, sizeof(mem_reg_property): 128
 			if (memcount >= sizeof(mem_reg_property)/4)
 				continue;
+
+			// atag->u.mem.size: 0x1000000
 			if (!atag->u.mem.size)
 				continue;
+
+			// fdt: _edata (data영역의 끝 위치)
 			memsize = get_cell_size(fdt);
 
 			if (memsize == 2) {
@@ -211,7 +231,7 @@ int atags_to_fdt(void *atag_list, void *fdt, int total_space)
 					cpu_to_fdt32(atag->u.mem.size);
 			}
 
-		} else if (atag->hdr.tag == ATAG_INITRD2) {
+		} else if (atag->hdr.tag == ATAG_INITRD2) { // ATAG_INITRD2: 0x54420005
 			uint32_t initrd_start, initrd_size;
 			initrd_start = atag->u.initrd.start;
 			initrd_size = atag->u.initrd.size;

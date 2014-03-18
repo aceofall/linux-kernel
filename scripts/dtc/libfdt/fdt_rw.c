@@ -60,11 +60,11 @@
 static int _fdt_blocks_misordered(const void *fdt,
 			      int mem_rsv_size, int struct_size)
 {
-	// fdt_off_mem_rsvmap(fdt): 0x28, sizeof(struct fdt_header): 40, 
-	// FDT_ALIGN(40, 8): 0x28
-	// fdt_off_dt_struct(fdt): 0x38, mem_rsv_size: 16 
-	// fdt_off_dt_strings(fdt): 0x30ac, struct_size: 0x3074
+	// fdt_off_mem_rsvmap(fdt): 0x28, sizeof(struct fdt_header): 40, FDT_ALIGN(40, 8): 0x28
+	// fdt_off_dt_struct(fdt): 0x38, mem_rsv_size: 16, fdt_off_dt_struct(fdt) + mem_rsv_size: 0x38
+	// fdt_off_dt_strings(fdt): 0x30ac, struct_size: 0x3074, fdt_off_dt_struct(fdt) + struct_size: 0x3074
 	// fdt_totalsize(fdt): 0x3236, fdt_size_dt_strings(fdt): 0x18a
+	// fdt_off_dt_strings(fdt) + fdt_size_dt_strings(fdt): 0x3236
 	return (fdt_off_mem_rsvmap(fdt) < FDT_ALIGN(sizeof(struct fdt_header), 8))
 		|| (fdt_off_dt_struct(fdt) <
 		    (fdt_off_mem_rsvmap(fdt) + mem_rsv_size))
@@ -72,6 +72,7 @@ static int _fdt_blocks_misordered(const void *fdt,
 		    (fdt_off_dt_struct(fdt) + struct_size))
 		|| (fdt_totalsize(fdt) <
 		    (fdt_off_dt_strings(fdt) + fdt_size_dt_strings(fdt)));
+	// return 1
 }
 
 static int _fdt_rw_check_header(void *fdt)
@@ -468,15 +469,29 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
 			return struct_size;
 	}
 
-	// fdt: fdt의 시작위치, mem_rsv_size: 16 struct_size: 0x3074
+	// fdt: fdt의 시작위치, mem_rsv_size: 16, struct_size: 0x3074
 	if (!_fdt_blocks_misordered(fdt, mem_rsv_size, struct_size)) {
 		/* no further work necessary */
+		// fdt: fdt의 시작위치, buf: _edata (data영역의 끝 위치),
+		// bufsize: sp - _edata (실제로 사용할 수 있는 memory 공간)
 		err = fdt_move(fdt, buf, bufsize);
+		// buf: _edata (data영역의 끝 위치)에 fdt를 이동시킴
+
 		if (err)
 			return err;
+
+		// buf: 복사된 fdt
 		fdt_set_version(buf, 17);
+		// fdt->version: 17
+
+		// buf: 복사된 fdt, struct_size: 0x3074
 		fdt_set_size_dt_struct(buf, struct_size);
+		// fdt->struct_size: 0x3074
+
+		// buf: 복사된 fdt, bufsize: sp - _edata (실제로 사용할 수 있는 memory 공간)
 		fdt_set_totalsize(buf, bufsize);
+		// fdt->totalsize: sp - _edata (실제로 사용할 수 있는 memory 공간)
+
 		return 0;
 	}
 

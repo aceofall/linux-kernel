@@ -161,15 +161,22 @@ int fdt_subnode_offset(const void *fdt, int parentoffset,
 	return fdt_subnode_offset_namelen(fdt, parentoffset, name, strlen(name));
 }
 
+// KID 20140318
+// fdt: _edata (data영역의 끝 위치), node_path: "/"
 int fdt_path_offset(const void *fdt, const char *path)
 {
+	// path: "/", strlen(path): 1
 	const char *end = path + strlen(path);
+	// *end: NULL
+	// path: "/"
 	const char *p = path;
+	// p: "/"
 	int offset = 0;
 
 	FDT_CHECK_HEADER(fdt);
 
 	/* see if we have an alias */
+	// *path: '/'
 	if (*path != '/') {
 		const char *q = strchr(path, '/');
 
@@ -184,13 +191,20 @@ int fdt_path_offset(const void *fdt, const char *path)
 		p = q;
 	}
 
+	// *p: '/'
 	while (*p) {
 		const char *q;
 
+		// *p: '/'
 		while (*p == '/')
 			p++;
+
+		// *p: NULL
 		if (! *p)
+			// offset: 0
 			return offset;
+			// return 0
+
 		q = strchr(p, '/');
 		if (! q)
 			q = end;
@@ -243,6 +257,8 @@ int fdt_next_property_offset(const void *fdt, int offset)
 	return _nextprop(fdt, offset);
 }
 
+// KID 20140318
+// fdt: _edata (data영역의 끝 위치), offset: 0
 const struct fdt_property *fdt_get_property_by_offset(const void *fdt,
 						      int offset,
 						      int *lenp)
@@ -250,6 +266,7 @@ const struct fdt_property *fdt_get_property_by_offset(const void *fdt,
 	int err;
 	const struct fdt_property *prop;
 
+	// fdt: _edata (data영역의 끝 위치), offset: 0
 	if ((err = _fdt_check_prop_offset(fdt, offset)) < 0) {
 		if (lenp)
 			*lenp = err;
@@ -308,11 +325,14 @@ const void *fdt_getprop_namelen(const void *fdt, int nodeoffset,
 	return prop->data;
 }
 
+// KID 20140318
+// fdt: _edata (data영역의 끝 위치), offset: 0, property: "#size-cells"
 const void *fdt_getprop_by_offset(const void *fdt, int offset,
 				  const char **namep, int *lenp)
 {
 	const struct fdt_property *prop;
 
+	// fdt: _edata (data영역의 끝 위치), offset: 0
 	prop = fdt_get_property_by_offset(fdt, offset, lenp);
 	if (!prop)
 		return NULL;
