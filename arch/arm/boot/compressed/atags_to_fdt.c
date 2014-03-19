@@ -7,21 +7,37 @@
 #define do_extend_cmdline 0
 #endif
 
+// KID 20140319
+// fdt: fdt 시작위치, node_path: "/memory"
 static int node_offset(void *fdt, const char *node_path)
 {
+	// fdt: fdt 시작위치, node_path: "/memory"
 	int offset = fdt_path_offset(fdt, node_path);
+	// offset: 404
+
 	if (offset == -FDT_ERR_NOTFOUND)
 		offset = fdt_add_subnode(fdt, 0, node_path);
+
+	// offset: 404
 	return offset;
+	// return 404
 }
 
+// KID 20140319
+// fdt: fdt 시작위치, "/memory", "reg", mem_reg_property, 8
 static int setprop(void *fdt, const char *node_path, const char *property,
 		   uint32_t *val_array, int size)
 {
+	// fdt: fdt 시작위치, node_path: "/memory"
 	int offset = node_offset(fdt, node_path);
+	// offset: 404
+
 	if (offset < 0)
 		return offset;
+
+	// fdt: fdt 시작위치, offset: 404, property: "reg", mem_reg_property, 8
 	return fdt_setprop(fdt, offset, property, val_array, size);
+	// 설정하고자하는 property를 ftd에서 찾고 설정하고자 하는 값과 헤더 값을 ftd에 업데이트함
 }
 
 static int setprop_string(void *fdt, const char *node_path,
@@ -58,6 +74,7 @@ static const void *getprop(const void *fdt, const char *node_path,
 
 	// fdt: _edata (data영역의 끝 위치), offset: 0, property: "#size-cells"
 	return fdt_getprop(fdt, offset, property, len);
+	// return fdt시작위치 + 0x5C
 }
 
 // KID 20140318
@@ -67,11 +84,17 @@ static uint32_t get_cell_size(const void *fdt)
 	int len;
 	uint32_t cell_size = 1;
 	// fdt: _edata (data영역의 끝 위치)
+	// getprop(fdt, "/", "#size-cells", &len): fdt시작위치 + 0x5C
 	const uint32_t *size_len =  getprop(fdt, "/", "#size-cells", &len);
+	// size_len: fdt시작위치 + 0x5C
 
 	if (size_len)
+		// cell_size: 1, fdt32_to_cpu(*size_len): 0x1
 		cell_size = fdt32_to_cpu(*size_len);
+		// cell_size: 1
+
 	return cell_size;
+	// return 1
 }
 
 static void merge_fdt_bootargs(void *fdt, const char *fdt_cmdline)
@@ -213,6 +236,7 @@ int atags_to_fdt(void *atag_list, void *fdt, int total_space)
 
 			// fdt: _edata (data영역의 끝 위치)
 			memsize = get_cell_size(fdt);
+			// memsize: 1
 
 			if (memsize == 2) {
 				/* if memsize is 2, that means that
@@ -225,10 +249,16 @@ int atags_to_fdt(void *atag_list, void *fdt, int total_space)
 				mem_reg_prop64[memcount++] =
 					cpu_to_fdt64(atag->u.mem.size);
 			} else {
+				// memcount: 0, atag->u.mem.start: 0
 				mem_reg_property[memcount++] =
 					cpu_to_fdt32(atag->u.mem.start);
+				// memcount: 1, mem_reg_property[0]: 0
+
+				// memcount: 1, atag->u.mem.size: 0x1000000
 				mem_reg_property[memcount++] =
 					cpu_to_fdt32(atag->u.mem.size);
+				// memcount: 2, mem_reg_property[1]: 0x1000000
+
 			}
 
 		} else if (atag->hdr.tag == ATAG_INITRD2) { // ATAG_INITRD2: 0x54420005
@@ -242,10 +272,14 @@ int atags_to_fdt(void *atag_list, void *fdt, int total_space)
 		}
 	}
 
+	// memcount: 2
 	if (memcount) {
+		// fdt: fdt 시작위치, memcount: 2, memsize: 1
 		setprop(fdt, "/memory", "reg", mem_reg_property,
 			4 * memcount * memsize);
+		// 설정하고자하는 property를 ftd에서 찾고 설정하고자 하는 값과 헤더 값을 ftd에 업데이트함
 	}
 
+	// fdt: fdt 시작위치
 	return fdt_pack(fdt);
 }

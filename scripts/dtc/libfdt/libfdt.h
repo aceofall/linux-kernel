@@ -530,12 +530,16 @@ const struct fdt_property *fdt_get_property_namelen(const void *fdt,
  */
 const struct fdt_property *fdt_get_property(const void *fdt, int nodeoffset,
 					    const char *name, int *lenp);
+// KID 20140319
+// fdt: fdt 시작위치, nodeoffset: 404, name: "reg", &oldlen
 static inline struct fdt_property *fdt_get_property_w(void *fdt, int nodeoffset,
 						      const char *name,
 						      int *lenp)
 {
+	// fdt: fdt 시작위치, nodeoffset: 404, name: "reg", &oldlen
 	return (struct fdt_property *)(uintptr_t)
 		fdt_get_property(fdt, nodeoffset, name, lenp);
+	// return fdt 시작위치 + 0x1ec
 }
 
 /**

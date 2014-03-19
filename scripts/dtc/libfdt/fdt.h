@@ -37,6 +37,8 @@ struct fdt_node_header {
 };
 
 // KID 20140318
+// KID 20140319
+// sizeof(struct fdt_property): 13 bytes
 struct fdt_property {
 	uint32_t tag;
 	uint32_t len;
@@ -55,6 +57,7 @@ struct fdt_property {
 // KID 20140314
 #define FDT_BEGIN_NODE	0x1		/* Start node: full name */
 #define FDT_END_NODE	0x2		/* End node */
+// KID 20140319
 #define FDT_PROP	0x3		/* Property: name off,
 					   size, content */
 #define FDT_NOP		0x4		/* nop */

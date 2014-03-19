@@ -55,37 +55,61 @@
 
 #include "libfdt_internal.h"
 
+// KID 20140319
+// fdt: fdt 시작위치, offset: 404, name: "memory", namelen: 6
 static int _fdt_nodename_eq(const void *fdt, int offset,
 			    const char *s, int len)
 {
+	// fdt: fdt 시작위치, offset: 404, len: 6, FDT_TAGSIZE: 4
 	const char *p = fdt_offset_ptr(fdt, offset + FDT_TAGSIZE, len+1);
+	// p: fdt 시작위치 + 0x1d0
 
 	if (! p)
 		/* short match */
 		return 0;
 
+	// p: "memory", s: "memory", len: 6
 	if (memcmp(p, s, len) != 0)
 		return 0;
 
+	// p[6]: '\0'
 	if (p[len] == '\0')
 		return 1;
+		// return 1
 	else if (!memchr(s, '@', len) && (p[len] == '@'))
 		return 1;
 	else
 		return 0;
 }
 
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), stroffset: 0
 const char *fdt_string(const void *fdt, int stroffset)
 {
+	// fdt: _edata (data영역의 끝 위치), fdt_off_dt_strings(fdt): 0x30ac, stroffset: 0
 	return (const char *)fdt + fdt_off_dt_strings(fdt) + stroffset;
+	// fdt: fdt시작위치 + 0x30ac
 }
 
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), fdt32_to_cpu(prop->nameoff): 0
+// name: "#size-cells", namelen: 11
+// fdt: _edata (data영역의 끝 위치), fdt32_to_cpu(prop->nameoff): 0xf
+// name: "#size-cells", namelen: 11
 static int _fdt_string_eq(const void *fdt, int stroffset,
 			  const char *s, int len)
 {
+	// fdt: _edata (data영역의 끝 위치), stroffset: 0
+	// fdt: _edata (data영역의 끝 위치), stroffset: 0xf
 	const char *p = fdt_string(fdt, stroffset);
+	// p: fdt시작위치 + 0x30ac
+	// p: fdt시작위치 + 0x30ac + 0xf
 
+	// strlen(p): 14, len: 11, p: "#address-cells", s: "#size-cells"
+	// strlen(p): 11, len: 11, p: "#size-cells", s: "#size-cells"
 	return (strlen(p) == len) && (memcmp(p, s, len) == 0);
+	// return 0
+	// return 1
 }
 
 int fdt_get_mem_rsv(const void *fdt, int n, uint64_t *address, uint64_t *size)
@@ -112,23 +136,29 @@ int fdt_num_mem_rsv(const void *fdt)
 	// return 0
 }
 
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), offset: 8
 static int _nextprop(const void *fdt, int offset)
 {
 	uint32_t tag;
 	int nextoffset;
 
 	do {
+		// fdt: _edata (data영역의 끝 위치), offset: 8
 		tag = fdt_next_tag(fdt, offset, &nextoffset);
+		// tag: 0x3, nextoffset: 32
 
 		switch (tag) {
-		case FDT_END:
+		case FDT_END: // FDT_END: 0x9
 			if (nextoffset >= 0)
 				return -FDT_ERR_BADSTRUCTURE;
 			else
 				return nextoffset;
 
-		case FDT_PROP:
+		case FDT_PROP: // FDT_PROP: 0x3
+			// offset: 8
 			return offset;
+			// return 8
 		}
 		offset = nextoffset;
 	} while (tag == FDT_NOP);
@@ -136,6 +166,8 @@ static int _nextprop(const void *fdt, int offset)
 	return -FDT_ERR_NOTFOUND;
 }
 
+// KID 20140319
+// fdt: fdt 시작위치, offset: 0, p: "memory", q: path 문자열의 null 문자의 주소, q-p: 6
 int fdt_subnode_offset_namelen(const void *fdt, int offset,
 			       const char *name, int namelen)
 {
@@ -143,12 +175,20 @@ int fdt_subnode_offset_namelen(const void *fdt, int offset,
 
 	FDT_CHECK_HEADER(fdt);
 
+	// fdt: fdt 시작위치, offset: 0, depth: 0
 	for (depth = 0;
 	     (offset >= 0) && (depth >= 0);
 	     offset = fdt_next_node(fdt, offset, &depth))
+		// fdt의 begin node tag를 찾고 offset을 구함
+		// ...(계속 루프를 돌며 값계산)
+		// offset: 404 (memory), depth: 1
+
+		// depth: 1, offset: 404, name: "memory", namelen: 6
 		if ((depth == 1)
 		    && _fdt_nodename_eq(fdt, offset, name, namelen))
+			// offset: 404
 			return offset;
+			// return 404
 
 	if (depth < 0)
 		return -FDT_ERR_NOTFOUND;
@@ -163,19 +203,26 @@ int fdt_subnode_offset(const void *fdt, int parentoffset,
 
 // KID 20140318
 // fdt: _edata (data영역의 끝 위치), node_path: "/"
+// fdt: fdt 시작위치, node_path: "/memory"
 int fdt_path_offset(const void *fdt, const char *path)
 {
 	// path: "/", strlen(path): 1
+	// path: "/memory", strlen(path): 7
 	const char *end = path + strlen(path);
-	// *end: NULL
+	// end: path 문자열의 null 문자의 주소
+	// end: path 문자열의 null 문자의 주소
+
 	// path: "/"
+	// path: "/memory"
 	const char *p = path;
 	// p: "/"
+	// p: "/memory"
 	int offset = 0;
 
 	FDT_CHECK_HEADER(fdt);
 
 	/* see if we have an alias */
+	// *path: '/'
 	// *path: '/'
 	if (*path != '/') {
 		const char *q = strchr(path, '/');
@@ -196,19 +243,27 @@ int fdt_path_offset(const void *fdt, const char *path)
 		const char *q;
 
 		// *p: '/'
+		// *p: '/'
 		while (*p == '/')
 			p++;
 
 		// *p: NULL
+		// *p: 'm'
 		if (! *p)
 			// offset: 0
 			return offset;
 			// return 0
 
+		// p: "memory"
 		q = strchr(p, '/');
-		if (! q)
-			q = end;
+		// q: NULL
 
+		if (! q)
+			// q: NULL, end: path 문자열의 null 문자의 주소
+			q = end;
+			// q: path 문자열의 null 문자의 주소
+
+		// fdt: fdt 시작위치, offset: 0, p: "memory", q: path 문자열의 null 문자의 주소, q-p: 6
 		offset = fdt_subnode_offset_namelen(fdt, offset, p, q-p);
 		if (offset < 0)
 			return offset;
@@ -239,26 +294,39 @@ const char *fdt_get_name(const void *fdt, int nodeoffset, int *len)
 	return NULL;
 }
 
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), offset: 0
 int fdt_first_property_offset(const void *fdt, int nodeoffset)
 {
 	int offset;
 
+	// fdt: _edata (data영역의 끝 위치), nodeoffset: 0
 	if ((offset = _fdt_check_node_offset(fdt, nodeoffset)) < 0)
 		return offset;
+	// offset: 8
 
+	// fdt: _edata (data영역의 끝 위치), offset: 8, _nextprop(fdt, 8): 8
 	return _nextprop(fdt, offset);
+	// return 8
 }
 
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), offset: 8
 int fdt_next_property_offset(const void *fdt, int offset)
 {
+	// fdt: _edata (data영역의 끝 위치), offset: 8
+	// _fdt_check_prop_offset(fdt, 8): 32
 	if ((offset = _fdt_check_prop_offset(fdt, offset)) < 0)
 		return offset;
+	// offset: 24
 
+	// _nextprop(fdt, 24): 24
 	return _nextprop(fdt, offset);
+	// return 24
 }
 
-// KID 20140318
-// fdt: _edata (data영역의 끝 위치), offset: 0
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), offset: 8
 const struct fdt_property *fdt_get_property_by_offset(const void *fdt,
 						      int offset,
 						      int *lenp)
@@ -266,37 +334,62 @@ const struct fdt_property *fdt_get_property_by_offset(const void *fdt,
 	int err;
 	const struct fdt_property *prop;
 
-	// fdt: _edata (data영역의 끝 위치), offset: 0
+	// fdt: _edata (data영역의 끝 위치), offset: 8, _fdt_check_prop_offset(fdt, 8): 32
 	if ((err = _fdt_check_prop_offset(fdt, offset)) < 0) {
 		if (lenp)
 			*lenp = err;
 		return NULL;
 	}
 
+	// fdt: _edata (data영역의 끝 위치), offset: 8
 	prop = _fdt_offset_ptr(fdt, offset);
+	// prop: fdt시작위치 + 0x40
 
 	if (lenp)
+		// fdt32_to_cpu(prop->len): 0x4
 		*lenp = fdt32_to_cpu(prop->len);
+		// *lenp: 0x4
 
+	// prop: fdt시작위치 + 0x40
 	return prop;
+	// return fdt시작위치 + 0x40
 }
 
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), nodeoffset: 0, name: "#size-cells", namelen: 11
 const struct fdt_property *fdt_get_property_namelen(const void *fdt,
 						    int offset,
 						    const char *name,
 						    int namelen, int *lenp)
 {
+	// fdt: _edata (data영역의 끝 위치), offset: 0
+	// fdt_first_property_offset(fdt, 0): 8
 	for (offset = fdt_first_property_offset(fdt, offset);
 	     (offset >= 0);
 	     (offset = fdt_next_property_offset(fdt, offset))) {
+		// [2nd] fdt_next_property_offset(fdt, 8): 24
 		const struct fdt_property *prop;
 
+		// [1st] fdt: _edata (data영역의 끝 위치), offset: 8
+		// [1st] fdt_get_property_by_offset(fdt, 8, lenp): fdt시작위치 + 0x40
+		// [2nd] fdt: _edata (data영역의 끝 위치), offset: 24
+		// [2nd] fdt_get_property_by_offset(fdt, 24, lenp): fdt시작위치 + 0x50
 		if (!(prop = fdt_get_property_by_offset(fdt, offset, lenp))) {
 			offset = -FDT_ERR_INTERNAL;
 			break;
 		}
+		// [1st] prop: fdt시작위치 + 0x40, *lenp: 0x4
+		// [2nd] prop: fdt시작위치 + 0x50, *lenp: 0x4
+
+		// [1st] fdt: _edata (data영역의 끝 위치), fdt32_to_cpu(prop->nameoff): 0
+		// [1st] name: "#size-cells", namelen: 11
+		// [1st] _fdt_string_eq(fdt, 0, "#size-cells", 11): 0
+		// [2nd] fdt: _edata (data영역의 끝 위치), fdt32_to_cpu(prop->nameoff): 0xf
+		// [2nd] name: "#size-cells", namelen: 11
+		// [2nd] _fdt_string_eq(fdt, 0xf, "#size-cells", 11): 1
 		if (_fdt_string_eq(fdt, fdt32_to_cpu(prop->nameoff),
 				   name, namelen))
+			// [2nd] prop: fdt시작위치 + 0x50, *lenp: 0x4
 			return prop;
 	}
 
@@ -305,34 +398,42 @@ const struct fdt_property *fdt_get_property_namelen(const void *fdt,
 	return NULL;
 }
 
+// KID 20140319
+// fdt: fdt 시작위치, nodeoffset: 404, name: "reg", &oldlen
 const struct fdt_property *fdt_get_property(const void *fdt,
 					    int nodeoffset,
 					    const char *name, int *lenp)
 {
+	// fdt: fdt 시작위치, nodeoffset: 404, name: "reg", strlen(name): 3, &oldlen
+	// fdt_get_property_namelen(ftd, 404, "reg", 3, lenp): fdt 시작위치 + 0x1ec, *lenp: 8
 	return fdt_get_property_namelen(fdt, nodeoffset, name,
 					strlen(name), lenp);
+	// return fdt 시작위치 + 0x1ec
 }
 
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), nodeoffset: 0, name: "#size-cells", strlen(name): 11
 const void *fdt_getprop_namelen(const void *fdt, int nodeoffset,
 				const char *name, int namelen, int *lenp)
 {
 	const struct fdt_property *prop;
 
+	// fdt: _edata (data영역의 끝 위치), nodeoffset: 0, name: "#size-cells", namelen: 11
 	prop = fdt_get_property_namelen(fdt, nodeoffset, name, namelen, lenp);
+	// prop: fdt시작위치 + 0x50, *lenp: 0x4
+
 	if (! prop)
 		return NULL;
-
+	// prop->data: fdt시작위치 + 0x50 + 12
 	return prop->data;
+	// return fdt시작위치 + 0x5C
 }
 
-// KID 20140318
-// fdt: _edata (data영역의 끝 위치), offset: 0, property: "#size-cells"
 const void *fdt_getprop_by_offset(const void *fdt, int offset,
 				  const char **namep, int *lenp)
 {
 	const struct fdt_property *prop;
 
-	// fdt: _edata (data영역의 끝 위치), offset: 0
 	prop = fdt_get_property_by_offset(fdt, offset, lenp);
 	if (!prop)
 		return NULL;
@@ -341,10 +442,15 @@ const void *fdt_getprop_by_offset(const void *fdt, int offset,
 	return prop->data;
 }
 
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), offset: 0, property: "#size-cells"
 const void *fdt_getprop(const void *fdt, int nodeoffset,
 			const char *name, int *lenp)
 {
+	// fdt: _edata (data영역의 끝 위치), nodeoffset: 0, name: "#size-cells", strlen(name): 11
+	// fdt_getprop_namelen(fdt, 0, "#size-cells", 11, lenp): fdt시작위치 + 0x50
 	return fdt_getprop_namelen(fdt, nodeoffset, name, strlen(name), lenp);
+	// return fdt시작위치 + 0x5C
 }
 
 uint32_t fdt_get_phandle(const void *fdt, int nodeoffset)

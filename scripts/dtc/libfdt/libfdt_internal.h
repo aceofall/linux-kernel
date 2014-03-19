@@ -79,7 +79,7 @@ static inline const void *_fdt_offset_ptr(const void *fdt, int offset)
 	// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, 
 	// fdt_off_dt_struct(fdt): 0x38, offset: 0
 	return (const char *)fdt + fdt_off_dt_struct(fdt) + offset;
-	// return fdt의 시작위치임 + 0x38 : dt_struct 시작 위치
+	// return fdt의 시작위치 + 0x38 + offset : dt_struct 시작 위치
 }
 
 static inline void *_fdt_offset_ptr_w(void *fdt, int offset)

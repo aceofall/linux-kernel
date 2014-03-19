@@ -86,6 +86,7 @@ int fdt_check_header(const void *fdt)
 // fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, offset: 0, FDT_TAGSIZE: 4
 // fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, offset: 4, 1
 // fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, startoffset: 0, offset: 5
+// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, offset: 12, sizeof(*lenp): 4
 const void *fdt_offset_ptr(const void *fdt, int offset, unsigned int len)
 {
 	const char *p;
@@ -98,28 +99,32 @@ const void *fdt_offset_ptr(const void *fdt, int offset, unsigned int len)
 			return NULL;
 
 	// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, offset: 0
-	// _fdt_offset_ptr(fdt, 0): dt_struct 시작 위치
+	// _fdt_offset_ptr(fdt, 0): fdt의 시작위치 + dt_struct의 offset + offset
 	p = _fdt_offset_ptr(fdt, offset);
-	// p: dt_struct 시작 위치
+	// p: fdt의 시작위치 + dt_struct의 offset + offset
 
 	// len: 4
 	if (p + len < p)
 		return NULL;
 
-	// p: dt_struct 시작 위치
+	// p: fdt의 시작위치 + dt_struct의 offset(0x38) + offset
 	return p;
-	// return dt_struct 시작 위치
+	// return fdt의 시작위치 + dt_struct의 offset(0x38) + offset
 }
 
 // KID 20140314
 // fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, 0, &struct_size
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), offset: 8, &nextoffset
 uint32_t fdt_next_tag(const void *fdt, int startoffset, int *nextoffset)
 {
 	const uint32_t *tagp, *lenp;
 	uint32_t tag;
 	// startoffset: 0
+	// startoffset: 8
 	int offset = startoffset;
 	// offset: 0
+	// offset: 8
 	const char *p;
 
 	// nextoffset: &struct_size, FDT_ERR_TRUNCATED: 8
@@ -128,25 +133,33 @@ uint32_t fdt_next_tag(const void *fdt, int startoffset, int *nextoffset)
 
 	// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, offset: 0, FDT_TAGSIZE: 4
 	// fdt_offset_ptr(fdt, 0, 4): dt_struct 시작 위치
+	// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, offset: 8, FDT_TAGSIZE: 4
+	// fdt_offset_ptr(fdt, 0, 8): root node의 property의 시작 위치
 	tagp = fdt_offset_ptr(fdt, offset, FDT_TAGSIZE);
 	// tagp: dt_struct 시작 위치
+	// tagp: root node의 property의 시작 위치
 
 	if (!tagp)
 		return FDT_END; /* premature end */
 
+	// tagp: root node의 property의 시작 위치
 	// tagp: dt_struct 시작 위치
 	tag = fdt32_to_cpu(*tagp);
 	// tag: 0x00000001
+	// tag: 0x00000003
 
 	// offset: 0, FDT_TAGSIZE: 4
+	// offset: 8, FDT_TAGSIZE: 4
 	offset += FDT_TAGSIZE;
 	// offset: 4
+	// offset: 12
 
 	// *nextoffset: -8, FDT_ERR_BADSTRUCTURE: 11
 	*nextoffset = -FDT_ERR_BADSTRUCTURE;
 	// *nextoffset: -11
 
 	// tag: 0x00000001
+	// tag: 0x00000003
 	switch (tag) {
 	case FDT_BEGIN_NODE: // FDT_BEGIN_NODE: 0x1
 		/* skip name */
@@ -162,12 +175,18 @@ uint32_t fdt_next_tag(const void *fdt, int startoffset, int *nextoffset)
 		break;
 
 	case FDT_PROP: // FDT_PROP: 0x3
+		// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, offset: 12, sizeof(*lenp): 4
 		lenp = fdt_offset_ptr(fdt, offset, sizeof(*lenp));
+		// lenp: fdt의 시작위치 + dt_struct의 offset(0x38) + 12: 0x44
+
 		if (!lenp)
 			return FDT_END; /* premature end */
 		/* skip-name offset, length and value */
+		// offset: 12, sizeof(struct fdt_property): 12, lenp: fdt의 시작위치 + 0x44
+		// FDT_TAGSIZE: 4, fdt32_to_cpu(*lenp): 4
 		offset += sizeof(struct fdt_property) - FDT_TAGSIZE
 			+ fdt32_to_cpu(*lenp);
+		// offset: 24
 		break;
 
 	case FDT_END: // FDT_END: 0x9
@@ -181,68 +200,92 @@ uint32_t fdt_next_tag(const void *fdt, int startoffset, int *nextoffset)
 
 	// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, startoffset: 0, offset: 5
 	// fdt_offset_ptr(fdt, 0, 5): NULL아닌 값
+	// fdt: _edata: data영역의 끝 위치이며 fdt의 시작위치임, startoffset: 8, offset: 24
+	// fdt_offset_ptr(fdt, 8, 16): NULL아닌 값
 	if (!fdt_offset_ptr(fdt, startoffset, offset - startoffset))
 		return FDT_END; /* premature end */
 
 	// offset: 5, FDT_TAGALIGN(5): 8
+	// offset: 24, FDT_TAGALIGN(25): 24
 	*nextoffset = FDT_TAGALIGN(offset);
 	// *nextoffset: 8
+	// *nextoffset: 24
 
 	// tag: 0x00000001
+	// tag: 0x00000003
 	return tag;
 	// return 0x00000001
+	// return 0x00000003
 }
 
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), nodeoffset: 0
 int _fdt_check_node_offset(const void *fdt, int offset)
 {
+	// FDT_TAGSIZE: 4, fdt: _edata (data영역의 끝 위치), nodeoffset: 0
+	// fdt_next_tag(fdt, 0, &offset): 0x1
 	if ((offset < 0) || (offset % FDT_TAGSIZE)
 	    || (fdt_next_tag(fdt, offset, &offset) != FDT_BEGIN_NODE))
 		return -FDT_ERR_BADOFFSET;
+	// offset: 8
 
 	return offset;
+	// return 8
 }
 
-// KID 20140318
-// fdt: _edata (data영역의 끝 위치), offset: 0
+// KID 20140319
+// fdt: _edata (data영역의 끝 위치), offset: 8
 int _fdt_check_prop_offset(const void *fdt, int offset)
 {
-	// offset: 0, FDT_TAGSIZE: 4, FDT_PROP: 0x3
+	// offset: 8, FDT_TAGSIZE: 4, fdt_next_tag(fdt, 8, &offset): 0x3, FDT_PROP: 0x3
 	if ((offset < 0) || (offset % FDT_TAGSIZE)
 	    || (fdt_next_tag(fdt, offset, &offset) != FDT_PROP))
 		return -FDT_ERR_BADOFFSET;
+	// offset: 24
 
 	return offset;
+	// return 24
 }
 
+// KID 20140319
+// fdt: fdt 시작위치, offset: 0, &depth
 int fdt_next_node(const void *fdt, int offset, int *depth)
 {
 	int nextoffset = 0;
 	uint32_t tag;
 
+	// offset: 0
 	if (offset >= 0)
+		// fdt: fdt 시작위치, offset: 0
 		if ((nextoffset = _fdt_check_node_offset(fdt, offset)) < 0)
 			return nextoffset;
+		// nextoffset: 8
 
 	do {
+		// offset: 0, nextoffset: 8
 		offset = nextoffset;
+		// offset: 8
+
+		// fdt: fdt 시작위치, offset: 8
 		tag = fdt_next_tag(fdt, offset, &nextoffset);
+		// tag: 0x3
 
 		switch (tag) {
-		case FDT_PROP:
-		case FDT_NOP:
+		case FDT_PROP: // FDT_PROP: 0x3
+		case FDT_NOP: // FDT_NOP: 0x4
 			break;
 
-		case FDT_BEGIN_NODE:
+		case FDT_BEGIN_NODE: // FDT_BEGIN_NODE: 0x1
 			if (depth)
 				(*depth)++;
 			break;
 
-		case FDT_END_NODE:
+		case FDT_END_NODE: // FDT_END_NODE: 0x2
 			if (depth && ((--(*depth)) < 0))
 				return nextoffset;
 			break;
 
-		case FDT_END:
+		case FDT_END: // FDT_END: 0x9
 			if ((nextoffset >= 0)
 			    || ((nextoffset == -FDT_ERR_TRUNCATED) && !depth))
 				return -FDT_ERR_NOTFOUND;
