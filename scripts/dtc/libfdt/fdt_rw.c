@@ -464,26 +464,60 @@ int fdt_del_node(void *fdt, int nodeoffset)
 				  endoffset - nodeoffset, 0);
 }
 
+// KID 20140320
+// fdt: fdt 시작위치, fdt: fdt 시작위치, 16, fdt_size_dt_struct(fdt): 0x3074
 static void _fdt_packblocks(const char *old, char *new,
 			    int mem_rsv_size, int struct_size)
 {
 	int mem_rsv_off, struct_off, strings_off;
 
+	// sizeof(struct fdt_header): 40
 	mem_rsv_off = FDT_ALIGN(sizeof(struct fdt_header), 8);
+	// mem_rsv_off: 0x28
+
+	// mem_rsv_size: 16
 	struct_off = mem_rsv_off + mem_rsv_size;
+	// struct_off: 0x38
+
+	// struct_size: 0x3074
 	strings_off = struct_off + struct_size;
+	// strings_off: 0x30ac
 
+	// new: fdt 시작위치, old: fdt 시작위치
+	// mem_rsv_off: 0x28, mem_rsv_size: 16, fdt_off_mem_rsvmap(old): 0x28
 	memmove(new + mem_rsv_off, old + fdt_off_mem_rsvmap(old), mem_rsv_size);
+	// fdt의 reserved mem map의 값을 복사
+
+	// new: fdt 시작위치, mem_rsv_off: 0x28
 	fdt_set_off_mem_rsvmap(new, mem_rsv_off);
+	// 새로운 fdt의 header에 reserved mem map의 값을 갱신함
 
+	// new: fdt 시작위치, old: fdt 시작위치
+	// struct_off: 0x38, struct_size: 0x3074, fdt_off_dt_struct(old): 0x38
 	memmove(new + struct_off, old + fdt_off_dt_struct(old), struct_size);
-	fdt_set_off_dt_struct(new, struct_off);
-	fdt_set_size_dt_struct(new, struct_size);
+	// fdt의 fdt struct offset부터의 struct size값만큼 데이터를 새로운 fdt에 복사
 
+	// new: fdt 시작위치, struct_off: 0x38
+	fdt_set_off_dt_struct(new, struct_off);
+	// 새로운 fdt의 header에 off_dt_struct의 값을 갱신함
+
+	// new: fdt 시작위치, struct_size: 0x3074
+	fdt_set_size_dt_struct(new, struct_size);
+	// 새로운 fdt의 header에 dt_struct_size의 값을 갱신함
+
+	// new: fdt 시작위치, old: fdt 시작위치
+	// strings_off: 0x30ac, fdt_off_dt_strings(old): 0x30ac, fdt_size_dt_strings(old): 0x18a
 	memmove(new + strings_off, old + fdt_off_dt_strings(old),
 		fdt_size_dt_strings(old));
+	// fdt의 fdt string offset부터의 string size값만큼 데이터를 새로운 fdt에 복사
+
+	// new: fdt 시작위치, strings_off: 0x30ac
 	fdt_set_off_dt_strings(new, strings_off);
+	// 새로운 fdt의 header에 off_dt_strings의 값을 갱신함
+
+	// new: fdt 시작위치, fdt_off_dt_strings(old): 0x30ac
 	fdt_set_size_dt_strings(new, fdt_size_dt_strings(old));
+	// 새로운 fdt의 header에 dt_strings_size의 값을 갱신함
 }
 
 // ARM10C 20130720
@@ -587,16 +621,26 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
 	return 0;
 }
 
+// KID 20140320
+// fdt: fdt 시작위치
 int fdt_pack(void *fdt)
 {
 	int mem_rsv_size;
 
 	FDT_RW_CHECK_HEADER(fdt);
 
+	// fdt_num_mem_rsv(fdt): 0, sizeof(struct fdt_reserve_entry): 16
 	mem_rsv_size = (fdt_num_mem_rsv(fdt)+1)
 		* sizeof(struct fdt_reserve_entry);
+	// mem_rsv_size: 16
+
+	// fdt: fdt 시작위치, fdt_size_dt_struct(fdt): 0x3074
 	_fdt_packblocks(fdt, fdt, mem_rsv_size, fdt_size_dt_struct(fdt));
+	// fdt의 reserved mem map, dt_struct, dt_string 등 값을 복사하고 헤더 값을 갱신함
+
+	// fdt: fdt 시작위치, _fdt_data_size(fdt): 0x3236
 	fdt_set_totalsize(fdt, _fdt_data_size(fdt));
+	// fdt의 header에 totalsize의 값을 갱신함
 
 	return 0;
 }

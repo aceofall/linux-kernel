@@ -1145,6 +1145,9 @@ __vectors_start:
 	.data
 
 // ARM10C 20130914
+// KID 20140320
+// exynos5250 amdale-5250 board 기준
+// cr_alignment: 0x70c7387d
 	.globl	cr_alignment
 	.globl	cr_no_alignment
 cr_alignment:

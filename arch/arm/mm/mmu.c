@@ -71,6 +71,7 @@ EXPORT_SYMBOL(pgprot_user);
 EXPORT_SYMBOL(pgprot_kernel);
 
 // ARM10C 20131026
+// KID 20140320
 struct cachepolicy {
 	const char	policy[16];
 	unsigned int	cr_mask;
@@ -242,6 +243,7 @@ __setup("noalign", noalign_setup);
 #define PROT_SECT_DEVICE	PMD_TYPE_SECT|PMD_SECT_AP_WRITE
 
 // ARM10C 20131026
+// KID 20140320
 static struct mem_type mem_types[] = {
 	[MT_DEVICE] = {		  /* Strongly ordered / ARMv6 shared device */
 		.prot_pte	= PROT_PTE_DEVICE | L_PTE_MT_DEV_SHARED |
@@ -351,16 +353,19 @@ EXPORT_SYMBOL(get_mem_type);
  * Adjust the PMD section entries according to the CPU in use.
  */
 // ARM10C 20131026
+// KID 20140320
 static void __init build_mem_type_table(void)
 {
 	struct cachepolicy *cp;
 	unsigned int cr = get_cr(); // cr = system control register.
+	// cr: 0x70c7387d
 	pteval_t user_pgprot, kern_pgprot, vecs_pgprot;
 	pteval_t hyp_device_pgprot, s2_pgprot, s2_device_pgprot;
-	// cpu_arch: CPU_ARCH_ARMv7: 9
 	int cpu_arch = cpu_architecture();
+	// cpu_arch: CPU_ARCH_ARMv7: 9
 	int i;
 
+	// cpu_arch: CPU_ARCH_ARMv7: 9, CPU_ARCH_ARMv6: 8
 	if (cpu_arch < CPU_ARCH_ARMv6) {
 #if defined(CONFIG_CPU_DCACHE_DISABLE) // CONFIG_CPU_DCACHE_DISABLE=n
 		if (cachepolicy > CPOLICY_BUFFERED)
@@ -370,25 +375,32 @@ static void __init build_mem_type_table(void)
 			cachepolicy = CPOLICY_WRITETHROUGH;
 #endif
 	}
+
+	// cpu_arch: CPU_ARCH_ARMv7: 9, CPU_ARCH_ARMv5: 4
 	if (cpu_arch < CPU_ARCH_ARMv5) {
 		if (cachepolicy >= CPOLICY_WRITEALLOC)
 			cachepolicy = CPOLICY_WRITEBACK;
 		ecc_mask = 0;
 	}
+
+	// is_smp(): 1
 	if (is_smp())
 		// CPOLICY_WRITEALLOC: 4
 		cachepolicy = CPOLICY_WRITEALLOC;
+		// cachepolicy: 4
 
 	/*
 	 * Strip out features not present on earlier architectures.
 	 * Pre-ARMv5 CPUs don't have TEX bits.  Pre-ARMv6 CPUs or those
 	 * without extended page tables don't have the 'Shared' bit.
 	 */
+	// cpu_arch: CPU_ARCH_ARMv7: 9, CPU_ARCH_ARMv5: 4
 	if (cpu_arch < CPU_ARCH_ARMv5)
 		for (i = 0; i < ARRAY_SIZE(mem_types); i++)
 			mem_types[i].prot_sect &= ~PMD_SECT_TEX(7);
 
-    // CR_XP는 reserved 되어 있어서 for에 안들어 감.
+	// cr: 0x10c5387d, CR_XP: 0x800000, (cr & CR_XP): 0x800000, cpu_is_xsc3(): 0
+	// CR_XP는 reserved 되어 있어서 for에 안들어 감.
 	if ((cpu_arch < CPU_ARCH_ARMv6 || !(cr & CR_XP)) && !cpu_is_xsc3())
 		for (i = 0; i < ARRAY_SIZE(mem_types); i++)
 			mem_types[i].prot_sect &= ~PMD_SECT_S;
@@ -398,6 +410,8 @@ static void __init build_mem_type_table(void)
 	 * "update-able on write" bit on ARM610).  However, Xscale and
 	 * Xscale3 require this bit to be cleared.
 	 */
+
+	// cpu_is_xscale(): 0, cpu_is_xsc3(): 0, cpu_arch: CPU_ARCH_ARMv7: 9, CPU_ARCH_ARMv6: 8
 	if (cpu_is_xscale() || cpu_is_xsc3()) {
 		for (i = 0; i < ARRAY_SIZE(mem_types); i++) {
 			mem_types[i].prot_sect &= ~PMD_BIT4;
@@ -415,13 +429,15 @@ static void __init build_mem_type_table(void)
 	/*
 	 * Mark the device areas according to the CPU/architecture.
 	 */
-	// CR_XP: (1 << 23) - Extended page tables
 	// A.R.M: B4.1.130 - SCTLR, System Control Register, VMSA
-	// (cr & CR_XP): 1
+	// CR_XP: 0x800000 - Extended page tables
+	// cr: 0x70c7387d, (cr & CR_XP): 0x800000
+	// cpu_arch: CPU_ARCH_ARMv7: 9, CPU_ARCH_ARMv6: 8
 	// v7_crval:
 	//	.word 0x2120c302  (r5) (clear)
 	//	.word 0x10c03c7d  (r6) (mmuset)
 	if (cpu_is_xsc3() || (cpu_arch >= CPU_ARCH_ARMv6 && (cr & CR_XP))) {
+		// cpu_is_xsc3(): 0
 		if (!cpu_is_xsc3()) {
 			/*
 			 * Mark device regions on ARMv6+ as execute-never
@@ -1673,6 +1689,8 @@ static void __init map_lowmem(void)
  */
 // ARM10C 20131026
 // KID 20140312
+// KID 20140320
+// mdesc: __mach_desc_EXYNOS5_DT
 void __init paging_init(struct machine_desc *mdesc)
 {
 	void *zero_page;

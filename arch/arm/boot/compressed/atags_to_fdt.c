@@ -282,4 +282,6 @@ int atags_to_fdt(void *atag_list, void *fdt, int total_space)
 
 	// fdt: fdt 시작위치
 	return fdt_pack(fdt);
+	// fdt의  값을 복사하고 헤더 값을 갱신함
+	// return 0
 }

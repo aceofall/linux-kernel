@@ -134,6 +134,8 @@ EXPORT_SYMBOL(outer_cache);
  * variable directly.
  */
 // ARM10C 20131026
+// KID 20140320
+// __cpu_architecture: CPU_ARCH_ARMv7(9)
 int __cpu_architecture __read_mostly = CPU_ARCH_UNKNOWN;
 
 // ARM10C 20130928
@@ -697,6 +699,7 @@ static void __init smp_build_mpidr_hash(void)
 
 // ARM10C 20130914
 // KID 20140211
+// KID 20140320
 static void __init setup_processor(void)
 {
 	struct proc_info_list *list;
@@ -734,11 +737,11 @@ static void __init setup_processor(void)
 	// *proc_arch[9] = { "7" };
 	// A.R.M: B4.1.130 SCTLR, System Control Register, VMSA
 	// A.R.M: A3.2 Alignment support
-	// cr_alignment: 1 (0xxxxxxx7f)
+	// cr_alignment: 0x70c7387d (exynos5250 amdale-5250 board 기준)
 	printk("CPU: %s [%08x] revision %d (ARMv%s), cr=%08lx\n",
 	       cpu_name, read_cpuid_id(), read_cpuid_id() & 15,
 	       proc_arch[cpu_architecture()], cr_alignment);
-	// cr_alignment: 0x10c5387d
+	// cr_alignment: 0x70c7387d
 
 	// init_utsname()->machine: "arm", __NEW_UTS_LEN: 64
 	// list->arch_name: "armv7", ENDIANNESS: 'l'
@@ -1135,6 +1138,7 @@ void __init setup_arch(char **cmdline_p)
 
 	// mmu용 page table (pgd, pte)을 생성
 	// zone 영역 3개로 나누고 각 zone에 해당하는 page를 할당함
+	// mdesc: __mach_desc_EXYNOS5_DT
 	paging_init(mdesc);
 	request_standard_resources(mdesc);
 

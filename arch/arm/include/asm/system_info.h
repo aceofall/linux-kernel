@@ -5,11 +5,14 @@
 #define CPU_ARCH_ARMv3		1
 #define CPU_ARCH_ARMv4		2
 #define CPU_ARCH_ARMv4T		3
+// KID 20140320
 #define CPU_ARCH_ARMv5		4
 #define CPU_ARCH_ARMv5T		5
 #define CPU_ARCH_ARMv5TE	6
 #define CPU_ARCH_ARMv5TEJ	7
+// KID 20140320
 #define CPU_ARCH_ARMv6		8
+// KID 20140320
 #define CPU_ARCH_ARMv7		9
 #define CPU_ARCH_ARMv7M		10
 

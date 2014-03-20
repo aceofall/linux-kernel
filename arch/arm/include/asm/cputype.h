@@ -252,7 +252,8 @@ static inline unsigned int __attribute_const__ read_cpuid_mpidr(void)
  * but advertises itself as v5 as it does not support the v6 ISA.  For
  * this reason, we need a way to explicitly test for this type of CPU.
  */
-#ifndef CONFIG_CPU_XSC3
+#ifndef CONFIG_CPU_XSC3 // CONFIG_CPU_XSC3=n
+// KID 20140320
 #define cpu_is_xsc3()	0
 #else
 static inline int cpu_is_xsc3(void)
@@ -267,7 +268,9 @@ static inline int cpu_is_xsc3(void)
 }
 #endif
 
+// CONFIG_CPU_XSCALE=n, CONFIG_CPU_XSC3=n
 #if !defined(CONFIG_CPU_XSCALE) && !defined(CONFIG_CPU_XSC3)
+// KID 20140320
 #define	cpu_is_xscale()	0
 #else
 #define	cpu_is_xscale()	1
