@@ -52,9 +52,13 @@ pmd_t *top_pmd;
 #define CPOLICY_UNCACHED	0
 #define CPOLICY_BUFFERED	1
 #define CPOLICY_WRITETHROUGH	2
+// KID 20140321
 #define CPOLICY_WRITEBACK	3
 #define CPOLICY_WRITEALLOC	4
 
+// KID 20140321
+// CPOLICY_WRITEBACK: 3
+// cachepolicy: 4
 static unsigned int cachepolicy __initdata = CPOLICY_WRITEBACK;
 // ARM10C 20131102
 static unsigned int ecc_mask __initdata = 0;
@@ -88,6 +92,7 @@ struct cachepolicy {
 #endif
 
 // ARM10C 20131026
+// KID 20140321
 static struct cachepolicy cache_policies[] __initdata = {
 	{
 		.policy		= "uncached",
@@ -239,11 +244,162 @@ __setup("noalign", noalign_setup);
 
 #endif /* ifdef CONFIG_CPU_CP15 / else */
 
+// KID 20140321
+// L_PTE_PRESENT: 0x1, L_PTE_YOUNG: 0x2, L_PTE_DIRTY: 0x40, L_PTE_XN: 0x200
+// PROT_PTE_DEVICE: 0x243
 #define PROT_PTE_DEVICE		L_PTE_PRESENT|L_PTE_YOUNG|L_PTE_DIRTY|L_PTE_XN
+// KID 20140321
+// PMD_TYPE_SECT: 0x2, PMD_SECT_AP_WRITE: 0x400
+// PROT_SECT_DEVICE: 0x402
 #define PROT_SECT_DEVICE	PMD_TYPE_SECT|PMD_SECT_AP_WRITE
 
 // ARM10C 20131026
 // KID 20140320
+// PROT_PTE_DEVICE: 0x243,
+// L_PTE_PRESENT: 0x1, L_PTE_YOUNG: 0x2, L_PTE_DIRTY: 0x40, L_PTE_XN: 0x200
+// L_PTE_MT_DEV_SHARED: 0x10, L_PTE_SHARED: 0x400 L_PTE_MT_DEV_NONSHARED: 0x30,
+// L_PTE_MT_DEV_CACHED: 0x2c, L_PTE_MT_DEV_WC: 0x24, L_PTE_RDONLY: 0x80, L_PTE_USER: 0x100
+// L_PTE_MT_BUFFERABLE: 0x4, L_PTE_MT_UNCACHED: 0x0
+// PMD_TYPE_SECT: 0x2, PMD_SECT_AP_WRITE: 0x400
+// PMD_TYPE_TABLE: 0x1, PROT_SECT_DEVICE: 0x402, PMD_SECT_S: 0x10000, 
+// PMD_SECT_WB: 0xC, PMD_SECT_XN: 0x10, PMD_SECT_UNCACHED: 0x0
+// DOMAIN_KERNEL: 0, DOMAIN_USER: 0x1, DOMAIN_IO: 0x2
+//
+// [Strongly ordered / ARMv6 shared device] - MT_DEVICE: 0
+// mem_types[MT_DEVICE] =
+// {
+// 	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+//			  L_PTE_MT_DEV_SHARED | L_PTE_SHARED, (0x653)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S | PMD_SECT_XN |
+//			  PMD_SECT_TEX(1), (0x11412)
+// 	.domain		= DOMAIN_IO, (0x2)
+// }
+//
+// [ ARMv6 non-shared device ] - MT_DEVICE_NONSHARED: 1
+// mem_types[MT_DEVICE_NONSHARED] =
+// {
+// 	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+//			  L_PTE_MT_DEV_NONSHARED, (0x273)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_XN | PMD_SECT_TEX(1), (0x1412)
+// 	.domain		= DOMAIN_IO, (0x2)
+// }
+//
+// [ ioremap_cached ] - MT_DEVICE_CACHED: 2
+// mem_types[MT_DEVICE_CACHED] =
+// {
+// 	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+//			  L_PTE_MT_DEV_CACHED, (0x26F)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_WB | PMD_SECT_XN, (0x41e)
+// 	.domain		= DOMAIN_IO, (0x2)
+// }
+//
+// [ ioremap_wc ] - MT_DEVICE_WC: 3
+// mem_types[MT_DEVICE_WC] =
+// {
+// 	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+//			  L_PTE_MT_DEV_WC, (0x267)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_XN | PMD_SECT_BUFFERABLE, (0x416)
+// 	.domain		= DOMAIN_IO, (0x2)
+// }
+//
+// MT_UNCACHED: 4
+// mem_types[MT_UNCACHED] =
+// {
+// 	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN, (0x243)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_XN (0x12)
+// 	.domain		= DOMAIN_IO, (0x2)
+// }
+//
+// MT_CACHECLEAN: 5
+// mem_types[MT_CACHECLEAN] =
+// {
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_XN (0x12)
+// 	.domain		= DOMAIN_KERNEL, (0x0)
+// }
+//
+// MT_LOW_VECTORS: 7
+// mem_types[MT_LOW_VECTORS] =
+// {
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_RDONLY, (0xc3)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+//	.domain		= DOMAIN_USER, (0x1)
+// }
+//
+// MT_HIGH_VECTORS: 8
+// mem_types[MT_HIGH_VECTORS] =
+// {
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_USER |
+//			  L_PTE_RDONLY, (0x1c3)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+//	.domain		= DOMAIN_USER, (0x1)
+// }
+//
+// MT_MEMORY: 9
+// mem_types[MT_MEMORY] =
+// {
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY, (0x43)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE, (0x402)
+//	.domain		= DOMAIN_KERNEL, (0x0)
+// }
+//
+// MT_ROM: 10
+// mem_types[MT_ROM] =
+// {
+//	.prot_sect	= PMD_TYPE_SECT, (0x2)
+//	.domain		= DOMAIN_KERNEL, (0x0)
+// }
+//
+// MT_MEMORY_NONCACHED: 11
+// mem_types[MT_MEMORY_NONCACHED] =
+// {
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
+//			  L_PTE_MT_BUFFERABLE, (0x47)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE, (0x402)
+//	.domain		= DOMAIN_KERNEL, (0x0)
+// }
+//
+// MT_MEMORY_DTCM: 12
+// mem_types[MT_MEMORY_DTCM] =
+// {
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN, (0x243)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_XN, (0x12)
+//	.domain		= DOMAIN_KERNEL, (0x0)
+// }
+//
+// MT_MEMORY_ITCM: 13
+// mem_types[MT_MEMORY_ITCM] =
+// {
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY, (0x43)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+//	.domain		= DOMAIN_KERNEL, (0x0)
+// }
+//
+// MT_MEMORY_SO: 14
+// mem_types[MT_MEMORY_SO] =
+// {
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_MT_UNCACHED |
+//			  L_PTE_XN, (0x243)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S |
+//			  PMD_SECT_UNCACHED | PMD_SECT_XN, (0x10412)
+//	.domain		= DOMAIN_KERNEL, (0x0)
+// }
+//
+// MT_MEMORY_DMA_READY: 14
+// mem_types[MT_MEMORY_DMA_READY] =
+// {
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY, (0x43)
+// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+//	.domain		= DOMAIN_KERNEL, (0x0)
+// }
 static struct mem_type mem_types[] = {
 	[MT_DEVICE] = {		  /* Strongly ordered / ARMv6 shared device */
 		.prot_pte	= PROT_PTE_DEVICE | L_PTE_MT_DEV_SHARED |
@@ -444,13 +600,29 @@ static void __init build_mem_type_table(void)
 			 * to prevent speculative instruction fetches.
 			 */
 			// XN: execute-never
+			// MT_DEVICE: 0, PMD_SECT_XN: 0x10,
+			// mem_types[MT_DEVICE].prot_sect: 0x10402
 			mem_types[MT_DEVICE].prot_sect |= PMD_SECT_XN;
+			// mem_types[MT_DEVICE].prot_sect: 0x10412
+
+			// MT_DEVICE_NONSHARED: 1, PMD_SECT_XN: 0x10,
+			// mem_types[MT_DEVICE_NONSHARED].prot_sect: 0x402
 			mem_types[MT_DEVICE_NONSHARED].prot_sect |= PMD_SECT_XN;
+			// mem_types[MT_DEVICE_NONSHARED].prot_sect: 0x412
+
+			// MT_DEVICE_CACHED: 2, PMD_SECT_XN: 0x10,
+			// mem_types[MT_DEVICE_CACHED].prot_sect: 0x40e
 			mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_XN;
+			// mem_types[MT_DEVICE_CACHED].prot_sect: 0x41e
+
+			// MT_DEVICE_WC: 3, PMD_SECT_XN: 0x10,
+			// mem_types[MT_DEVICE_WC].prot_sect: 0x402
 			mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_XN;
+			// mem_types[MT_DEVICE_WC].prot_sect: 0x412
 		}
 
-		// CR_TRE: (1 << 28) - TEX remap enable
+		// cpu_arch: CPU_ARCH_ARMv7: 9, CR_TRE: 0x10000000 - TEX remap enable
+		// cr: 0x70c7387d, (cr & CR_TRE): 0x10000000
 		if (cpu_arch >= CPU_ARCH_ARMv7 && (cr & CR_TRE)) {
 			/*
 			 * For ARMv7 with TEX remapping,
@@ -460,10 +632,22 @@ static void __init build_mem_type_table(void)
 			 * (Uncached Normal memory)
 			 */
 			// SXCB: S - shared, X - TEX[0], C - cachable, B - bufferable
-		    // PMD_SECT_TEX(x) (_AT(pmdval_t, (x)) << 12)
+			// PMD_SECT_TEX(x) (_AT(pmdval_t, (x)) << 12)
+
+			// MT_DEVICE: 0, PMD_SECT_TEX(1): 0x1000
+			// mem_types[MT_DEVICE].prot_sect: 0x10412
 			mem_types[MT_DEVICE].prot_sect |= PMD_SECT_TEX(1);
+			// mem_types[MT_DEVICE].prot_sect: 0x11412
+
+			// MT_DEVICE_NONSHARED: 1, PMD_SECT_TEX(1): 0x1000
+			// mem_types[MT_DEVICE_NONSHARED].prot_sect: 0x412
 			mem_types[MT_DEVICE_NONSHARED].prot_sect |= PMD_SECT_TEX(1);
+			// mem_types[MT_DEVICE_NONSHARED].prot_sect: 0x1412
+
+			// MT_DEVICE_WC: 3, PMD_SECT_BUFFERABLE: 0x4
+			// mem_types[MT_DEVICE_WC].prot_sect: 0x412
 			mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_BUFFERABLE;
+			// mem_types[MT_DEVICE_WC].prot_sect: 0x416
 		} else if (cpu_is_xsc3()) {
 			/*
 			 * For Xscale3,

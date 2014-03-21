@@ -40,6 +40,7 @@ static inline pmd_t *pmd_off_k(unsigned long virt)
 }
 
 // ARM10C 20131026
+// KID 20140321
 struct mem_type {
 	pteval_t prot_pte;
 	pmdval_t prot_l1;

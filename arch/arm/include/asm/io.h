@@ -117,9 +117,13 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 /*
  * Architecture ioremap implementation.
  */
+// KID 20140321
 #define MT_DEVICE		0
+// KID 20140321
 #define MT_DEVICE_NONSHARED	1
+// KID 20140321
 #define MT_DEVICE_CACHED	2
+// KID 20140321
 #define MT_DEVICE_WC		3
 /*
  * types 4 onwards can be found in asm/mach/map.h and are undefined

@@ -40,6 +40,8 @@
 #define CR_VE	(1 << 24)	/* Vectored interrupts			*/
 #define CR_EE	(1 << 25)	/* Exception (Big) Endian		*/
 // ARM10C 20131026
+// KID 20140321
+// CR_TRE: 0x10000000
 #define CR_TRE	(1 << 28)	/* TEX remap enable			*/
 #define CR_AFE	(1 << 29)	/* Access flag enable			*/
 #define CR_TE	(1 << 30)	/* Thumb exception enable		*/

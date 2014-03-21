@@ -20,7 +20,11 @@
 #define PMD_TYPE_FAULT		(_AT(pmdval_t, 0) << 0)
 // ARM10C 20131102
 // ARM10C 20131130
+// KID 20140321
+// PMD_TYPE_TABLE: 0x1
 #define PMD_TYPE_TABLE		(_AT(pmdval_t, 1) << 0)
+// KID 20140321
+// PMD_TYPE_SECT: 0x2
 #define PMD_TYPE_SECT		(_AT(pmdval_t, 2) << 0)
 // ARM10C 20131130
 #define PMD_BIT4		(_AT(pmdval_t, 1) << 4)
@@ -30,23 +34,38 @@
 /*
  *   - section
  */
+// KID 20140321
+// PMD_SECT_BUFFERABLE: 0x4
 #define PMD_SECT_BUFFERABLE	(_AT(pmdval_t, 1) << 2)
+// KID 20140321
+// PMD_SECT_CACHEABLE: 0x8
 #define PMD_SECT_CACHEABLE	(_AT(pmdval_t, 1) << 3)
+// KID 20140321
+// PMD_SECT_XN: 0x10
 #define PMD_SECT_XN		(_AT(pmdval_t, 1) << 4)		/* v6 */
+// KID 20140321
+// PMD_SECT_AP_WRITE: 0x400
 #define PMD_SECT_AP_WRITE	(_AT(pmdval_t, 1) << 10)
 #define PMD_SECT_AP_READ	(_AT(pmdval_t, 1) << 11)
 // ARM10C 20131026
 #define PMD_SECT_TEX(x)		(_AT(pmdval_t, (x)) << 12)	/* v5 */
 // ARM10C 20131026
 #define PMD_SECT_APX		(_AT(pmdval_t, 1) << 15)	/* v6 */
+// KID 20140321
+// PMD_SECT_S: 0x10000
 #define PMD_SECT_S		(_AT(pmdval_t, 1) << 16)	/* v6 */
 #define PMD_SECT_nG		(_AT(pmdval_t, 1) << 17)	/* v6 */
 #define PMD_SECT_SUPER		(_AT(pmdval_t, 1) << 18)	/* v6 */
 #define PMD_SECT_AF		(_AT(pmdval_t, 0))
 
+// KID 20140321
+// PMD_SECT_UNCACHED: 0x0
 #define PMD_SECT_UNCACHED	(_AT(pmdval_t, 0))
 #define PMD_SECT_BUFFERED	(PMD_SECT_BUFFERABLE)
 #define PMD_SECT_WT		(PMD_SECT_CACHEABLE)
+// KID 20140321
+// PMD_SECT_CACHEABLE: 0x8, PMD_SECT_BUFFERABLE: 0x4
+// PMD_SECT_WB: 0xC
 #define PMD_SECT_WB		(PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE)
 #define PMD_SECT_MINICACHE	(PMD_SECT_TEX(1) | PMD_SECT_CACHEABLE)
 // ARM10C 20131102
