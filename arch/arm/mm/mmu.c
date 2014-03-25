@@ -93,6 +93,67 @@ struct cachepolicy {
 
 // ARM10C 20131026
 // KID 20140321
+// KID 20140325
+// PMD_SECT_WB: (PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE)
+// PMD_SECT_WBWA: (PMD_SECT_TEX(1) | PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE)
+//
+// CR_C: 0x4, CR_W: 0x8	
+// PMD_SECT_UNCACHED: 0x0, PMD_SECT_BUFFERED: 0x4, PMD_SECT_WT: 0x8
+// PMD_SECT_WB: 0xC, PMD_SECT_WBWA: 0x100C
+// L_PTE_MT_UNCACHED: 0x0, L_PTE_MT_BUFFERABLE: 0x4, L_PTE_MT_WRITETHROUGH: 0x8
+// L_PTE_MT_WRITEBACK: 0xC, L_PTE_MT_WRITEALLOC: 0x1C
+//
+//
+// CPOLICY_UNCACHED: 0
+// cache_policies[CPOLICY_UNCACHED] =
+// {
+//	.policy		= "uncached",
+//	.cr_mask	= CR_W|CR_C, (0xC)
+//	.pmd		= PMD_SECT_UNCACHED, (0x0)
+//	.pte		= L_PTE_MT_UNCACHED, (0x0)
+//	.pte_s2		= 0,
+// }
+//
+// CPOLICY_BUFFERED: 1
+// cache_policies[CPOLICY_BUFFERED] =
+// {
+//	.policy		= "buffered",
+//	.cr_mask	= CR_C, (0x4)
+//	.pmd		= PMD_SECT_BUFFERED, (0x4)
+//	.pte		= L_PTE_MT_BUFFERABLE, (0x4)
+//	.pte_s2		= 0,
+// }
+//
+// CPOLICY_WRITETHROUGH: 2
+// cache_policies[CPOLICY_WRITETHROUGH] =
+// {
+//	.policy		= "writethrough",
+//	.cr_mask	= 0,
+//	.pmd		= PMD_SECT_WT, (0x8)
+//	.pte		= L_PTE_MT_WRITETHROUGH, (0x8)
+//	.pte_s2		= 0,
+// }
+//
+// CPOLICY_WRITEBACK: 3
+// cache_policies[CPOLICY_WRITEBACK] =
+// {
+//	.policy		= "writeback",
+//	.cr_mask	= 0,
+//	.pmd		= PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE, (0xC)
+//	.pte		= L_PTE_MT_WRITEBACK, (0xC)
+//	.pte_s2		= 0,
+// }
+//
+// CPOLICY_WRITEALLOC: 4
+// cache_policies[CPOLICY_WRITEALLOC] =
+// {
+//	.policy		= "writealloc",
+//	.cr_mask	= 0,
+//	.pmd		= PMD_SECT_TEX(1) | PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE, (0x100C)
+//	.pte		= L_PTE_MT_WRITEALLOC, (0x1C)
+//	.pte_s2		= 0,
+// }
+//
 static struct cachepolicy cache_policies[] __initdata = {
 	{
 		.policy		= "uncached",
@@ -555,7 +616,7 @@ static void __init build_mem_type_table(void)
 		for (i = 0; i < ARRAY_SIZE(mem_types); i++)
 			mem_types[i].prot_sect &= ~PMD_SECT_TEX(7);
 
-	// cr: 0x10c5387d, CR_XP: 0x800000, (cr & CR_XP): 0x800000, cpu_is_xsc3(): 0
+	// cr: 0x70c7387d, CR_XP: 0x800000, (cr & CR_XP): 0x800000, cpu_is_xsc3(): 0
 	// CR_XP는 reserved 되어 있어서 for에 안들어 감.
 	if ((cpu_arch < CPU_ARCH_ARMv6 || !(cr & CR_XP)) && !cpu_is_xsc3())
 		for (i = 0; i < ARRAY_SIZE(mem_types); i++)
@@ -683,16 +744,29 @@ static void __init build_mem_type_table(void)
 	 */
 	// cachepolicy: 4 - CPOLICY_WRITEALLOC
 	cp = &cache_policies[cachepolicy];
-	// cp->pte: L_PTE_MT_WRITEALLOC
+
+	// cp->pte: cache_policies[CPOLICY_WRITEALLOC].pte: L_PTE_MT_WRITEALLOC (0x1C)
 	vecs_pgprot = kern_pgprot = user_pgprot = cp->pte;
-	// cp->pte_s2: 0 - s2_policy(L_PTE_S2_MT_WRITEBACK)
+	// vecs_pgprot: L_PTE_MT_WRITEALLOC (0x1C), kern_pgprot: L_PTE_MT_WRITEALLOC (0x1C),
+	// user_pgprot: L_PTE_MT_WRITEALLOC (0x1C)
+
+	// cp->pte_s2: cache_policies[CPOLICY_WRITEALLOC].pte_s2: 0
 	s2_pgprot = cp->pte_s2;
-	// mem_types[MT_DEVICE].prot_pte: PROT_PTE_DEVICE | L_PTE_MT_DEV_SHARED | L_PTE_SHARED,
+	// s2_pgprot: 0
+
+	// mem_types[MT_DEVICE].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+	//				  L_PTE_MT_DEV_SHARED | L_PTE_SHARED, (0x653)
 	hyp_device_pgprot = s2_device_pgprot = mem_types[MT_DEVICE].prot_pte;
+	// hyp_device_pgprot: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+	//		      L_PTE_MT_DEV_SHARED | L_PTE_SHARED, (0x653)
+	// s2_device_pgprot: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+	//		     L_PTE_MT_DEV_SHARED | L_PTE_SHARED, (0x653)
 
 	/*
 	 * ARMv6 and above have extended page tables.
 	 */
+	// cr: 0x70c7387d, (cr & CR_XP): 0x800000
+	// cpu_arch: CPU_ARCH_ARMv7: 9, CPU_ARCH_ARMv6: 8
 	if (cpu_arch >= CPU_ARCH_ARMv6 && (cr & CR_XP)) {
 #ifndef CONFIG_ARM_LPAE // CONFIG_ARM_LPAE=n
 		/*
@@ -701,6 +775,7 @@ static void __init build_mem_type_table(void)
 		 */
 		// A.R.M: B3.7 Memory access control
 		// PMD_SECT_APX - Access permission
+		// PMD_SECT_APX: 0x8000, PMD_SECT_AP_WRITE: 0x400
 		mem_types[MT_ROM].prot_sect |= PMD_SECT_APX|PMD_SECT_AP_WRITE;
 		mem_types[MT_MINICLEAN].prot_sect |= PMD_SECT_APX|PMD_SECT_AP_WRITE;
 		mem_types[MT_CACHECLEAN].prot_sect |= PMD_SECT_APX|PMD_SECT_AP_WRITE;

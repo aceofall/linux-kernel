@@ -8,7 +8,11 @@
  */
 #define CR_M	(1 << 0)	/* MMU enable				*/
 #define CR_A	(1 << 1)	/* Alignment abort enable		*/
+// KID 20140325
+// CR_C: 0x4	
 #define CR_C	(1 << 2)	/* Dcache enable			*/
+// KID 20140325
+// CR_W: 0x8	
 #define CR_W	(1 << 3)	/* Write buffer enable			*/
 #define CR_P	(1 << 4)	/* 32-bit exception handler		*/
 #define CR_D	(1 << 5)	/* 32-bit data address range		*/

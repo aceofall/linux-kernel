@@ -179,9 +179,15 @@
 // KID 20140321
 // L_PTE_MT_BUFFERABLE: 0x4
 #define L_PTE_MT_BUFFERABLE	(_AT(pteval_t, 0x01) << 2)	/* 0001 */
+// KID 20140325
+// L_PTE_MT_WRITETHROUGH: 0x8
 #define L_PTE_MT_WRITETHROUGH	(_AT(pteval_t, 0x02) << 2)	/* 0010 */
+// KID 20140325
+// L_PTE_MT_WRITEBACK: 0xC	
 #define L_PTE_MT_WRITEBACK	(_AT(pteval_t, 0x03) << 2)	/* 0011 */
 #define L_PTE_MT_MINICACHE	(_AT(pteval_t, 0x06) << 2)	/* 0110 (sa1100, xscale) */
+// KID 20140325
+// L_PTE_MT_WRITEALLOC: 0x1C
 #define L_PTE_MT_WRITEALLOC	(_AT(pteval_t, 0x07) << 2)	/* 0111 */
 // KID 20140321
 // L_PTE_MT_DEV_SHARED: 0x10
