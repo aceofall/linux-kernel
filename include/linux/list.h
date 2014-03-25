@@ -51,7 +51,7 @@ static inline void INIT_LIST_HEAD(struct list_head *list)
 // ARM10C 20140301
 // new: &dchunk->list, prev: &pcpu_slot[11], next: &pcpu_slot[11]->next(&pcpu_slot[11])
 // ARM10C 20140315
-// __list_add(waiter.list, cpu_add_remove_lock->wait_list->prev, cpu_add_remove_lock->wait_list)
+// __list_add(&waiter.list, (&(&cpu_add_remove_lock)->wait_list)->prev, &(&cpu_add_remove_lock)->wait_list)
 static inline void __list_add(struct list_head *new,
 			      struct list_head *prev,
 			      struct list_head *next)
@@ -98,11 +98,11 @@ static inline void list_add(struct list_head *new, struct list_head *head)
 // ARM10C 20131130
 // list_add_tail(&svm->list, &curr_svm->list);
 // ARM10C 20140315
-// list_add_tail(&waiter.list, &cpu_add_remove_lock->wait_list);
+// list_add_tail(&waiter.list, &(&cpu_add_remove_lock)->wait_list);
 static inline void list_add_tail(struct list_head *new, struct list_head *head)
 {
-	// new: waiter.list, head->prev: cpu_add_remove_lock->wait_list->prev 
-	// head: cpu_add_remove_lock->wait_list
+	// new: &waiter.list, head->prev: (&(&cpu_add_remove_lock)->wait_list)->prev
+	// head: &(&cpu_add_remove_lock)->wait_list
 	__list_add(new, head->prev, head);
 }
 
@@ -235,6 +235,8 @@ static inline int list_is_last(const struct list_head *list,
  */
 // ARM10C 20140315
 // &waiter->list
+// ARM10C 20130322
+// ARM10C 20140322
 static inline int list_empty(const struct list_head *head)
 {
 	// head->next: waiter->list->next, head: waiter->list
@@ -402,7 +404,8 @@ static inline void list_splice_tail_init(struct list_head *list,
  * @member:	the name of the list_struct within the struct.
  */
 // ARM10C 20131130
-#define list_entry(ptr, type, member) \
+// ARM10C 20140322
+#define list_entry(ptr, type, member)		\
 	container_of(ptr, type, member)
 
 /**

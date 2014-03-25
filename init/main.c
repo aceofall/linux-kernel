@@ -265,6 +265,7 @@ static int __init repair_env_string(char *param, char *val, const char *unused)
  * Unknown boot options get handed to init, unless they look like
  * unused parameters (modprobe will find them in /proc/cmdline).
  */
+// ARM10C 20140322
 static int __init unknown_bootoption(char *param, char *val, const char *unused)
 {
 	repair_env_string(param, val, unused);
@@ -439,6 +440,7 @@ static int __init do_early_param(char *param, char *val, const char *unused)
 
 // ARM10C 20131019
 // KID 20140305
+// ARM10C 20140322
 // tmp_cmdline: "console=ttySAC2,115200 init=/linuxrc"
 void __init parse_early_options(char *cmdline)
 {
@@ -449,6 +451,7 @@ void __init parse_early_options(char *cmdline)
 /* Arch code calls this early on, or if not, just before other parsing. */
 // ARM10C 20131019
 // KID 20140305
+// ARM10C 20140322
 void __init parse_early_param(void)
 {
 	static __initdata int done = 0;
@@ -459,11 +462,13 @@ void __init parse_early_param(void)
 		return;
 
 	/* All fall through to do_early_param. */
-	// boot_command_line: "console=ttySAC2,115200 init=/linuxrc"
+	// boot_command_line: "console=ttySAC2,115200 init=/linuxrc", COMMAND_LINE_SIZE: 1024
 	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
 	// tmp_cmdline: "console=ttySAC2,115200 init=/linuxrc"
 
 	parse_early_options(tmp_cmdline);
+
+	// done: 0
 	done = 1;
 	// done: 1
 }
@@ -598,22 +603,44 @@ asmlinkage void __init start_kernel(void)
 // 2014/03/15 시작
 
 	page_alloc_init();
+	// cpu_chain에 page_alloc_cpu_notify를 연결함 (mutex lock/unlock 사용)
 
+	// boot_command_line: "console=ttySAC2,115200 init=/linuxrc"
 	pr_notice("Kernel command line: %s\n", boot_command_line);
+	// "Kernel command line: console=ttySAC2,115200 init=/linuxrc"
+
 	parse_early_param();
+	// setup_arch에서 수행했던 작업 다시 수행
+	// command arg에서 각 요소들을 파싱하여 early init section으로 설정된 디바이스 초기화.
+	// 우리는 serial device가 검색이 되지만 config설정은 없어서 아무것도 안함.
+
+	// static_command_line: "console=ttySAC2,115200 init=/linuxrc"
 	parse_args("Booting kernel", static_command_line, __start___param,
 		   __stop___param - __start___param,
 		   -1, -1, &unknown_bootoption);
+	// DTB에서 넘어온 bootargs를 파싱하여 param, val을 뽑아내고 그에 대응되는
+	// kernel_param 구조체에 값을 등록함.
 
 	jump_label_init();
+	// HAVE_JUMP_LABEL 이 undefined 이므로 NULL 함수
 
 	/*
 	 * These use large bootmem allocations and must precede
 	 * kmem_cache_init()
 	 */
 	setup_log_buf(0);
+	// defalut log_buf의 크기는 __LOG_BUF_LEN: 0x20000 (128KB) 임
+	// early_param 에서 호출했던 log_buf_len 값이 있다면 log_buf의 크기를 넘어온 크기로 만듬
+
 	pidhash_init();
+	// pidhash의 크기를 16kB만큼 할당 받고 4096개의 hash list를 만듬
+
 	vfs_caches_init_early();
+	// Dentry cache, Inode-cache용 hash를 위한 메모리 공간을 각각 512kB, 256kB만큼 할당 받고,
+	// 131072, 65536개 만큼 hash table을 각각 만듬
+
+// 2014/03/22 종료
+
 	sort_main_extable();
 	trap_init();
 	mm_init();

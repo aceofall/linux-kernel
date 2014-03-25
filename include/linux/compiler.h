@@ -17,7 +17,7 @@
 # define __release(x)	__context__(x,-1)
 # define __cond_lock(x,c)	((c) ? ({ __acquire(x); 1; }) : 0)
 # define __percpu	__attribute__((noderef, address_space(3)))
-#ifdef CONFIG_SPARSE_RCU_POINTER /* CONFIG_SPARSE_RCU_POINT = n */
+#ifdef CONFIG_SPARSE_RCU_POINTER // CONFIG_SPARSE_RCU_POINT=n
 # define __rcu		__attribute__((noderef, address_space(4)))
 #else
 # define __rcu
@@ -28,6 +28,7 @@ extern void __chk_io_ptr(const volatile void __iomem *);
 # define __user
 # define __kernel
 # define __safe
+// ARM10C 20140322
 # define __force
 # define __nocast
 // ARM10C 20140215
@@ -44,6 +45,7 @@ extern void __chk_io_ptr(const volatile void __iomem *);
 // ARM10C 20140308
 # define __percpu
 // ARM10C 20140315
+// ARM10C 20140322
 # define __rcu
 #endif
 
@@ -365,8 +367,8 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
  */
 /*
 // ARM10C 20140315
-// ACCESS_ONCE(cpu_add_remove_lock->wait_lock->rlock->raw_lock->tickets):
-// (*(volatile struct __raw_tickets *)&(cpu_add_remove_lock->wait_lock->rlock->raw_lock->tickets))
+// ACCESS_ONCE((&(&(&(&cpu_add_remove_lock)->wait_lock)->rlock)->raw_lock)->tickets):
+// (*(volatile struct __raw_tickets *)&((&(&(&(&cpu_add_remove_lock)->wait_lock)->rlock)->raw_lock)->tickets))
 */
 #define ACCESS_ONCE(x) (*(volatile typeof(x) *)&(x))
 

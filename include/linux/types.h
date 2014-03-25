@@ -189,15 +189,21 @@ typedef struct {
 
 // ARM10C 20131123
 // ARM10C 20131207
-// sizeof(struct list_head) : 8 byte
+// sizeof(struct list_head) : 8 bytes
 struct list_head {
 	struct list_head *next, *prev;
 };
 
+// ARM10C 20140322
+// sizeof(struct hlist_head): 4 bytes
+// ARM10C 20140322
+// sizeof(struct hlist_head): 4 bytes
 struct hlist_head {
 	struct hlist_node *first;
 };
 
+// ARM10C 20140322
+// sizeof : 8
 struct hlist_node {
 	struct hlist_node *next, **pprev;
 };

@@ -50,6 +50,8 @@
 #include <linux/compiler.h>
 #include <linux/workqueue.h>
 
+// ARM10C 20140322
+// CONFIG_JUMP_LABLE=n
 #if defined(CC_HAVE_ASM_GOTO) && defined(CONFIG_JUMP_LABEL)
 
 struct static_key {
@@ -78,7 +80,7 @@ enum jump_label_type {
 
 struct module;
 
-#ifdef HAVE_JUMP_LABEL
+#ifdef HAVE_JUMP_LABEL // undefined
 
 #define JUMP_LABEL_TRUE_BRANCH 1UL
 
@@ -137,6 +139,7 @@ struct static_key {
 	atomic_t enabled;
 };
 
+// ARM10C 20140322
 static __always_inline void jump_label_init(void)
 {
 }
