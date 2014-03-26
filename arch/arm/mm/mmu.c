@@ -61,14 +61,27 @@ pmd_t *top_pmd;
 // cachepolicy: 4
 static unsigned int cachepolicy __initdata = CPOLICY_WRITEBACK;
 // ARM10C 20131102
+// KID 20140326
 static unsigned int ecc_mask __initdata = 0;
 // ARM10C 20131102
+// KID 20140326
+// pgprot_user: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41F)
 pgprot_t pgprot_user;
 // ARM10C 20131102
+// KID 20140326
+// pgprot_kernel: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x45f)
 pgprot_t pgprot_kernel;
+// KID 20140326
+// pgprot_hyp_device: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+//		      L_PTE_MT_DEV_SHARED | L_PTE_SHARED, (0x653)
 pgprot_t pgprot_hyp_device;
 // ARM10C 20131102
+// KID 20140326
+// pgprot_s2: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_SHARED (0x403)
 pgprot_t pgprot_s2;
+// KID 20140326
+// pgprot_s2_device: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+//		     L_PTE_MT_DEV_SHARED | L_PTE_SHARED, (0x653)
 pgprot_t pgprot_s2_device;
 
 EXPORT_SYMBOL(pgprot_user);
@@ -323,17 +336,18 @@ __setup("noalign", noalign_setup);
 // L_PTE_MT_BUFFERABLE: 0x4, L_PTE_MT_UNCACHED: 0x0
 // PMD_TYPE_SECT: 0x2, PMD_SECT_AP_WRITE: 0x400
 // PMD_TYPE_TABLE: 0x1, PROT_SECT_DEVICE: 0x402, PMD_SECT_S: 0x10000, 
-// PMD_SECT_WB: 0xC, PMD_SECT_XN: 0x10, PMD_SECT_UNCACHED: 0x0
+// PMD_SECT_WB: 0xC, PMD_SECT_XN: 0x10, PMD_SECT_UNCACHED: 0x0, PMD_SECT_MINICACHE: 0x1008
 // DOMAIN_KERNEL: 0, DOMAIN_USER: 0x1, DOMAIN_IO: 0x2
+// PMD_DOMAIN(DOMAIN_KERNEL): 0x0, PMD_DOMAIN(DOMAIN_USER): 0x20, PMD_DOMAIN(DOMAIN_IO): 0x40
 //
 // [Strongly ordered / ARMv6 shared device] - MT_DEVICE: 0
 // mem_types[MT_DEVICE] =
 // {
 // 	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
 //			  L_PTE_MT_DEV_SHARED | L_PTE_SHARED, (0x653)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_IO), (0x41)
 // 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S | PMD_SECT_XN |
-//			  PMD_SECT_TEX(1), (0x11412)
+//			  PMD_SECT_TEX(1) | PMD_DOMAIN(DOMAIN_IO), (0x11452)
 // 	.domain		= DOMAIN_IO, (0x2)
 // }
 //
@@ -342,8 +356,9 @@ __setup("noalign", noalign_setup);
 // {
 // 	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
 //			  L_PTE_MT_DEV_NONSHARED, (0x273)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
-// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_XN | PMD_SECT_TEX(1), (0x1412)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_IO), (0x41)
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_XN | PMD_SECT_TEX(1) |
+//			  PMD_DOMAIN(DOMAIN_IO), (0x1452)
 // 	.domain		= DOMAIN_IO, (0x2)
 // }
 //
@@ -351,9 +366,10 @@ __setup("noalign", noalign_setup);
 // mem_types[MT_DEVICE_CACHED] =
 // {
 // 	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
-//			  L_PTE_MT_DEV_CACHED, (0x26F)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
-// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_WB | PMD_SECT_XN, (0x41e)
+//			  L_PTE_MT_DEV_CACHED | L_PTE_SHARED, (0x66F)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_IO), (0x41)
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_WB | PMD_SECT_XN |
+//			  PMD_SECT_S | PMD_DOMAIN(DOMAIN_IO), (0x1045e)
 // 	.domain		= DOMAIN_IO, (0x2)
 // }
 //
@@ -361,9 +377,10 @@ __setup("noalign", noalign_setup);
 // mem_types[MT_DEVICE_WC] =
 // {
 // 	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
-//			  L_PTE_MT_DEV_WC, (0x267)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
-// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_XN | PMD_SECT_BUFFERABLE, (0x416)
+//			  L_PTE_MT_DEV_WC | L_PTE_SHARED, (0x667)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_IO), (0x41)
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_XN |
+//			  PMD_SECT_BUFFERABLE | PMD_SECT_S | PMD_DOMAIN(DOMAIN_IO), (0x10456)
 // 	.domain		= DOMAIN_IO, (0x2)
 // }
 //
@@ -371,23 +388,36 @@ __setup("noalign", noalign_setup);
 // mem_types[MT_UNCACHED] =
 // {
 // 	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN, (0x243)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
-// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_XN (0x12)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_IO), (0x41)
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_XN | PMD_DOMAIN(DOMAIN_IO), (0x52)
 // 	.domain		= DOMAIN_IO, (0x2)
 // }
 //
 // MT_CACHECLEAN: 5
 // mem_types[MT_CACHECLEAN] =
 // {
-// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_XN (0x12)
+// 	.prot_l1	= PMD_DOMAIN(DOMAIN_KERNEL), (0x0)
+// 	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_XN | PMD_SECT_APX | PMD_SECT_AP_WRITE |
+//			  PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE | PMD_DOMAIN(DOMAIN_KERNEL), (0x841e)
+// 	.domain		= DOMAIN_KERNEL, (0x0)
+// }
+//
+// MT_MINICLEAN: 6
+// mem_types[MT_MINICLEAN] =
+// {
+// 	.prot_l1	= PMD_DOMAIN(DOMAIN_KERNEL), (0x0)
+//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_XN | PMD_SECT_MINICACHE |
+//			  PMD_SECT_APX | PMD_SECT_AP_WRITE | PMD_DOMAIN(DOMAIN_KERNEL), (0x901a)
 // 	.domain		= DOMAIN_KERNEL, (0x0)
 // }
 //
 // MT_LOW_VECTORS: 7
 // mem_types[MT_LOW_VECTORS] =
 // {
-//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_RDONLY, (0xc3)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_RDONLY | L_PTE_MT_WRITEALLOC |
+//			  L_PTE_SHARED, (0x4df)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_USER), (0x21)
+//	.prot_sect	= PMD_DOMAIN(DOMAIN_USER), (0x20)
 //	.domain		= DOMAIN_USER, (0x1)
 // }
 //
@@ -396,23 +426,28 @@ __setup("noalign", noalign_setup);
 // {
 //	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_USER |
 //			  L_PTE_RDONLY, (0x1c3)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_USER), (0x21)
+//	.prot_sect	= PMD_DOMAIN(DOMAIN_USER), (0x20)
 //	.domain		= DOMAIN_USER, (0x1)
 // }
 //
 // MT_MEMORY: 9
 // mem_types[MT_MEMORY] =
 // {
-//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY, (0x43)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
-//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE, (0x402)
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_SHARED |
+//			  L_PTE_MT_WRITEALLOC, (0x45f)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_KERNEL), (0x1)
+//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S | PMD_SECT_TEX(1) |
+//			  PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE | PMD_DOMAIN(DOMAIN_KERNEL), (0x1140e)
 //	.domain		= DOMAIN_KERNEL, (0x0)
 // }
 //
 // MT_ROM: 10
 // mem_types[MT_ROM] =
 // {
-//	.prot_sect	= PMD_TYPE_SECT, (0x2)
+// 	.prot_l1	= PMD_DOMAIN(DOMAIN_KERNEL), (0x0)
+//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_APX | PMD_SECT_AP_WRITE | PMD_SECT_TEX(1) |
+//			  PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE | PMD_DOMAIN(DOMAIN_KERNEL), (0x940e)
 //	.domain		= DOMAIN_KERNEL, (0x0)
 // }
 //
@@ -420,9 +455,10 @@ __setup("noalign", noalign_setup);
 // mem_types[MT_MEMORY_NONCACHED] =
 // {
 //	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
-//			  L_PTE_MT_BUFFERABLE, (0x47)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
-//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE, (0x402)
+//			  L_PTE_MT_BUFFERABLE | L_PTE_SHARED, (0x447)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_KERNEL), (0x1)
+//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S |
+//			  PMD_SECT_BUFFERED | PMD_DOMAIN(DOMAIN_KERNEL), (0x10406)
 //	.domain		= DOMAIN_KERNEL, (0x0)
 // }
 //
@@ -430,8 +466,8 @@ __setup("noalign", noalign_setup);
 // mem_types[MT_MEMORY_DTCM] =
 // {
 //	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN, (0x243)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
-//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_XN, (0x12)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_KERNEL), (0x1)
+//	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_XN | PMD_DOMAIN(DOMAIN_KERNEL), (0x12)
 //	.domain		= DOMAIN_KERNEL, (0x0)
 // }
 //
@@ -439,7 +475,8 @@ __setup("noalign", noalign_setup);
 // mem_types[MT_MEMORY_ITCM] =
 // {
 //	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY, (0x43)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_KERNEL), (0x1)
+//	.prot_sect	= PMD_DOMAIN(DOMAIN_KERNEL), (0x0)
 //	.domain		= DOMAIN_KERNEL, (0x0)
 // }
 //
@@ -448,17 +485,19 @@ __setup("noalign", noalign_setup);
 // {
 //	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_MT_UNCACHED |
 //			  L_PTE_XN, (0x243)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_KERNEL), (0x1)
 //	.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S |
-//			  PMD_SECT_UNCACHED | PMD_SECT_XN, (0x10412)
+//			  PMD_SECT_UNCACHED | PMD_SECT_XN | PMD_DOMAIN(DOMAIN_KERNEL), (0x10412)
 //	.domain		= DOMAIN_KERNEL, (0x0)
 // }
 //
-// MT_MEMORY_DMA_READY: 14
+// MT_MEMORY_DMA_READY: 15
 // mem_types[MT_MEMORY_DMA_READY] =
 // {
-//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY, (0x43)
-// 	.prot_l1	= PMD_TYPE_TABLE, (0x1)
+//	.prot_pte	= L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_SHARED |
+//			  L_PTE_MT_WRITEALLOC, (0x45f)
+// 	.prot_l1	= PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_KERNEL), (0x1)
+//	.prot_sect	= PMD_DOMAIN(DOMAIN_KERNEL), (0x0)
 //	.domain		= DOMAIN_KERNEL, (0x0)
 // }
 static struct mem_type mem_types[] = {
@@ -776,30 +815,94 @@ static void __init build_mem_type_table(void)
 		// A.R.M: B3.7 Memory access control
 		// PMD_SECT_APX - Access permission
 		// PMD_SECT_APX: 0x8000, PMD_SECT_AP_WRITE: 0x400
+		// mem_types[MT_ROM].prot_sect: PMD_TYPE_SECT (0x2)
 		mem_types[MT_ROM].prot_sect |= PMD_SECT_APX|PMD_SECT_AP_WRITE;
+		// mem_types[MT_ROM].prot_sect: PMD_TYPE_SECT | PMD_SECT_APX | PMD_SECT_AP_WRITE (0x8402)
+
+		// mem_types[MT_MINICLEAN].prot_sect: PMD_TYPE_SECT | PMD_SECT_XN | PMD_SECT_MINICACHE (0x101a)
 		mem_types[MT_MINICLEAN].prot_sect |= PMD_SECT_APX|PMD_SECT_AP_WRITE;
+		// mem_types[MT_MINICLEAN].prot_sect: PMD_TYPE_SECT | PMD_SECT_XN | PMD_SECT_MINICACHE |
+		//				      PMD_SECT_APX | PMD_SECT_AP_WRITE (0x901a)
+
+		// mem_types[MT_CACHECLEAN].prot_sect: PMD_TYPE_SECT | PMD_SECT_XN (0x12)
 		mem_types[MT_CACHECLEAN].prot_sect |= PMD_SECT_APX|PMD_SECT_AP_WRITE;
+		// mem_types[MT_CACHECLEAN].prot_sect: PMD_TYPE_SECT | PMD_SECT_XN |
+		//				       PMD_SECT_APX | PMD_SECT_AP_WRITE (0x8412)
 #endif
 
+		// is_smp(): 1
 		if (is_smp()) {
 			/*
 			 * Mark memory with the "shared" attribute
 			 * for SMP systems
 			 */
+			// L_PTE_SHARED: 0x400, PMD_SECT_S: 0x10000
 			// L_PTE_SHARED, PMD_SECT_S 설정
+
+			// user_pgprot: L_PTE_MT_WRITEALLOC (0x1C)
 			user_pgprot |= L_PTE_SHARED;
+			// user_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41C)
+
+			// kern_pgprot: L_PTE_MT_WRITEALLOC (0x1C)
 			kern_pgprot |= L_PTE_SHARED;
+			// kern_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41C)
+
+			// vecs_pgprot: L_PTE_MT_WRITEALLOC (0x1C)
 			vecs_pgprot |= L_PTE_SHARED;
+			// vecs_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41C)
+
+			// s2_pgprot: 0
 			s2_pgprot |= L_PTE_SHARED;
+			// s2_pgprot: L_PTE_SHARED (0x400)
+
+			// mem_types[MT_DEVICE_WC].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_XN |
+			//				      PMD_SECT_BUFFERABLE (0x416)
 			mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_S;
+			// mem_types[MT_DEVICE_WC].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_XN |
+			//				      PMD_SECT_BUFFERABLE | PMD_SECT_S (0x10416)
+
+			// mem_types[MT_DEVICE_WC].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+			//				     L_PTE_MT_DEV_WC (0x267)
 			mem_types[MT_DEVICE_WC].prot_pte |= L_PTE_SHARED;
+			// mem_types[MT_DEVICE_WC].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+			//				     L_PTE_MT_DEV_WC | L_PTE_SHARED (0x667)
+
+			// mem_types[MT_DEVICE_CACHED].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_WB |
+			//					  PMD_SECT_XN (0x41e)
 			mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
+			// mem_types[MT_DEVICE_CACHED].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_WB |
+			//					  PMD_SECT_XN | PMD_SECT_S (0x1041e)
+
+			// mem_types[MT_DEVICE_CACHED].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+			//					 L_PTE_MT_DEV_CACHED (0x26F)
 			mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
+			// mem_types[MT_DEVICE_CACHED].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+			//					 L_PTE_MT_DEV_CACHED | L_PTE_SHARED (0x66F)
+
+			// mem_types[MT_MEMORY].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE (0x402)
 			mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
+			// mem_types[MT_MEMORY].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S (0x10402)
+
+			// mem_types[MT_MEMORY].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY (0x43)
 			mem_types[MT_MEMORY].prot_pte |= L_PTE_SHARED;
+			// mem_types[MT_MEMORY].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
+			//				  L_PTE_SHARED (0x443)
+
+			// mem_types[MT_MEMORY_DMA_READY].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY (0x43)
 			mem_types[MT_MEMORY_DMA_READY].prot_pte |= L_PTE_SHARED;
+			// mem_types[MT_MEMORY_DMA_READY].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
+			//					    L_PTE_SHARED (0x443)
+
+			// mem_types[MT_MEMORY_NONCACHED].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE (0x402)
 			mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
+			// mem_types[MT_MEMORY_NONCACHED].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE |
+			//					     PMD_SECT_S (0x10402)
+
+			// mem_types[MT_MEMORY_NONCACHED].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
+			//					    L_PTE_MT_BUFFERABLE (0x47)
 			mem_types[MT_MEMORY_NONCACHED].prot_pte |= L_PTE_SHARED;
+			// mem_types[MT_MEMORY_NONCACHED].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
+			//					    L_PTE_MT_BUFFERABLE | L_PTE_SHARED (0x447)
 		}
 	}
 
@@ -807,12 +910,19 @@ static void __init build_mem_type_table(void)
 	 * Non-cacheable Normal - intended for memory areas that must
 	 * not cause dirty cache line writebacks when used
 	 */
+	// cpu_arch: CPU_ARCH_ARMv7: 9, CPU_ARCH_ARMv6: 8
 	if (cpu_arch >= CPU_ARCH_ARMv6) {
-		// CR_TRE: (1 << 28) - TEX remap enable
+		// cpu_arch: CPU_ARCH_ARMv7: 9, CR_TRE: 0x10000000 - TEX remap enable
+		// cr: 0x70c7387d, (cr & CR_TRE): 0x10000000
 		if (cpu_arch >= CPU_ARCH_ARMv7 && (cr & CR_TRE)) {
 			/* Non-cacheable Normal is XCB = 001 */
+			// PMD_SECT_BUFFERED: 0x4
+			// mem_types[MT_MEMORY_NONCACHED].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE |
+			//					     PMD_SECT_S (0x10402)
 			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
 				PMD_SECT_BUFFERED;
+			// mem_types[MT_MEMORY_NONCACHED].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE |
+			//					     PMD_SECT_S | PMD_SECT_BUFFERED (0x10406)
 		} else {
 			/* For both ARMv6 and non-TEX-remapping ARMv7 */
 			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
@@ -838,61 +948,127 @@ static void __init build_mem_type_table(void)
 	// user page protection 설정값 추가
 	for (i = 0; i < 16; i++) {
 		pteval_t v = pgprot_val(protection_map[i]);
+		// user_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41C)
 		protection_map[i] = __pgprot(v | user_pgprot);
 	}
 
 // 2013/10/26 종료
 // 2013/11/02 시작
-	// vecs_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED;
-	mem_types[MT_LOW_VECTORS].prot_pte |= vecs_pgprot;
-	mem_types[MT_HIGH_VECTORS].prot_pte |= vecs_pgprot;
 
-	// user_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED
+	// vecs_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41C)
+	// mem_types[MT_LOW_VECTORS].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_RDONLY (0xc3)
+	mem_types[MT_LOW_VECTORS].prot_pte |= vecs_pgprot;
+	// mem_types[MT_LOW_VECTORS].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_RDONLY |
+	//				       L_PTE_MT_WRITEALLOC | L_PTE_SHARED, (0x4df)
+
+	// vecs_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41C)
+	// mem_types[MT_HIGH_VECTORS].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_USER |
+	//					L_PTE_RDONLY (0x1c3)
+	mem_types[MT_HIGH_VECTORS].prot_pte |= vecs_pgprot;
+	// mem_types[MT_HIGH_VECTORS].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_USER |
+	//					L_PTE_RDONLY | L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x5df)
+
+	// L_PTE_PRESENT: 0x1, L_PTE_YOUNG: 0x2
+	// user_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41C)
 	pgprot_user   = __pgprot(L_PTE_PRESENT | L_PTE_YOUNG | user_pgprot);
-	// kern_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED
+	// pgprot_user: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41F)
+
+	// L_PTE_PRESENT: 0x1, L_PTE_YOUNG: 0x2, L_PTE_DIRTY: 0x40
+	// kern_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41C)
 	pgprot_kernel = __pgprot(L_PTE_PRESENT | L_PTE_YOUNG |
 				 L_PTE_DIRTY | kern_pgprot);
+	// pgprot_kernel: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x45f)
 
-	// s2_pgprot: L_PTE_SHARED
+	// L_PTE_PRESENT: 0x1, L_PTE_YOUNG: 0x2
+	// s2_pgprot: L_PTE_SHARED (0x400)
 	pgprot_s2  = __pgprot(L_PTE_PRESENT | L_PTE_YOUNG | s2_pgprot);
-	// s2_device_pgprot: PROT_PTE_DEVICE | L_PTE_MT_DEV_SHARED | L_PTE_SHARED,
+	// pgprot_s2: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_SHARED (0x403)
+
+	// s2_device_pgprot: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+	//		     L_PTE_MT_DEV_SHARED | L_PTE_SHARED (0x653)
 	pgprot_s2_device  = __pgprot(s2_device_pgprot);
-	// hyp_device_pgprot: PROT_PTE_DEVICE | L_PTE_MT_DEV_SHARED | L_PTE_SHARED,
+	// pgprot_s2_device: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+	//		     L_PTE_MT_DEV_SHARED | L_PTE_SHARED (0x653)
+
+	// hyp_device_pgprot: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+	//		      L_PTE_MT_DEV_SHARED | L_PTE_SHARED (0x653)
 	pgprot_hyp_device  = __pgprot(hyp_device_pgprot);
+	// pgprot_hyp_device: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_XN |
+	//		      L_PTE_MT_DEV_SHARED | L_PTE_SHARED (0x653)
 
-	// ecc_mask: 0
+	// mem_types[MT_LOW_VECTORS].prot_l1: PMD_TYPE_TABLE (0x1), ecc_mask: 0
 	mem_types[MT_LOW_VECTORS].prot_l1 |= ecc_mask;
-	mem_types[MT_HIGH_VECTORS].prot_l1 |= ecc_mask;
-	// cp->pmd: PMD_SECT_WBWA: (PMD_SECT_TEX(1) | PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE)
-	mem_types[MT_MEMORY].prot_sect |= ecc_mask | cp->pmd;
-	// kern_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED
-	mem_types[MT_MEMORY].prot_pte |= kern_pgprot;
-	mem_types[MT_MEMORY_DMA_READY].prot_pte |= kern_pgprot;
-	mem_types[MT_MEMORY_NONCACHED].prot_sect |= ecc_mask;
-	mem_types[MT_ROM].prot_sect |= cp->pmd;
+	// mem_types[MT_LOW_VECTORS].prot_l1: PMD_TYPE_TABLE (0x1)
 
-	// cp->pmd: PMD_SECT_WBWA
+	// mem_types[MT_HIGH_VECTORS].prot_l1: PMD_TYPE_TABLE (0x1), ecc_mask: 0
+	mem_types[MT_HIGH_VECTORS].prot_l1 |= ecc_mask;
+	// mem_types[MT_HIGH_VECTORS].prot_l1: PMD_TYPE_TABLE (0x1)
+
+	// mem_types[MT_MEMORY].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S, (0x10402)
+	// ecc_mask: 0
+	// cp->pmd: cache_policies[CPOLICY_WRITEALLOC].pmd:
+	// PMD_SECT_WBWA: PMD_SECT_TEX(1) | PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE (0x100C)
+	mem_types[MT_MEMORY].prot_sect |= ecc_mask | cp->pmd;
+	// mem_types[MT_MEMORY].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S |
+	//				   PMD_SECT_TEX(1) | PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE (0x1140e)
+
+	// mem_types[MT_MEMORY].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_SHARED (0x443)
+	// kern_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41C)
+	mem_types[MT_MEMORY].prot_pte |= kern_pgprot;
+	// mem_types[MT_MEMORY].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_SHARED |
+	//				  L_PTE_MT_WRITEALLOC (0x45f)
+
+	// mem_types[MT_MEMORY_DMA_READY].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_SHARED (0x443)
+	// kern_pgprot: L_PTE_MT_WRITEALLOC | L_PTE_SHARED (0x41C)
+	mem_types[MT_MEMORY_DMA_READY].prot_pte |= kern_pgprot;
+	// mem_types[MT_MEMORY_DMA_READY].prot_pte: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_SHARED |
+	//					    L_PTE_MT_WRITEALLOC (0x45f)
+
+	// mem_types[MT_MEMORY_NONCACHED].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S |
+	//					     PMD_SECT_BUFFERED (0x10406)
+	// ecc_mask: 0
+	mem_types[MT_MEMORY_NONCACHED].prot_sect |= ecc_mask;
+	// mem_types[MT_MEMORY_NONCACHED].prot_sect: PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_S |
+	//					     PMD_SECT_BUFFERED (0x10406)
+
+	// mem_types[MT_ROM].prot_sect: PMD_TYPE_SECT | PMD_SECT_APX | PMD_SECT_AP_WRITE (0x8402)
+	// cp->pmd: cache_policies[CPOLICY_WRITEALLOC].pmd:
+	// PMD_SECT_WBWA: PMD_SECT_TEX(1) | PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE (0x100C)
+	mem_types[MT_ROM].prot_sect |= cp->pmd;
+	// mem_types[MT_ROM].prot_sect: PMD_TYPE_SECT | PMD_SECT_APX | PMD_SECT_AP_WRITE |
+	//				PMD_SECT_TEX(1) | PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE (0x940e)
+
+
+	// cp->pmd: cache_policies[CPOLICY_WRITEALLOC].pmd:
+	// PMD_SECT_WBWA: PMD_SECT_TEX(1) | PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE (0x100C)
 	switch (cp->pmd) {
 	case PMD_SECT_WT:
 		mem_types[MT_CACHECLEAN].prot_sect |= PMD_SECT_WT;
 		break;
 	case PMD_SECT_WB:
 	case PMD_SECT_WBWA:
+		// mem_types[MT_CACHECLEAN].prot_sect: PMD_TYPE_SECT | PMD_SECT_XN | PMD_SECT_APX |
+		//				       PMD_SECT_AP_WRITE (0x8412)
+		// PMD_SECT_WB: PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE (0xC)
 		mem_types[MT_CACHECLEAN].prot_sect |= PMD_SECT_WB;
+		// mem_types[MT_CACHECLEAN].prot_sect: PMD_TYPE_SECT | PMD_SECT_XN | PMD_SECT_APX | PMD_SECT_AP_WRITE |
+		//				       PMD_SECT_CACHEABLE | PMD_SECT_BUFFERABLE (0x841e)
 		break;
 	}
 
-	//  ecc_mask: 0, cp->palicy: "writealloc"
+	//  ecc_mask: 0, cp->palicy: cache_policies[CPOLICY_WRITEALLOC].palicy: "writealloc"
 	printk("Memory policy: ECC %sabled, Data cache %s\n",
 		ecc_mask ? "en" : "dis", cp->policy);
 
-	// ARRAY_SIZE: 15
+	// ARRAY_SIZE(mem_types): 16
 	for (i = 0; i < ARRAY_SIZE(mem_types); i++) {
 		struct mem_type *t = &mem_types[i];
+		// PMD_DOMAIN(DOMAIN_KERNEL): 0x0, PMD_DOMAIN(DOMAIN_USER): 0x20, PMD_DOMAIN(DOMAIN_IO): 0x40
 		if (t->prot_l1)
 			t->prot_l1 |= PMD_DOMAIN(t->domain);
 		if (t->prot_sect)
 			t->prot_sect |= PMD_DOMAIN(t->domain);
+		// 각 mem_types의 prot_l1, prot_sect에 PMD_DOMAIN 값을 추가함
 	}
 }
 

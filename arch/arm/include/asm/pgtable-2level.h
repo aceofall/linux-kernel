@@ -166,7 +166,8 @@
 // L_PTE_SHARED: 0x400
 #define L_PTE_SHARED		(_AT(pteval_t, 1) << 10)	/* shared(v6), coherent(xsc3) */
 // ARM10C 20131123
-// L_PTE_NONE: 0x800 
+// KID 20140326
+// L_PTE_NONE: 0x800
 #define L_PTE_NONE		(_AT(pteval_t, 1) << 11)
 
 /*

@@ -16,6 +16,7 @@
 // ARM10C 20130824
 // ARM10C 20131026
 // KID 20140320
+// KID 20140326
 static inline bool is_smp(void)
 {
 #ifndef CONFIG_SMP // CONFIG_SMP=y
