@@ -84,6 +84,15 @@ typedef struct raw_spinlock {
 //	  .owner_cpu = -1,
 //	  .owner = 0xffffffff,
 //	}
+//
+// KID 20140327
+// #define __RAW_SPIN_LOCK_INITIALIZER(init_mm.mmap_sem.wait_lock)
+//	{
+//	  .raw_lock = { { 0 } },
+//	  .magic = 0xdead4ead,
+//	  .owner_cpu = -1,
+//	  .owner = 0xffffffff,
+//	}
 #define __RAW_SPIN_LOCK_INITIALIZER(lockname)	\
 	{					\
 	.raw_lock = __ARCH_SPIN_LOCK_UNLOCKED,	\
@@ -91,15 +100,31 @@ typedef struct raw_spinlock {
 	SPIN_DEP_MAP_INIT(lockname) }
 
 // KID 20140114
-// __RAW_SPIN_LOCK_UNLOCKED(printk_ratelimit_state.lock),
-// __RAW_SPIN_LOCK_INITIALIZER(printk_ratelimit_state.lock)
-// #define __RAW_SPIN_LOCK_INITIALIZER(printk_ratelimit_state.lock)
-// 	{
-// 	  .raw_lock = { { 0 } },
-// 	  .magic = 0xdead4ead,
-// 	  .owner_cpu = -1,
-// 	  .owner = ((void *)-1L),
-// 	}
+// __RAW_SPIN_LOCK_INITIALIZER(printk_ratelimit_state.lock):
+// {
+//	.raw_lock = { { 0 } },
+//	.magic = 0xdead4ead,
+//	.owner_cpu = -1,
+//	.owner = 0xffffffff,
+// }
+//
+// #define __RAW_SPIN_LOCK_UNLOCKED(printk_ratelimit_state.lock)
+// (raw_spinlock_t)
+// {
+//	.raw_lock = { { 0 } },
+//	.magic = 0xdead4ead,
+//	.owner_cpu = -1,
+//	.owner = 0xffffffff,
+// }
+// KID 20140327
+// #define __RAW_SPIN_LOCK_UNLOCKED(init_mm.mmap_sem.wait_lock)
+// (raw_spinlock_t)
+// {
+//	.raw_lock = { { 0 } },
+//	.magic = 0xdead4ead,
+//	.owner_cpu = -1,
+//	.owner = 0xffffffff,
+// }
 #define __RAW_SPIN_LOCK_UNLOCKED(lockname)	\
 	(raw_spinlock_t) __RAW_SPIN_LOCK_INITIALIZER(lockname)
 
@@ -155,6 +180,17 @@ typedef struct spinlock {
 //	} }
 //
 // #define __SPIN_LOCK_UNLOCKED(cpu_add_remove_lock.wait_lock):
+//	(spinlock_t )
+//	{ { .rlock =
+//	    {
+//	      .raw_lock = { { 0 } },
+//	      .magic = 0xdead4ead,
+//	      .owner_cpu = -1,
+//	      .owner = 0xffffffff,
+//	    }
+//	} }
+// KID 20140327
+// __SPIN_LOCK_UNLOCKED(init_mm.page_table_lock):
 //	(spinlock_t )
 //	{ { .rlock =
 //	    {

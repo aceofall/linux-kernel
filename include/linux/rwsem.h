@@ -18,7 +18,8 @@
 
 struct rw_semaphore;
 
-#ifdef CONFIG_RWSEM_GENERIC_SPINLOCK
+#ifdef CONFIG_RWSEM_GENERIC_SPINLOCK // CONFIG_RWSEM_GENERIC_SPINLOCK=y
+// KID 20140327
 #include <linux/rwsem-spinlock.h> /* use a generic implementation */
 #else
 /* All arch specific implementations share the same struct */
@@ -49,13 +50,40 @@ static inline int rwsem_is_locked(struct rw_semaphore *sem)
 
 /* Common initializer macros and functions */
 
-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+#ifdef CONFIG_DEBUG_LOCK_ALLOC // CONFIG_DEBUG_LOCK_ALLOC=n
 # define __RWSEM_DEP_MAP_INIT(lockname) , .dep_map = { .name = #lockname }
 #else
+// KID 20140327
 # define __RWSEM_DEP_MAP_INIT(lockname)
 #endif
 
 // ARM10C 20131012
+// KID 20140327
+// RWSEM_UNLOCKED_VALUE: 0x00000000
+// __RAW_SPIN_LOCK_UNLOCKED(init_mm.mmap_sem.wait_lock):
+// (raw_spinlock_t)
+// {
+//	.raw_lock = { { 0 } },
+//	.magic = 0xdead4ead,
+//	.owner_cpu = -1,
+//	.owner = 0xffffffff,
+// }
+// LIST_HEAD_INIT((init_mm.mmap_sem).wait_list):
+// { &((init_mm.mmap_sem).wait_list), &((init_mm.mmap_sem).wait_list) }
+// __RWSEM_DEP_MAP_INIT(init_mm.mmap_sem):
+//
+// #define __RWSEM_INITIALIZER(init_mm.mmap_sem)
+// {
+//	0x00000000,
+//	(raw_spinlock_t)
+//	{
+//		.raw_lock = { { 0 } },
+//		.magic = 0xdead4ead,
+//		.owner_cpu = -1,
+//		.owner = 0xffffffff,
+//	},
+//	{ &((init_mm.mmap_sem).wait_list), &((init_mm.mmap_sem).wait_list) }
+// }
 #define __RWSEM_INITIALIZER(name)			\
 	{ RWSEM_UNLOCKED_VALUE,				\
 	  __RAW_SPIN_LOCK_UNLOCKED(name.wait_lock),	\

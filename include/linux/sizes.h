@@ -36,6 +36,7 @@
 #define SZ_8M				0x00800000
 /*
 // ARM10C 20131102
+// KID 20140327
 */
 #define SZ_16M				0x01000000
 #define SZ_32M				0x02000000

@@ -45,6 +45,8 @@
 #define TLB_BARRIER	(1 << 28)
 #define TLB_L2CLEAN_FR	(1 << 29)		/* Feroceon */
 // ARM10C 20131102
+// KID 20140327
+// TLB_DCLEAN: 0x40000000
 #define TLB_DCLEAN	(1 << 30)
 // ARM10C 20131109
 // ARM10C 20131130
@@ -221,6 +223,7 @@
 // ARM10C 20130914
 // ARM10C 20131102
 // ARM10C 20131130
+// KID 20140327
 struct cpu_tlb_fns {
 	void (*flush_user_range)(unsigned long, unsigned long, struct vm_area_struct *);
 	void (*flush_kern_range)(unsigned long, unsigned long);
@@ -249,6 +252,7 @@ extern struct cpu_tlb_fns cpu_tlb;
 
 // ARM10C 20131102
 // ARM10C 20131130
+// KID 20140327
 #define __cpu_tlb_flags			cpu_tlb.tlb_flags
 
 /*
@@ -355,6 +359,7 @@ extern struct cpu_tlb_fns cpu_tlb;
 	} while (0)
 
 // ARM10C 20131102
+// KID 20140327
 // tlb_op(TLB_DCLEAN, "c7, c10, 1	@ flush_pmd", pmd);
 // __tlb_op(TLB_DCLEAN, "p15, 0, %0, " "c7, c10, 1	@ flush_pmd", pmd)
 #define tlb_op(f, regs, arg)	__tlb_op(f, "p15, 0, %0, " regs, arg)
@@ -555,12 +560,14 @@ static inline void flush_pmd_entry(void *pmd)
 }
 
 // ARM10C 20131102
+// KID 20140327
 static inline void clean_pmd_entry(void *pmd)
 {
 	// __cpu_tlb_flags: 0
 	const unsigned int __tlb_flag = __cpu_tlb_flags;
 
 	// Data cache clean 수행
+	// TLB_DCLEAN: 0x40000000
 	tlb_op(TLB_DCLEAN, "c7, c10, 1	@ flush_pmd", pmd);
 	// TLB_L2CLEAN_FR 은 exynos에서 사용 안함 
 	tlb_l2_op(TLB_L2CLEAN_FR, "c15, c9, 1  @ L2 flush_pmd", pmd);

@@ -24,6 +24,7 @@
 // ARM10C 20131102
 typedef u32 pteval_t;
 // ARM10C 20131026
+// KID 20140327
 typedef u32 pmdval_t;
 
 #undef STRICT_MM_TYPECHECKS
@@ -52,8 +53,10 @@ typedef struct { pteval_t pgprot; } pgprot_t;
  */
 // ARM10C 20131102
 typedef pteval_t pte_t;
+// KID 20140327
 typedef pmdval_t pmd_t;
 // ARM10C 20131026
+// KID 20140327
 typedef pmdval_t pgd_t[2];
 // ARM10C 20131102
 typedef pteval_t pgprot_t;
@@ -68,6 +71,7 @@ typedef pteval_t pgprot_t;
 // ARM10C 20131123
 #define __pte(x)        (x)
 // ARM10C 20131102
+// KID 20140327
 #define __pmd(x)        (x)
 // ARM10C 20131026
 // ARM10C 20131102

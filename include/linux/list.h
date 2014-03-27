@@ -22,6 +22,11 @@
 // ARM10C 20140315
 // LIST_HEAD_INIT(cpu_add_remove_lock.wait_list):
 // { &(cpu_add_remove_lock.wait_list), &(cpu_add_remove_lock.wait_list) }
+// KID 20140327
+// LIST_HEAD_INIT((init_mm.mmap_sem).wait_list):
+// { &((init_mm.mmap_sem).wait_list), &((init_mm.mmap_sem).wait_list) }
+// LIST_HEAD_INIT(init_mm.mmlist):
+// { &(init_mm.mmlist), &(init_mm.mmlist) }
 #define LIST_HEAD_INIT(name) { &(name), &(name) }
 
 // ARM10C 20131116

@@ -1858,6 +1858,7 @@ void __init sanity_check_meminfo(void)
 }
 
 // ARM10C 20131102
+// KID 20140327
 static inline void prepare_page_table(void)
 {
 	unsigned long addr;
@@ -1869,7 +1870,7 @@ static inline void prepare_page_table(void)
 	// 0 ~ 0xBF000000 까지 클리어 (유저 영역)
 	// Virtual Address 0 ~ MODULES_VADDR까지 영역에 대한 페이지테이블 영역 Clear
 	// 페이지테이블영역: 0xC0004000 ~ 0xC0006FC7
-	// MODULES_VADDR: 0xBF000000, PMD_SIZE: 0x00200000
+	// MODULES_VADDR: 0xBF000000, PMD_SIZE: 0x200000
 	for (addr = 0; addr < MODULES_VADDR; addr += PMD_SIZE)
 		pmd_clear(pmd_off_k(addr));
 

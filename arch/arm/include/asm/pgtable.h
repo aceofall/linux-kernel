@@ -256,17 +256,20 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
 
 /* to find an entry in a page-table-directory */
 // ARM10C 20131102
+// KID 20140327
 // PGDIR_SHIFT:	21
 #define pgd_index(addr)		((addr) >> PGDIR_SHIFT)
 
 // ARM10C 20131102
+// KID 20140327
 // 연산결과 swapper_pg_dir : 0xc0004000
-//.pgd = swapper_pg_dir
+// .pgd = swapper_pg_dir
 #define pgd_offset(mm, addr)	((mm)->pgd + pgd_index(addr))
 
 /* to find an entry in a kernel page-table-directory */
 // ARM10C 20131102
 // ARM10C 20131109
+// KID 20140327
 #define pgd_offset_k(addr)	pgd_offset(&init_mm, addr)
 
 // ARM10C 20131109

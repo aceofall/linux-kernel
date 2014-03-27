@@ -33,6 +33,7 @@ static inline pte_t get_top_pte(unsigned long va)
 
 // ARM10C 20131102
 // ARM10C 20131130
+// KID 20140327
 static inline pmd_t *pmd_off_k(unsigned long virt)
 {
 	// section table의 위치를 리턴 (2MB 단위)

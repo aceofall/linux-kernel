@@ -29,6 +29,7 @@ struct rw_semaphore {
 #endif
 };
 
+// KID 20140327
 #define RWSEM_UNLOCKED_VALUE		0x00000000
 
 extern void __down_read(struct rw_semaphore *sem);

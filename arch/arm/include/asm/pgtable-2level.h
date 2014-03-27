@@ -88,12 +88,14 @@
  * PMD_SHIFT determines the size of the area a second-level page table can map
  * PGDIR_SHIFT determines what a third-level page table entry can map
  */
+// KID 20140327
 #define PMD_SHIFT		21
 // ARM10C 20131102
 #define PGDIR_SHIFT		21
 
 // ARM10C 20131102
-// PMD_SIZE: 0x00200000
+// PMD_SHIFT: 21
+// PMD_SIZE: 0x200000
 #define PMD_SIZE		(1UL << PMD_SHIFT)
 // ARM10C 20131130
 // PMD_MASK: 0xFFE00000
@@ -218,6 +220,7 @@
 #define set_pud(pud,pudp)	do { } while (0)
 
 // ARM10C 20131102
+// KID 20140327
 static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
 {
 	return (pmd_t *)pud;
@@ -234,6 +237,7 @@ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
 	} while (0)
 
 // ARM10C 20131102
+// KID 20140327
 #define pmd_clear(pmdp)			\
 	do {				\
 		pmdp[0] = __pmd(0);	\

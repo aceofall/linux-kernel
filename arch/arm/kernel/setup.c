@@ -114,6 +114,7 @@ struct processor processor __read_mostly;
 #ifdef MULTI_TLB // defined
 // ARM10C 20131102
 // ARM10C 20131130
+// KID 20140327
 struct cpu_tlb_fns cpu_tlb __read_mostly;
 #endif
 #ifdef MULTI_USER

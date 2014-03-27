@@ -325,6 +325,7 @@ struct mm_rss_stat {
 
 // ARM10C 20131012
 // KID 20140304
+// KID 20140327
 struct mm_struct {
 	struct vm_area_struct * mmap;		/* list of VMAs */
 	struct rb_root mm_rb;
