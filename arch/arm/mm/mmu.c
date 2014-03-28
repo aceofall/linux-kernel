@@ -1651,6 +1651,8 @@ early_param("vmalloc", early_vmalloc);
 
 // ARM10C 20131019
 // KID 20140307
+// KID 20140328
+// arm_lowmem_limit: 0x4f800000
 phys_addr_t arm_lowmem_limit __initdata = 0;
 
 // ARM10C 20131019
@@ -1867,9 +1869,9 @@ static inline void prepare_page_table(void)
 	/*
 	 * Clear out all the mappings below the kernel image.
 	 */
-	// 0 ~ 0xBF000000 까지 클리어 (유저 영역)
-	// Virtual Address 0 ~ MODULES_VADDR까지 영역에 대한 페이지테이블 영역 Clear
 	// 페이지테이블영역: 0xC0004000 ~ 0xC0006FC7
+	// Virtual Address 0 ~ MODULES_VADDR까지 영역에 대한 페이지테이블 영역 Clear
+	// 0 ~ 0xBF000000 까지 클리어 (유저 영역)
 	// MODULES_VADDR: 0xBF000000, PMD_SIZE: 0x200000
 	for (addr = 0; addr < MODULES_VADDR; addr += PMD_SIZE)
 		pmd_clear(pmd_off_k(addr));
@@ -1880,7 +1882,7 @@ static inline void prepare_page_table(void)
 #endif
 
 	// 0xBF000000 ~ 0xC0000000 까지 클리어 (모듈 영역)
-	// PAGE_OFFSET: 0xC0000000, PMD_SIZE: 0x00200000
+	// PAGE_OFFSET: 0xC0000000, PMD_SIZE: 0x200000
 	for ( ; addr < PAGE_OFFSET; addr += PMD_SIZE)
 		pmd_clear(pmd_off_k(addr));
 
@@ -1889,13 +1891,13 @@ static inline void prepare_page_table(void)
 	 */
 	// memblock.memory.regions[0].base: 0x20000000
 	// memblock.memory.regions[0].size: 0x80000000
-	// end: 0xA0000000
 	end = memblock.memory.regions[0].base + memblock.memory.regions[0].size;
+	// end: 0xA0000000
 
-	// arm_lowmem_limit: 0x4f800000
+	// end: 0xA0000000, arm_lowmem_limit: 0x4f800000
 	if (end >= arm_lowmem_limit)
-		// end: 0x4f800000
 		end = arm_lowmem_limit;
+		// end: 0x4f800000
 
 	/*
 	 * Clear out all the kernel space mappings, except for the first
