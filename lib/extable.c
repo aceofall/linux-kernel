@@ -21,6 +21,7 @@
  * This is used both for the kernel exception table and for
  * the exception tables of modules that get loaded.
  */
+// ARM10C 20140329
 static int cmp_ex(const void *a, const void *b)
 {
 	const struct exception_table_entry *x = a, *y = b;
@@ -33,6 +34,7 @@ static int cmp_ex(const void *a, const void *b)
 	return 0;
 }
 
+// ARM10C 20140329
 void sort_extable(struct exception_table_entry *start,
 		  struct exception_table_entry *finish)
 {
