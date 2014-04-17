@@ -19,9 +19,10 @@
 
 #include "proc-macros.S"
 
-#ifdef CONFIG_ARM_LPAE
+#ifdef CONFIG_ARM_LPAE // CONFIG_ARM_LPAE=n
 #include "proc-v7-3level.S"
 #else
+// KID 20140417
 #include "proc-v7-2level.S"
 #endif
 
@@ -400,8 +401,10 @@ __v7_setup_stack:
 	__INITDATA
 
 	@ define struct processor (see <asm/proc-fns.h> and proc-macros.S)
+// KID 20140417
+// v7_processor_functions
 	define_processor_functions v7, dabort=v7_early_abort, pabort=v7_pabort, suspend=1
-#ifdef CONFIG_CPU_PJ4B
+#ifdef CONFIG_CPU_PJ4B // CONFIG_CPU_PJ4B=n
 	define_processor_functions pj4b, dabort=v7_early_abort, pabort=v7_pabort, suspend=1
 #endif
 
