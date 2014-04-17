@@ -10,6 +10,7 @@
 #endif
 
 // KID 20140213
+// ARM10C 20140405
 // This attribute, attached to a function, means that code must be emitted for the
 // function even if it appears that the function is not referenced. This is useful,
 // for example, when the function is referenced only in inline assembly.

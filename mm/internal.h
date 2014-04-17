@@ -39,7 +39,7 @@ static inline void set_page_refcounted(struct page *page)
 
 	// page: 0x20000의 해당하는 struct page의 주소
 	set_page_count(page, 1);
-	// page: 0x20000의 해당하는 struct page의 1st page의 count 1로 set
+	// page: 0x20000의 해당하는 struct page의 1st page의 _count를 1로 set
 }
 
 static inline void __get_page_tail_foll(struct page *page,
@@ -156,6 +156,7 @@ isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
  * zone->lock is already acquired when we use these.
  * So, we don't need atomic page->flags operations here.
  */
+// ARM10C 20140405
 static inline unsigned long page_order(struct page *page)
 {
 	/* PageBuddy() must be checked by the caller */

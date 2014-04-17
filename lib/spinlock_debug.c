@@ -82,6 +82,7 @@ static void spin_bug(raw_spinlock_t *lock, const char *msg)
 
 #define SPIN_BUG_ON(cond, lock, msg) if (unlikely(cond)) spin_bug(lock, msg)
 
+// ARM10C 20140405
 static inline void
 debug_spin_lock_before(raw_spinlock_t *lock)
 {
@@ -92,12 +93,14 @@ debug_spin_lock_before(raw_spinlock_t *lock)
 }
 
 // KID 20140116
+// ARM10C 20140405
 static inline void debug_spin_lock_after(raw_spinlock_t *lock)
 {
 	lock->owner_cpu = raw_smp_processor_id();
 	lock->owner = current;
 }
 
+// ARM10C 20140412
 static inline void debug_spin_unlock(raw_spinlock_t *lock)
 {
 	SPIN_BUG_ON(lock->magic != SPINLOCK_MAGIC, lock, "bad magic");
@@ -136,6 +139,7 @@ static void __spin_lock_debug(raw_spinlock_t *lock)
 	arch_spin_lock(&lock->raw_lock);
 }
 
+// ARM10C 20140405
 void do_raw_spin_lock(raw_spinlock_t *lock)
 {
 	debug_spin_lock_before(lock);
@@ -160,6 +164,7 @@ int do_raw_spin_trylock(raw_spinlock_t *lock)
 	return ret;
 }
 
+// ARM10C 20140412
 void do_raw_spin_unlock(raw_spinlock_t *lock)
 {
 	debug_spin_unlock(lock);
@@ -293,6 +298,7 @@ static void __write_lock_debug(rwlock_t *lock)
 #endif
 
 // ARM10C 20140125
+// ARM10C 20140405
 void do_raw_write_lock(rwlock_t *lock)
 {
 	debug_write_lock_before(lock);

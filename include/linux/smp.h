@@ -213,6 +213,9 @@ static inline void kick_all_cpus_sync(void) {  }
   extern unsigned int debug_smp_processor_id(void);
 // KID 20140113
 // ARM10C 20140308
+// ARM10C 20140412
+// debug_smp_processor_id(): 0
+// smp_processor_id(): 0
 # define smp_processor_id() debug_smp_processor_id()
 #else
 # define smp_processor_id() raw_smp_processor_id()

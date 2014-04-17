@@ -121,6 +121,7 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 
 // ARM10C 20130831
 // lock->slock : 0
+// ARM10C 20140405
 static inline int arch_spin_trylock(arch_spinlock_t *lock)
 {
 	unsigned long contended, res;
@@ -160,6 +161,7 @@ static inline int arch_spin_trylock(arch_spinlock_t *lock)
 
 // KID 20140115
 // ARM10C 20130322
+// ARM10C 20140412
 static inline void arch_spin_unlock(arch_spinlock_t *lock)
 {
 	smp_mb(); // smb_mb(), dsb_sev() 중 dsb()는 owner를 보호하기위한 것
@@ -197,6 +199,7 @@ static inline int arch_spin_is_contended(arch_spinlock_t *lock)
  */
 
 // ARM10C 20140125
+// ARM10C 20140405
 static inline void arch_write_lock(arch_rwlock_t *rw)
 {
 	unsigned long tmp;

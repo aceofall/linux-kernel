@@ -48,6 +48,7 @@ static void generic_swap(void *a, void *b, int size)
 // sort(&meminfo.bank, meminfo.nr_banks, sizeof(meminfo.bank[0]), meminfo_cmp, NULL);
 // KID 20140306
 // sort(&meminfo.bank, 1, 12, meminfo_cmp, NULL)
+// ARM10C 20140329
 void sort(void *base, size_t num, size_t size,
 	  int (*cmp_func)(const void *, const void *),
 	  void (*swap_func)(void *, void *, int size))

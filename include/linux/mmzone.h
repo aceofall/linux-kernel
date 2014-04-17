@@ -20,11 +20,13 @@
 #include <asm/page.h>
 
 /* Free memory management - zoned buddy allocator.  */
-#ifndef CONFIG_FORCE_MAX_ZONEORDER	// CONFIG_FORCE_MAX_ZONEORDER = 11 
-// ARM10C 20140329
+#ifndef CONFIG_FORCE_MAX_ZONEORDER // CONFIG_FORCE_MAX_ZONEORDER=y
 #define MAX_ORDER 11
 #else
-#define MAX_ORDER CONFIG_FORCE_MAX_ZONEORDER	// this MAX_ORDER 11 
+// ARM10C 20140329
+// CONFIG_FORCE_MAX_ZONEORDER: 11
+// MAX_ORDER: 11
+#define MAX_ORDER CONFIG_FORCE_MAX_ZONEORDER
 #endif
 // ARM10C 20140329
 // MAX_ORDER: 11
@@ -39,7 +41,8 @@
  */
 #define PAGE_ALLOC_COSTLY_ORDER 3
 
-// ARM10C 20140111 
+// ARM10C 20140111
+// ARM10C 20140412
 enum {
 	MIGRATE_UNMOVABLE,
 	MIGRATE_RECLAIMABLE,
@@ -65,27 +68,33 @@ enum {
 #ifdef CONFIG_MEMORY_ISOLATION
 	MIGRATE_ISOLATE,	/* can't allocate from here */
 #endif
-	MIGRATE_TYPES	// 4 
+	MIGRATE_TYPES	// 4
 };
 
-#ifdef CONFIG_CMA
+#ifdef CONFIG_CMA // CONFIG_CMA=n
 #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
 #else
+// ARM10C 20140412
 #  define is_migrate_cma(migratetype) false
 #endif
 
-// ARM10C 20140111 
-//  MAX_ORDER = 11
-//  MIGRATE_TYPES = 4
+// ARM10C 20140111
+// MAX_ORDER: 11
+// MIGRATE_TYPES: 4
 #define for_each_migratetype_order(order, type) \
 	for (order = 0; order < MAX_ORDER; order++) \
 		for (type = 0; type < MIGRATE_TYPES; type++)
 
 extern int page_group_by_mobility_disabled;
 
+// ARM10C 20140405
+// page : 0x20000 (pfn)
+// ARM10C 20140412
 static inline int get_pageblock_migratetype(struct page *page)
 {
+	// page : 0x20000 (pfn), PB_migrate: 0, PB_migrate_end: 2 
 	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
+	// return 0x2
 }
 
 // ARM10C 20140125
@@ -115,6 +124,7 @@ struct zone_padding {
 
 // ARM10C 20140125
 // ARM10C 20140308
+// ARM10C 20140412
 enum zone_stat_item {
 	/* First 128 byte cacheline (assuming 64 bit words) */
 	NR_FREE_PAGES,
@@ -273,6 +283,7 @@ struct per_cpu_pages {
 
 // ARM10C 20140111
 // ARM10C 20140308
+// ARM10C 20140412
 // sizeof(struct per_cpu_pageset): 66 bytes
 struct per_cpu_pageset {
 	struct per_cpu_pages pcp;
@@ -393,6 +404,7 @@ struct zone {
 	// ARM10C 20140125
 	// sizeof(spinlock_t): 16 bytes
 	spinlock_t		lock;
+	// ARM10C 20140405
 	int                     all_unreclaimable; /* All pages pinned */
 #if defined CONFIG_COMPACTION || defined CONFIG_CMA // CONFIG_COMPACTION=y, CONFIG_CMA=n
 	/* Set to true when the PG_migrate_skip bits should be cleared */
@@ -445,6 +457,7 @@ struct zone {
 	// sizeof(struct lruvec): 56 bytes
 	struct lruvec		lruvec;
 
+	// ARM10C 20140405
 	unsigned long		pages_scanned;	   /* since last reclaim */
 	unsigned long		flags;		   /* zone flags, see below */
 
@@ -621,6 +634,7 @@ static inline bool zone_spans_pfn(const struct zone *zone, unsigned long pfn)
 	return zone->zone_start_pfn <= pfn && pfn < zone_end_pfn(zone);
 }
 
+// ARM10C 20140405
 static inline bool zone_is_initialized(struct zone *zone)
 {
 	return !!zone->wait_table;
@@ -965,6 +979,7 @@ static inline int is_highmem_idx(enum zone_type idx)
  * @zone - pointer to struct zone variable
  */
 // ARM10C 20140125
+// ARM10C 20140405
 static inline int is_highmem(struct zone *zone)
 {
 #ifdef CONFIG_HIGHMEM // CONFIG_HIGHMEM=y
@@ -1434,9 +1449,10 @@ unsigned long __init node_memmap_size_bytes(int, unsigned long, unsigned long);
  * pfn_valid_within() should be used in this case; we optimise this away
  * when we have no holes within a MAX_ORDER_NR_PAGES block.
  */
-#ifdef CONFIG_HOLES_IN_ZONE
+#ifdef CONFIG_HOLES_IN_ZONE // CONFIG_HOLES_IN_ZONE=n
 #define pfn_valid_within(pfn) pfn_valid(pfn)
 #else
+// ARM10C 20140405
 #define pfn_valid_within(pfn) (1)
 #endif
 
