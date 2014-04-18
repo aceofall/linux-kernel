@@ -15,6 +15,7 @@
 #include <asm/io.h>
 
 // ARM10C 20131102
+// KID 20140418
 struct map_desc {
 	unsigned long virtual;
 	unsigned long pfn;
@@ -34,6 +35,7 @@ struct map_desc {
 // KID 20140321
 #define MT_HIGH_VECTORS		8
 // KID 20140321
+// KID 20140418
 #define MT_MEMORY		9
 // KID 20140321
 #define MT_ROM			10

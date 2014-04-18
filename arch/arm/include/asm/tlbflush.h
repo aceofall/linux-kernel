@@ -330,6 +330,11 @@ extern struct cpu_tlb_fns cpu_tlb;
 // ARM10C 20131102
 // ARM10C 20131130
 // KID 20140327
+// cpu_tlb.tlb_flags: v7wbi_tlb_flags_smp
+//
+// __cpu_tlb_flags:
+// TLB_WB | TLB_BARRIER | TLB_V7_UIS_FULL | TLB_V7_UIS_PAGE |
+// TLB_V7_UIS_ASID | TLB_V7_UIS_BP (0x90f00000)
 #define __cpu_tlb_flags			cpu_tlb.tlb_flags
 
 /*
@@ -688,8 +693,13 @@ static inline void flush_pmd_entry(void *pmd)
 // KID 20140327
 static inline void clean_pmd_entry(void *pmd)
 {
-	// __cpu_tlb_flags: 0
+	// __cpu_tlb_flags:
+	// TLB_WB | TLB_BARRIER | TLB_V7_UIS_FULL | TLB_V7_UIS_PAGE |
+	// TLB_V7_UIS_ASID | TLB_V7_UIS_BP (0x90f00000)
 	const unsigned int __tlb_flag = __cpu_tlb_flags;
+	// __tlb_flag:
+	// TLB_WB | TLB_BARRIER | TLB_V7_UIS_FULL | TLB_V7_UIS_PAGE |
+	// TLB_V7_UIS_ASID | TLB_V7_UIS_BP (0x90f00000)
 
 	// Data cache clean 수행
 	// TLB_DCLEAN: 0x40000000

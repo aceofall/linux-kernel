@@ -272,6 +272,7 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
 // ARM10C 20131102
 // ARM10C 20131109
 // KID 20140327
+// KID 20140418
 #define pgd_offset_k(addr)	pgd_offset(&init_mm, addr)
 
 // ARM10C 20131109

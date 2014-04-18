@@ -92,4 +92,5 @@ ENDPROC(v7wbi_flush_kern_tlb_range)
 	__INIT
 
 	/* define struct cpu_tlb_fns (see <asm/tlbflush.h> and proc-macros.S) */
+	// KID 20140418
 	define_tlb_functions v7wbi, v7wbi_tlb_flags_up, flags_smp=v7wbi_tlb_flags_smp

@@ -249,6 +249,7 @@ static inline unsigned long memblock_region_reserved_end_pfn(const struct memblo
 
 // ARM10C 20131102
 // ARM10C 20131207
+// KID 20140418
 #define for_each_memblock(memblock_type, region)					\
 	for (region = memblock.memblock_type.regions;				\
 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\

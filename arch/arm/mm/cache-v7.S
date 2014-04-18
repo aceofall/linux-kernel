@@ -473,4 +473,5 @@ ENDPROC(v7_dma_unmap_area)
 	__INITDATA
 
 	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
+	// KID 20140418
 	define_cache_functions v7

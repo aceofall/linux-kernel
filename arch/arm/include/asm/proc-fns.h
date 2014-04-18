@@ -23,6 +23,7 @@ struct mm_struct;
 /*
  * Don't change this structure - ASM code relies on it.
  */
+// KID 20140418
 extern struct processor {
 	/* MISC
 	 * get data abort address/flags

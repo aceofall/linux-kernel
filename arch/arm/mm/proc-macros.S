@@ -327,6 +327,23 @@ ENTRY(\name\()_processor_functions)
 	.size	\name\()_processor_functions, . - \name\()_processor_functions
 .endm
 
+// KID 20140418
+// define_cache_functions v7:
+//	.align 2
+//	.type	v7_cache_fns, #object
+// ENTRY(v7_cache_fns)
+//	.long	v7_flush_icache_all
+//	.long	v7_flush_kern_cache_all
+//	.long   v7_flush_kern_cache_louis
+//	.long	v7_flush_user_cache_all
+//	.long	v7_flush_user_cache_range
+//	.long	v7_coherent_kern_range
+//	.long	v7_coherent_user_range
+//	.long	v7_flush_kern_dcache_area
+//	.long	v7_dma_map_area
+//	.long	v7_dma_unmap_area
+//	.long	v7_dma_flush_range
+//	.size	v7_cache_fns, . - v7_cache_fns
 .macro define_cache_functions name:req
 	.align 2
 	.type	\name\()_cache_fns, #object
@@ -345,6 +362,14 @@ ENTRY(\name\()_cache_fns)
 	.size	\name\()_cache_fns, . - \name\()_cache_fns
 .endm
 
+// KID 20140418
+// define_tlb_functions v7wbi, v7wbi_tlb_flags_up, flags_smp=v7wbi_tlb_flags_smp:
+//	.type	v7wbi_tlb_fns, #object
+// ENTRY(v7wbi_tlb_fns)
+//	.long	v7wbi_flush_user_tlb_range
+//	.long	v7wbi_flush_kern_tlb_range
+//	.long	v7wbi_tlb_flags_smp
+//	.size	v7wbi_tlb_fns, . - v7wbi_tlb_fns
 .macro define_tlb_functions name:req, flags_up:req, flags_smp
 	.type	\name\()_tlb_fns, #object
 ENTRY(\name\()_tlb_fns)

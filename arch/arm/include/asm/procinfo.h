@@ -28,6 +28,7 @@ struct processor;
  */
 // ARM10C 20130914
 // ARM10C 20131228
+// KID 20140418
 struct proc_info_list {
 	unsigned int		cpu_val;
 	unsigned int		cpu_mask;

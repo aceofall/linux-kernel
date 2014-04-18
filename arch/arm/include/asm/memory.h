@@ -154,6 +154,8 @@
 /*
 // ARM10C 20131019
 // ARM10C 20131102
+// KID 20140418
+// PAGE_SHIFT: 12
 */
 #define	__phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
 /*

@@ -1086,6 +1086,8 @@ EXPORT_SYMBOL(phys_mem_access_prot);
 #endif
 
 // ARM10C 20131102
+// KID 20140418
+// vectors_high(): 0x2000
 // vectors_base(): 0xffff0000
 #define vectors_base()	(vectors_high() ? 0xffff0000 : 0)
 
@@ -1333,16 +1335,17 @@ static void __init create_36bit_mapping(struct map_desc *md,
  * supersections.
  */
 // ARM10C 20131102
+// KID 20140418
 // map.pfn: 0x20000
 // map.virtual: 0xC0000000
 // map.length: 0x2f800000
 // map.type: MT_MEMORY
-
+//
 // ARM10C 20131123
 // map.pfn: 0x4F7FE
 // map.virtual: 0xffff0000;
 // map.length: 0x1000, PAGE_SIZE: 0x1000
-// map.type = MT_HIGH_VECTORS;
+// map.type = MT_HIGH_VECTORS
 static void __init create_mapping(struct map_desc *md)
 {
 	unsigned long addr, length, end;
@@ -1359,6 +1362,9 @@ static void __init create_mapping(struct map_desc *md)
 		return;
 	}
 
+	// PAGE_OFFSET: 0xC0000000, VMALLOC_START: 0xf0000000, VMALLOC_END: 0xff000000
+	// md->type: MT_MEMORY, md->virtual: 0xC0000000
+	// md->type: MT_HIGH_VECTORS, md->virtual: 0xffff0000
 	if ((md->type == MT_DEVICE || md->type == MT_ROM) &&
 	    md->virtual >= PAGE_OFFSET &&
 	    (md->virtual < VMALLOC_START || md->virtual >= VMALLOC_END)) {
@@ -1367,52 +1373,76 @@ static void __init create_mapping(struct map_desc *md)
 		       (long long)__pfn_to_phys((u64)md->pfn), md->virtual);
 	}
 
+	// md->type: MT_MEMORY
+	// md->type: MT_HIGH_VECTORS
 	type = &mem_types[md->type];
+	// type: &mem_types[MT_MEMORY]
+	// type: &mem_types[MT_HIGH_VECTORS]
 
 #ifndef CONFIG_ARM_LPAE // CONFIG_ARM_LPAE=n
 	/*
 	 * Catch 36-bit addresses
 	 */
 	// md->pfn: 0x20000
-	// map.pfn: 0x4F7FE
+	// md->pfn: 0x4F7FE
 	if (md->pfn >= 0x100000) {
 		create_36bit_mapping(md, type);
 		return;
 	}
 #endif
 
-	// md.virtual: 0xC0000000, PAGE_MASK: 0xFFFFF000, addr: 0xC0000000
-	// md.virtual: 0xffff0000, PAGE_MASK: 0xFFFFF000, addr: 0xffff0000
+	// md->virtual: 0xC0000000, PAGE_MASK: 0xFFFFF000
+	// md->virtual: 0xffff0000, PAGE_MASK: 0xFFFFF000
 	addr = md->virtual & PAGE_MASK;
-	// md->pfn: 0x20000, phys: 0x20000000
-	// md->pfn: 0x4F7FE, phys: 0x4F7FE000
-	phys = __pfn_to_phys(md->pfn);
-	// md.length: 0x2f800000, length: 0x2f800000
-	// md.length: 0x1000, length: 0x1000
-	length = PAGE_ALIGN(md->length + (md->virtual & ~PAGE_MASK));
+	// addr: 0xC0000000
+	// addr: 0xffff0000
 
-	// addr: 0xC0000000, phys: 0x20000000, length: 0x2f800000
-	// addr: 0xffff0000, phys: 0x4F7FE000, length: 0x1000
+	// md->pfn: 0x20000, __pfn_to_phys(0x20000): 0x20000000
+	// md->pfn: 0x4F7FE, __pfn_to_phys(0x4F7FE): 0x4F7FE000
+	phys = __pfn_to_phys(md->pfn);
+	// phys: 0x20000000
+	// phys: 0x4F7FE000
+
+	// md->length: 0x2f800000, md->virtual: 0xC0000000, PAGE_MASK: 0xFFFFF000
+	// md->length: 0x1000, md->virtual: 0xffff0000, PAGE_MASK: 0xFFFFF000
+	length = PAGE_ALIGN(md->length + (md->virtual & ~PAGE_MASK));
+	// length: 0x2f800000
+	// length: 0x1000
+
+	// type->prot_l1: mem_types[MT_MEMORY].prot_l1: PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_KERNEL), (0x1)
+	// addr: 0xC0000000, phys: 0x20000000, length: 0x2f800000, SECTION_MASK: 0xFFF00000
+	// type->prot_l1: mem_types[MT_HIGH_VECTORS].prot_l1: PMD_TYPE_TABLE | PMD_DOMAIN(DOMAIN_USER), (0x21)
+	// addr: 0xffff0000, phys: 0x4F7FE000, length: 0x1000, SECTION_MASK: 0xFFF00000
 	if (type->prot_l1 == 0 && ((addr | phys | length) & ~SECTION_MASK)) {
 		printk(KERN_WARNING "BUG: map for 0x%08llx at 0x%08lx can not "
 		       "be mapped using pages, ignoring.\n",
 		       (long long)__pfn_to_phys(md->pfn), addr);
 		return;
 	}
+
 	// (*8)을 하는 이유? 
 	// typedef struct { pmdval_t pgd[2]; } pgd_t; 로 선언되어 pmdval_t이 4byte,
 	// 그래서 주소 계산시 8byte 곱해준다.
-	// addr: 0xC0000000, pgd: 0xc0004000 + 0x600 * 8
-	// addr: 0xffff0000, pgd: 0xc0004000 + 0x7FF * 8
+	//
+	// addr: 0xC0000000, pgd_offset_k(0xC0000000): 0xC0004000 + 0x600 * 8
+	// addr: 0xffff0000, pgd_offset_k(0xffff0000): 0xC0004000 + 0x7FF * 8
 	pgd = pgd_offset_k(addr);
+	// pgd: 0xC0007000
+	// pgd: 0xC0007FF8
 
-	// end: 0xC0000000 + 0x2f800000: 0xef800000
-	// end: 0xffff0000 + 0x1000: 0xffff1000
+	// addr: 0xC0000000, length: 0x2f800000
+	// addr: 0xffff0000, length: 0x1000
 	end = addr + length;
+	// end: 0xef800000
+	// end: 0xffff1000
 	do {
-		// addr: 0xC0000000, end: 0xef800000, next: 0xC0200000
-		// addr: 0xffff0000, end: 0xffff1000, next: 0xffff1000
+		// addr: 0xC0000000, end: 0xef800000, pgd_addr_end(0xC0000000, 0xef800000):
+		// addr: 0xffff0000, end: 0xffff1000, pgd_addr_end(0xffff0000, 0xffff1000):
 		unsigned long next = pgd_addr_end(addr, end);
+		// next: 0xC0200000
+		// next: 0xffff1000
+
+// 2014/04/18 KID 종료
 
 		// pgd: 0xc0007000, addr: 0xC0000000, next: 0xC0200000, phys: 0x20000000
 		// pgd: 0xc0007FF8, addr: 0xffff0000, next: 0xffff1000, phys: 0x4F7FE000
@@ -2088,35 +2118,53 @@ static void __init kmap_init(void)
 // region 중 lowmem영역을 추출하여 create_mapping 수행
 // create_mapping: 가상 0xC0000000~0xEF800000을 1M 단위로 물리 0x20000000 부터 매핑하면서 
 // mem_type을 MT_MEMORY 값으로 설정.(cache 정책 access permission 등이 들어가 있다.
+// KID 20140418
 static void __init map_lowmem(void)
 {
 	struct memblock_region *reg;
 
 	/* Map all the lowmem memory banks. */
 	for_each_memblock(memory, reg) {
+	// for (reg = memblock.memory.regions;
+	//      reg < (memblock.memory.regions + memblock.memory.cnt); reg++)
+
+		// reg->base: memblock.memory.regions[0].base: 0x20000000
 		phys_addr_t start = reg->base;
+		// start: 0x20000000
+		// reg->size: memblock.memory.regions[0].size: 0x80000000
 		phys_addr_t end = start + reg->size;
+		// end: 0xA0000000
 		struct map_desc map;
 
 		// end: 0xA0000000, arm_lowmem_limit: 0x4f800000
 		if (end > arm_lowmem_limit)
-			// end: 0x4f800000
+			// end: 0xA0000000
 			end = arm_lowmem_limit;
+			// end: 0x4f800000
 
 		// start: 0x20000000, end: 0x4f800000
 		if (start >= end)
 			break;
 
-		// map.pfn: 0x20000
+		// start: 0x20000000, __phys_to_pfn(0x20000000): 0x20000
 		map.pfn = __phys_to_pfn(start);
-		// map.virtual: 0xC0000000
+		// map.pfn: 0x20000
+
+		// start: 0x20000000, __phys_to_virt(0x20000000): 0xC0000000
 		map.virtual = __phys_to_virt(start);
-		// map.length: 0x2f800000
+		// map.virtual: 0xC0000000
+
+		// end: 0x4f800000, start: 0x20000000
 		map.length = end - start;
+		// map.length: 0x2f800000
+
+		// MT_MEMORY: 9
 		map.type = MT_MEMORY;
+		// map.type: 9 
 
 // 2013/11/02 종료
 // 2013/11/09 시작
+
 		create_mapping(&map);
 	}
 }
