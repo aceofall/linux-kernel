@@ -69,6 +69,7 @@
  * switch which changes the user space mapping occurs.
  */
 // ARM10C 20131123
+// ARM10C 20140419
 #define PTRS_PER_PTE		512
 #define PTRS_PER_PMD		1
 // ARM10C 20131026
@@ -89,11 +90,13 @@
  * PGDIR_SHIFT determines what a third-level page table entry can map
  */
 // KID 20140327
+// ARM10C 20140419
 #define PMD_SHIFT		21
 // ARM10C 20131102
 #define PGDIR_SHIFT		21
 
 // ARM10C 20131102
+// ARM10C 20140419
 // PMD_SHIFT: 21
 // PMD_SIZE: 0x200000
 #define PMD_SIZE		(1UL << PMD_SHIFT)

@@ -22,6 +22,7 @@
 #define __bitwise__ __attribute__((bitwise))
 #else
 // KID 20140306
+// ARM10C 20140426
 #define __bitwise__
 #endif
 #ifdef __CHECK_ENDIAN__

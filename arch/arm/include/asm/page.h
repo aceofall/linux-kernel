@@ -16,6 +16,7 @@
 */
 #define PAGE_SHIFT		12
 /*
+// ARM10C 20140419
 // ARM10C 20131207
 // PAGE_SIZE: 0x1000
 */

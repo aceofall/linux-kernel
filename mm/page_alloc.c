@@ -88,15 +88,16 @@ EXPORT_PER_CPU_SYMBOL(_numa_mem_);
 /*
  * Array of node states.
  */
+// ARM10C 20140426
 nodemask_t node_states[NR_NODE_STATES] __read_mostly = {
 	[N_POSSIBLE] = NODE_MASK_ALL,
 	[N_ONLINE] = { { [0] = 1UL } },
-#ifndef CONFIG_NUMA
+#ifndef CONFIG_NUMA // CONFIG_NUMA=n
 	[N_NORMAL_MEMORY] = { { [0] = 1UL } },
-#ifdef CONFIG_HIGHMEM
+#ifdef CONFIG_HIGHMEM // CONFIG_HIGHMEM=y
 	[N_HIGH_MEMORY] = { { [0] = 1UL } },
 #endif
-#ifdef CONFIG_MOVABLE_NODE
+#ifdef CONFIG_MOVABLE_NODE // CONFIG_MOVABLE_NODE=n
 	[N_MEMORY] = { { [0] = 1UL } },
 #endif
 	[N_CPU] = { { [0] = 1UL } },
@@ -108,6 +109,7 @@ EXPORT_SYMBOL(node_states);
 static DEFINE_SPINLOCK(managed_page_count_lock);
 
 // ARM10C 20140412
+// ARM10C 20140419
 unsigned long totalram_pages __read_mostly;
 unsigned long totalreserve_pages __read_mostly;
 /*
@@ -119,6 +121,9 @@ unsigned long totalreserve_pages __read_mostly;
 unsigned long dirty_balance_reserve __read_mostly;
 
 int percpu_pagelist_fraction;
+// ARM10C 20140426
+// GFP_BOOT_MASK: 0x1ffff2f
+// gfp_allowed_mask: 0x1ffff2f
 gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
 
 #ifdef CONFIG_PM_SLEEP
@@ -231,6 +236,7 @@ EXPORT_SYMBOL(nr_node_ids);
 EXPORT_SYMBOL(nr_online_nodes);
 #endif
 
+// ARM10C 20140426
 int page_group_by_mobility_disabled __read_mostly;
 
 // ARM10C 20140118
@@ -1725,6 +1731,9 @@ void free_hot_cold_page(struct page *page, int cold)
 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
 	// pcp: &((&boot_pageset) + (__per_cpu_offset[0]))->pcp
 
+	// cold 와 hot의 의미? 
+	// cold 변수가 1 이면 (cold)  리스트의 마지막에 붙여 천천히 리스트에서 검색되도록 하며
+	// 0 이면 (hot) 리스트의 처음에 붙여 빨리 검색되어 사용되도록 한다.
 	// cold: 0
 	if (cold)
 		list_add_tail(&page->lru, &pcp->lists[migratetype]);
@@ -1939,7 +1948,7 @@ failed:
 	return NULL;
 }
 
-#ifdef CONFIG_FAIL_PAGE_ALLOC
+#ifdef CONFIG_FAIL_PAGE_ALLOC // CONFIG_FAIL_PAGE_ALLOC=n
 
 static struct {
 	struct fault_attr attr;
@@ -2009,6 +2018,7 @@ late_initcall(fail_page_alloc_debugfs);
 
 #else /* CONFIG_FAIL_PAGE_ALLOC */
 
+// ARM10C 20140426
 static inline bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
 {
 	return false;
@@ -2243,6 +2253,11 @@ static inline void init_zone_allows_reclaim(int nid)
  * get_page_from_freelist goes through the zonelist trying to allocate
  * a page.
  */
+// ARM10C 20140426
+// 0x221200, nodemask: NULL, order: 0
+// zonelist: contig_page_data->node_zonelists, high_zoneidx: ZONE_NORMAL: 0
+// alloc_flags: 0x41, preferred_zone: (&contig_page_data)->node_zones[0]
+// migratetype: MIGRATE_UNMOVABLE: 0
 static struct page *
 get_page_from_freelist(gfp_t gfp_mask, nodemask_t *nodemask, unsigned int order,
 		struct zonelist *zonelist, int high_zoneidx, int alloc_flags,
@@ -2996,24 +3011,38 @@ got_pg:
 /*
  * This is the 'heart' of the zoned buddy allocator.
  */
+// ARM10C 20140426
+// gfp_mask: 0x201200, order: 0,
+// zonelist: contig_page_data->node_zonelists, NULL
 struct page *
 __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
 			struct zonelist *zonelist, nodemask_t *nodemask)
 {
+	// gfp_mask: 0x201200, gfp_zone(0x201200): 0
 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+	// high_zoneidx: ZONE_NORMAL: 0
 	struct zone *preferred_zone;
 	struct page *page = NULL;
+	// gfp_mask: 0x201200
 	int migratetype = allocflags_to_migratetype(gfp_mask);
+	// migratetype: MIGRATE_UNMOVABLE: 0
 	unsigned int cpuset_mems_cookie;
+	// ALLOC_WMARK_LOW: 1 ALLOC_CPUSET: 0x40
 	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET;
+	// alloc_flags: 0x41
 	struct mem_cgroup *memcg = NULL;
 
+	// gfp_mask: 0x201200, gfp_allowed_mask: 0x1ffff2f
 	gfp_mask &= gfp_allowed_mask;
+	// gfp_mask: 0x201200
 
-	lockdep_trace_alloc(gfp_mask);
+	// gfp_mask: 0x201200
+	lockdep_trace_alloc(gfp_mask); // null function
 
+	// gfp_mask: 0x201200, __GFP_WAIT: 0x10u
 	might_sleep_if(gfp_mask & __GFP_WAIT);
 
+	// gfp_mask: 0x201200, order: 0, should_fail_alloc_page(0x201200, 0): 0
 	if (should_fail_alloc_page(gfp_mask, order))
 		return NULL;
 
@@ -3022,6 +3051,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
 	 * valid zone. It's possible to have an empty zonelist as a result
 	 * of GFP_THISNODE and a memoryless node
 	 */
+	// zonelist->_zonerefs->zone: (&contig_page_data)->node_zonelists->_zonerefs->zone
 	if (unlikely(!zonelist->_zonerefs->zone))
 		return NULL;
 
@@ -3029,24 +3059,39 @@ __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
 	 * Will only have any effect when __GFP_KMEMCG is set.  This is
 	 * verified in the (always inline) callee
 	 */
+	// gfp_mask: 0x201200, &memcg: NULL, order: 0
+	// memcg_kmem_newpage_charge(0x201200, NULL, 0): 1
 	if (!memcg_kmem_newpage_charge(gfp_mask, &memcg, order))
 		return NULL;
 
 retry_cpuset:
+	// get_mems_allowed(): 0
 	cpuset_mems_cookie = get_mems_allowed();
+	// cpuset_mems_cookie: 0
 
 	/* The preferred zone is used for statistics later */
+	// zonelist: contig_page_data->node_zonelists, high_zoneidx: ZONE_NORMAL: 0
+	// nodemask: NULL, cpuset_current_mems_allowed: node_states[N_HIGH_MEMORY], &preferred_zone
 	first_zones_zonelist(zonelist, high_zoneidx,
 				nodemask ? : &cpuset_current_mems_allowed,
 				&preferred_zone);
+	// preferred_zone: (&contig_page_data)->node_zones[0]
+
 	if (!preferred_zone)
 		goto out;
 
-#ifdef CONFIG_CMA
+#ifdef CONFIG_CMA // CONFIG_CMA=n
 	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
 		alloc_flags |= ALLOC_CMA;
 #endif
+
+// 2014/04/26 종료
+
 	/* First allocation attempt */
+	// gfp_mask: 0x201200, __GFP_HARDWALL: 0x20000, nodemask: NULL, order: 0
+	// zonelist: contig_page_data->node_zonelists, high_zoneidx: ZONE_NORMAL: 0
+	// alloc_flags: 0x41, preferred_zone: (&contig_page_data)->node_zones[0]
+	// migratetype: MIGRATE_UNMOVABLE: 0
 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
 			zonelist, high_zoneidx, alloc_flags,
 			preferred_zone, migratetype);
@@ -3110,6 +3155,7 @@ EXPORT_SYMBOL(get_zeroed_page);
 // page: 0x20000의 해당하는 struct page의 1st page, order: 5
 // ARM10C 20140412
 // [order: 0] order: 0
+// ARM10C 20140419
 void __free_pages(struct page *page, unsigned int order)
 {
 	// page: 0x20000 (pfn)
@@ -6062,23 +6108,42 @@ unsigned long free_reserved_area(void *start, void *end, int poison, char *s)
 }
 EXPORT_SYMBOL(free_reserved_area);
 
-#ifdef	CONFIG_HIGHMEM
+#ifdef	CONFIG_HIGHMEM // CONFIG_HIGHMEM=y
+// ARM10C 20140419
+// pfn_to_page(0x4F800): 0x4F800 (pfn)
 void free_highmem_page(struct page *page)
 {
+	// page: 0x4F800 (pfn)
 	__free_reserved_page(page);
+	// page를 order 0 으로 buddy에 추가.
+
+	// totalram_pages: 총 free된 page 수 + 0x6
 	totalram_pages++;
+	// totalram_pages: 총 free된 page 수 + 0x6 + 1 (결국 free된 page 만큼 증가)
+
+	// page_zone(page)->managed_pages: (&(&contig_page_data)->node_zones[1])->managed_pages
 	page_zone(page)->managed_pages++;
+	// higemem 영역, 결국 free된 page 만큼 managed_pages 증가
+
+	// totalhigh_pages: 0
 	totalhigh_pages++;
+	// free된 page 만큼 totalhigh_pages 증가
 }
 #endif
 
 
+// ARM10C 20140419
+// str: NULL
 void __init mem_init_print_info(const char *str)
 {
 	unsigned long physpages, codesize, datasize, rosize, bss_size;
 	unsigned long init_code_size, init_data_size;
 
+	// get_num_physpages(): 0x80000
 	physpages = get_num_physpages();
+        // physpages: 0x80000
+
+	// System.map 에서 영역 계산 가능 (이하 적용)
 	codesize = _etext - _stext;
 	datasize = _edata - _sdata;
 	rosize = __end_rodata - __start_rodata;
@@ -6093,6 +6158,10 @@ void __init mem_init_print_info(const char *str)
 	 *    please refer to arch/tile/kernel/vmlinux.lds.S.
 	 * 3) .rodata.* may be embedded into .text or .data sections.
 	 */
+
+	// .init.* , .init.text.* , .rodata.* 섹션은 이후 다른 섹션으로 변경되기
+	// 때문에 현재 section의 size를 미리 계산하여 로그용으로 사용.
+
 #define adj_init_size(start, end, size, pos, adj) \
 	if (start <= pos && pos < end && size > adj) \
 		size -= adj;
@@ -6109,15 +6178,16 @@ void __init mem_init_print_info(const char *str)
 	printk("Memory: %luK/%luK available "
 	       "(%luK kernel code, %luK rwdata, %luK rodata, "
 	       "%luK init, %luK bss, %luK reserved"
-#ifdef	CONFIG_HIGHMEM
+#ifdef	CONFIG_HIGHMEM // CONFIG_HIGHMEM=y
 	       ", %luK highmem"
 #endif
 	       "%s%s)\n",
+	       // PAGE_SHIFT: 12
 	       nr_free_pages() << (PAGE_SHIFT-10), physpages << (PAGE_SHIFT-10),
 	       codesize >> 10, datasize >> 10, rosize >> 10,
 	       (init_data_size + init_code_size) >> 10, bss_size >> 10,
 	       (physpages - totalram_pages) << (PAGE_SHIFT-10),
-#ifdef	CONFIG_HIGHMEM
+#ifdef	CONFIG_HIGHMEM // CONFIG_HIGHMEM=y
 	       totalhigh_pages << (PAGE_SHIFT-10),
 #endif
 	       str ? ", " : "", str ? str : "");

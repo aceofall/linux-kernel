@@ -22,6 +22,7 @@
 
 // ARM10C 20131019
 // KID 20140307
+// ARM10C 20140419
 // INIT_MEMBLOCK_REGIONS: 128
 // memblock_memory_init_regions[0].base: 0x20000000
 // memblock_memory_init_regions[0].size: 0x80000000
@@ -39,6 +40,8 @@ static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_REGIO
 // ARM10C 20131019
 // ARM10C 20131026
 // KID 20140307
+// KID 20140311
+// ARM10C 20140419
 // memblock.current_limit: 0x4f800000
 // memblock.memory.total_size: 0x80000000
 // memblock.memory.cnt: 1
@@ -46,7 +49,6 @@ static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_REGIO
 // memblock.memory.regions[0].size: 0x80000000
 // memblock.memory.regions[1].base: 0x4f800000
 // memblock.memory.regions[1].size: 0x50800000
-// KID 20140311
 // memblock.reserved.total_size: 0x00522D20
 // memblock.reserved.cnt: 1
 // memblock.reserved.regions[0].base: 0x20004000
