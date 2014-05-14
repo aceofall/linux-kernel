@@ -21,6 +21,8 @@
 #ifdef __CHECKER__
 #define __bitwise__ __attribute__((bitwise))
 #else
+// KID 20140306
+// ARM10C 20140426
 #define __bitwise__
 #endif
 #ifdef __CHECK_ENDIAN__
@@ -32,6 +34,8 @@
 typedef __u16 __bitwise __le16;
 typedef __u16 __bitwise __be16;
 typedef __u32 __bitwise __le32;
+// ARM10C 20130928
+// KID 20140306
 typedef __u32 __bitwise __be32;
 typedef __u64 __bitwise __le64;
 typedef __u64 __bitwise __be64;

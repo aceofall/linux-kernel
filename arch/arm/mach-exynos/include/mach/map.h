@@ -19,6 +19,7 @@
  * EXYNOS4 UART offset is 0x10000 but the older S5P SoCs are 0x400.
  * So need to define it, and here is to avoid redefinition warning.
  */
+// KID 20140227
 #define S3C_UART_OFFSET			(0x10000)
 
 #include <plat/map-s5p.h>
@@ -30,6 +31,7 @@
 #define EXYNOS4x12_PA_SYSRAM_NS		0x0204F000
 #define EXYNOS5250_PA_SYSRAM_NS		0x0204F000
 
+// KID 20140227
 #define EXYNOS_PA_CHIPID		0x10000000
 
 #define EXYNOS4_PA_SYSCON		0x10010000
@@ -66,6 +68,7 @@
 #define EXYNOS4_PA_HSPHY		0x125B0000
 
 #define EXYNOS4_PA_UART			0x13800000
+// KID 20140227
 #define EXYNOS5_PA_UART			0x12C00000
 
 #define EXYNOS4_PA_TIMER		0x139D0000

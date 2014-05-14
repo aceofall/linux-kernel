@@ -8,18 +8,26 @@
 /*
  * CPU interrupt mask handling.
  */
-#ifdef CONFIG_CPU_V7M
+#ifdef CONFIG_CPU_V7M // CONFIG_CPU_V7M=n
 #define IRQMASK_REG_NAME_R "primask"
 #define IRQMASK_REG_NAME_W "primask"
 #define IRQMASK_I_BIT	1
 #else
+// KID 20140113
 #define IRQMASK_REG_NAME_R "cpsr"
 #define IRQMASK_REG_NAME_W "cpsr_c"
+// KID 20140113
+// PSR_I_BIT: 0x00000080
+// IRQMASK_I_BIT: 0x00000080
 #define IRQMASK_I_BIT	PSR_I_BIT
 #endif
 
 #if __LINUX_ARM_ARCH__ >= 6
 
+// ARM10C 20130907 
+// 현재 모드 CPSR 을 리턴한다.
+// KID 20140114
+// IRQMASK_REG_NAME_R: "cpsr"
 static inline unsigned long arch_local_irq_save(void)
 {
 	unsigned long flags;
@@ -40,6 +48,8 @@ static inline void arch_local_irq_enable(void)
 		: "memory", "cc");
 }
 
+// ARM10C 20130824
+// 인터럽트를 disable한다.
 static inline void arch_local_irq_disable(void)
 {
 	asm volatile(
@@ -135,9 +145,12 @@ static inline void arch_local_irq_disable(void)
 /*
  * Save the current interrupt enable state.
  */
+// KID 20140113
 static inline unsigned long arch_local_save_flags(void)
 {
 	unsigned long flags;
+
+        // IRQMASK_REG_NAME_R: "cpsr"
 	asm volatile(
 		"	mrs	%0, " IRQMASK_REG_NAME_R "	@ local_save_flags"
 		: "=r" (flags) : : "memory", "cc");
@@ -147,6 +160,7 @@ static inline unsigned long arch_local_save_flags(void)
 /*
  * restore saved IRQ & FIQ state
  */
+// ARM10C 20140412
 static inline void arch_local_irq_restore(unsigned long flags)
 {
 	asm volatile(
@@ -156,8 +170,11 @@ static inline void arch_local_irq_restore(unsigned long flags)
 		: "memory", "cc");
 }
 
+// ARM10C 20130907 this
+// ARM10C 20140412
 static inline int arch_irqs_disabled_flags(unsigned long flags)
 {
+        // IRQMASK_I_BIT: 0x00000080
 	return flags & IRQMASK_I_BIT;
 }
 

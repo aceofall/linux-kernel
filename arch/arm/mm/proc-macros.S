@@ -69,11 +69,17 @@
  * dcache_line_size - get the minimum D-cache line size from the CTR register
  * on ARMv7.
  */
+	// ARM10C 20131116
+	// ARM10C 20140125
 	.macro	dcache_line_size, reg, tmp
+	// A.R.M: B4.1.42 CTR, Cache Type Register, VMSA
 	mrc	p15, 0, \tmp, c0, c0, 1		@ read ctr
 	lsr	\tmp, \tmp, #16
+	// T.R.M: 4.3.2 Cache Type Register
+	// tmp: 0x4 - DminLine 
 	and	\tmp, \tmp, #0xf		@ cache line size encoding
 	mov	\reg, #4			@ bytes per word
+	// reg: 0x40, tmp: 0x4
 	mov	\reg, \reg, lsl \tmp		@ actual cache line size
 	.endm
 
@@ -265,6 +271,25 @@
 	mcr	p15, 0, ip, c7, c10, 4		@ data write barrier
 	.endm
 
+// KID 20140417
+// define_processor_functions v7, dabort=v7_early_abort, pabort=v7_pabort, suspend=1 :
+//
+// 	.type	v7_processor_functions, #object
+// 	.align 2
+// ENTRY(v7_processor_functions)
+// 	.word	v7_early_abort
+// 	.word	v7_pabort
+// 	.word	cpu_v7_proc_init
+// 	.word	cpu_v7_proc_fin
+// 	.word	cpu_v7_reset
+// 	.word	cpu_v7_do_idle
+// 	.word	cpu_v7_dcache_clean_area
+// 	.word	cpu_v7_switch_mm
+// 	.word	cpu_v7_set_pte_ext
+// 	.word	cpu_v7_suspend_size
+// 	.word	cpu_v7_do_suspend
+// 	.word	cpu_v7_do_resume
+// 	.size	v7_processor_functions, . - v7_processor_functions
 .macro define_processor_functions name:req, dabort:req, pabort:req, nommu=0, suspend=0
 	.type	\name\()_processor_functions, #object
 	.align 2
@@ -302,6 +327,23 @@ ENTRY(\name\()_processor_functions)
 	.size	\name\()_processor_functions, . - \name\()_processor_functions
 .endm
 
+// KID 20140418
+// define_cache_functions v7:
+//	.align 2
+//	.type	v7_cache_fns, #object
+// ENTRY(v7_cache_fns)
+//	.long	v7_flush_icache_all
+//	.long	v7_flush_kern_cache_all
+//	.long   v7_flush_kern_cache_louis
+//	.long	v7_flush_user_cache_all
+//	.long	v7_flush_user_cache_range
+//	.long	v7_coherent_kern_range
+//	.long	v7_coherent_user_range
+//	.long	v7_flush_kern_dcache_area
+//	.long	v7_dma_map_area
+//	.long	v7_dma_unmap_area
+//	.long	v7_dma_flush_range
+//	.size	v7_cache_fns, . - v7_cache_fns
 .macro define_cache_functions name:req
 	.align 2
 	.type	\name\()_cache_fns, #object
@@ -320,6 +362,14 @@ ENTRY(\name\()_cache_fns)
 	.size	\name\()_cache_fns, . - \name\()_cache_fns
 .endm
 
+// KID 20140418
+// define_tlb_functions v7wbi, v7wbi_tlb_flags_up, flags_smp=v7wbi_tlb_flags_smp:
+//	.type	v7wbi_tlb_fns, #object
+// ENTRY(v7wbi_tlb_fns)
+//	.long	v7wbi_flush_user_tlb_range
+//	.long	v7wbi_flush_kern_tlb_range
+//	.long	v7wbi_tlb_flags_smp
+//	.size	v7wbi_tlb_fns, . - v7wbi_tlb_fns
 .macro define_tlb_functions name:req, flags_up:req, flags_smp
 	.type	\name\()_tlb_fns, #object
 ENTRY(\name\()_tlb_fns)

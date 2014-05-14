@@ -13,14 +13,20 @@
 /*
  * Return true if we are running on a SMP platform
  */
+// ARM10C 20130824
+// ARM10C 20131026
+// KID 20140320
+// KID 20140326
 static inline bool is_smp(void)
 {
-#ifndef CONFIG_SMP
+#ifndef CONFIG_SMP // CONFIG_SMP=y
 	return false;
-#elif defined(CONFIG_SMP_ON_UP)
+#elif defined(CONFIG_SMP_ON_UP) // CONFIG_SMP_ON_UP=y
 	extern unsigned int smp_on_up;
+	// !! 를 사용하는 이유? return 값을 0/1로 만들기 위해 사용
 	return !!smp_on_up;
 #else
+	// ARM10C 20131026
 	return true;
 #endif
 }
@@ -53,7 +59,12 @@ static inline int cache_ops_need_broadcast(void)
 /*
  * Logical CPU mapping.
  */
+// ARM10C 20140215
 extern u32 __cpu_logical_map[];
+
+// KID 20140108
+// ARM10C 20140215
+// cpu_logical_map(0): __cpu_logical_map[0]
 #define cpu_logical_map(cpu)	__cpu_logical_map[cpu]
 /*
  * Retrieve logical cpu index corresponding to a given MPIDR[23:0]
@@ -76,6 +87,8 @@ static inline int get_logical_index(u32 mpidr)
  * multiple from its base address. For more
  * information check arch/arm/kernel/sleep.S
  */
+// ARM10C 20140215
+// sizeof(struct mpidr_hash): 20 bytes
 struct mpidr_hash {
 	u32	mask; /* used by sleep.S */
 	u32	shift_aff[3]; /* used by sleep.S */
@@ -84,6 +97,7 @@ struct mpidr_hash {
 
 extern struct mpidr_hash mpidr_hash;
 
+// ARM10C 20140215
 static inline u32 mpidr_hash_size(void)
 {
 	return 1 << mpidr_hash.bits;

@@ -16,6 +16,7 @@
  *  This allows for a much quicker boot time.
  */
 
+// ARM10C 20131012
 unsigned int __machine_arch_type;
 
 #include <linux/compiler.h>	/* for inline */
@@ -25,9 +26,11 @@ unsigned int __machine_arch_type;
 static void putstr(const char *ptr);
 extern void error(char *x);
 
+// KID 20140227
+// CONFIG_UNCOMPRESS_INCLUDE: "mach/uncompress.h"
 #include CONFIG_UNCOMPRESS_INCLUDE
 
-#ifdef CONFIG_DEBUG_ICEDCC
+#ifdef CONFIG_DEBUG_ICEDCC // CONFIG_DEBUG_ICEDCC=n
 
 #if defined(CONFIG_CPU_V6) || defined(CONFIG_CPU_V6K) || defined(CONFIG_CPU_V7)
 
@@ -83,6 +86,7 @@ static void icedcc_putc(int ch)
 #define putc(ch)	icedcc_putc(ch)
 #endif
 
+// KID 20140227
 static void putstr(const char *ptr)
 {
 	char c;
@@ -99,18 +103,25 @@ static void putstr(const char *ptr)
 /*
  * gzip declarations
  */
+// KID 20140227
 extern char input_data[];
+// KID 20140227
 extern char input_data_end[];
 
+// KID 20140227
 unsigned char *output_data;
 
+// KID 20140227
 unsigned long free_mem_ptr;
+// KID 20140227
 unsigned long free_mem_end_ptr;
 
 #ifndef arch_error
+// KID 20140227
 #define arch_error(x)
 #endif
 
+// KID 20140227
 void error(char *x)
 {
 	arch_error(x);
@@ -130,6 +141,7 @@ asmlinkage void __div0(void)
 extern int do_decompress(u8 *input, int len, u8 *output, void (*error)(char *x));
 
 
+// KID 20140227
 void
 decompress_kernel(unsigned long output_start, unsigned long free_mem_ptr_p,
 		unsigned long free_mem_ptr_end_p,
@@ -142,9 +154,13 @@ decompress_kernel(unsigned long output_start, unsigned long free_mem_ptr_p,
 	free_mem_end_ptr	= free_mem_ptr_end_p;
 	__machine_arch_type	= arch_id;
 
+	// Uart 관련 설정 작업 수행
 	arch_decomp_setup();
 
 	putstr("Uncompressing Linux...");
+	// inpu_data, inpu_data_end: piggy.gzip.S global 변수로 선언 되어 있음 
+	// arch/arm/boot/compressed/decompress.c 의 소스로 점프 
+	// ARM10C 20130727
 	ret = do_decompress(input_data, input_data_end - input_data,
 			    output_data, error);
 	if (ret)

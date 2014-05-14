@@ -54,10 +54,13 @@
 #include <libfdt_env.h>
 #include <fdt.h>
 
+// KID 20140314
 #define FDT_FIRST_SUPPORTED_VERSION	0x10
+// KID 20140314
 #define FDT_LAST_SUPPORTED_VERSION	0x11
 
 /* Error codes: informative error codes */
+// KID 20140318
 #define FDT_ERR_NOTFOUND	1
 	/* FDT_ERR_NOTFOUND: The requested node or property does not exist */
 #define FDT_ERR_EXISTS		2
@@ -87,6 +90,7 @@
 	 * not sufficiently complete for the requested operation. */
 
 /* Error codes: codes for bad device tree blobs */
+// KID 20140314
 #define FDT_ERR_TRUNCATED	8
 	/* FDT_ERR_TRUNCATED: Structure block of the given device tree
 	 * ends without an FDT_END tag. */
@@ -94,11 +98,13 @@
 	/* FDT_ERR_BADMAGIC: Given "device tree" appears not to be a
 	 * device tree at all - it is missing the flattened device
 	 * tree magic number. */
+// KID 20140314
 #define FDT_ERR_BADVERSION	10
 	/* FDT_ERR_BADVERSION: Given device tree has a version which
 	 * can't be handled by the requested operation.  For
 	 * read-write functions, this may mean that fdt_open_into() is
 	 * required to convert the tree to the expected version. */
+// KID 20140314
 #define FDT_ERR_BADSTRUCTURE	11
 	/* FDT_ERR_BADSTRUCTURE: Given device tree has a corrupt
 	 * structure block or other serious error (e.g. misnested
@@ -140,34 +146,102 @@ int fdt_next_node(const void *fdt, int offset, int *depth);
 /* General functions                                                  */
 /**********************************************************************/
 
+// KID 20140314
 #define fdt_get_header(fdt, field) \
 	(fdt32_to_cpu(((const struct fdt_header *)(fdt))->field))
+// KID 20140314
 #define fdt_magic(fdt) 			(fdt_get_header(fdt, magic))
+// KID 20140314
 #define fdt_totalsize(fdt)		(fdt_get_header(fdt, totalsize))
+// KID 20140314
 #define fdt_off_dt_struct(fdt)		(fdt_get_header(fdt, off_dt_struct))
 #define fdt_off_dt_strings(fdt)		(fdt_get_header(fdt, off_dt_strings))
+// KID 20140314
 #define fdt_off_mem_rsvmap(fdt)		(fdt_get_header(fdt, off_mem_rsvmap))
+// KID 20140314
 #define fdt_version(fdt)		(fdt_get_header(fdt, version))
+// KID 20140314
 #define fdt_last_comp_version(fdt) 	(fdt_get_header(fdt, last_comp_version))
 #define fdt_boot_cpuid_phys(fdt) 	(fdt_get_header(fdt, boot_cpuid_phys))
+// KID 20140314
 #define fdt_size_dt_strings(fdt) 	(fdt_get_header(fdt, size_dt_strings))
 #define fdt_size_dt_struct(fdt)		(fdt_get_header(fdt, size_dt_struct))
 
+// KID 20140318
 #define __fdt_set_hdr(name) \
 	static inline void fdt_set_##name(void *fdt, uint32_t val) \
 	{ \
 		struct fdt_header *fdth = (struct fdt_header*)fdt; \
 		fdth->name = cpu_to_fdt32(val); \
 	}
+// static inline void fdt_set_magic(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->magic = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(magic);
+
+// static inline void fdt_set_totalsize(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->totalsize = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(totalsize);
+
+// static inline void fdt_set_off_dt_struct(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->off_dt_struct = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(off_dt_struct);
+
+// static inline void fdt_set_off_dt_strings(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->off_dt_strings = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(off_dt_strings);
+
+// static inline void fdt_set_off_mem_rsvmap(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->off_mem_rsvmap = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(off_mem_rsvmap);
+
+// static inline void fdt_set_version(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->version = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(version);
+
+// static inline void fdt_set_last_comp_version(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->last_comp_version = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(last_comp_version);
+
+// static inline void fdt_set_boot_cpuid_phys(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->boot_cpuid_phys = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(boot_cpuid_phys);
+
+// static inline void fdt_set_size_dt_strings(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->size_dt_strings = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(size_dt_strings);
+
+// static inline void fdt_set_size_dt_struct(void *fdt, uint32_t val)
+// {
+// 	struct fdt_header *fdth = (struct fdt_header*)fdt;
+// 	fdth->size_dt_struct = cpu_to_fdt32(val);
+// }
 __fdt_set_hdr(size_dt_struct);
 #undef __fdt_set_hdr
 
@@ -456,12 +530,16 @@ const struct fdt_property *fdt_get_property_namelen(const void *fdt,
  */
 const struct fdt_property *fdt_get_property(const void *fdt, int nodeoffset,
 					    const char *name, int *lenp);
+// KID 20140319
+// fdt: fdt 시작위치, nodeoffset: 404, name: "reg", &oldlen
 static inline struct fdt_property *fdt_get_property_w(void *fdt, int nodeoffset,
 						      const char *name,
 						      int *lenp)
 {
+	// fdt: fdt 시작위치, nodeoffset: 404, name: "reg", &oldlen
 	return (struct fdt_property *)(uintptr_t)
 		fdt_get_property(fdt, nodeoffset, name, lenp);
+	// return fdt 시작위치 + 0x1ec
 }
 
 /**
@@ -1151,6 +1229,7 @@ int fdt_setprop(void *fdt, int nodeoffset, const char *name,
  *	-FDT_ERR_BADLAYOUT,
  *	-FDT_ERR_TRUNCATED, standard meanings
  */
+// ARM10C 20131012
 static inline int fdt_setprop_u32(void *fdt, int nodeoffset, const char *name,
 				  uint32_t val)
 {
@@ -1198,6 +1277,7 @@ static inline int fdt_setprop_u64(void *fdt, int nodeoffset, const char *name,
  *
  * This is an alternative name for fdt_setprop_u32()
  */
+// ARM10C 20131012
 static inline int fdt_setprop_cell(void *fdt, int nodeoffset, const char *name,
 				   uint32_t val)
 {

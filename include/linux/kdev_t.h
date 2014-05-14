@@ -3,11 +3,13 @@
 
 #include <uapi/linux/kdev_t.h>
 
+// KID 20140302
 #define MINORBITS	20
 #define MINORMASK	((1U << MINORBITS) - 1)
 
 #define MAJOR(dev)	((unsigned int) ((dev) >> MINORBITS))
 #define MINOR(dev)	((unsigned int) ((dev) & MINORMASK))
+// KID 20140302
 #define MKDEV(ma,mi)	(((ma) << MINORBITS) | (mi))
 
 #define print_dev_t(buffer, dev)					\
@@ -30,9 +32,13 @@ static inline u16 old_encode_dev(dev_t dev)
 	return (MAJOR(dev) << 8) | MINOR(dev);
 }
 
+// KID 20140302
+// tag->u.core.rootdev: 0xFF
 static inline dev_t old_decode_dev(u16 val)
 {
+	// val: 0xFF
 	return MKDEV((val >> 8) & 255, val & 255);
+	// return 0
 }
 
 static inline int new_valid_dev(dev_t dev)

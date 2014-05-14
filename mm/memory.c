@@ -73,9 +73,11 @@
 #warning Unfortunate NUMA and NUMA Balancing config, growing page-frame for last_cpupid.
 #endif
 
-#ifndef CONFIG_NEED_MULTIPLE_NODES
+#ifndef CONFIG_NEED_MULTIPLE_NODES // CONFIG_NEED_MULTIPLE_NODES=n
 /* use the per-pgdat data instead for discontigmem - mbligh */
+// ARM10C 20140329
 unsigned long max_mapnr;
+// ARM10C 20140329
 struct page *mem_map;
 
 EXPORT_SYMBOL(max_mapnr);
@@ -89,6 +91,11 @@ EXPORT_SYMBOL(mem_map);
  * highstart_pfn must be the same; there must be no gap between ZONE_NORMAL
  * and ZONE_HIGHMEM.
  */
+// ARM10C 20131019
+// ARM10C 20131102
+// KID 20140307
+// ARM10C 20140419
+// high_memory: 0xef800000
 void * high_memory;
 
 EXPORT_SYMBOL(high_memory);

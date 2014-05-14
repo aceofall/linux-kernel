@@ -2,14 +2,21 @@
 #define _LINUX_BITOPS_H
 #include <asm/types.h>
 
+// ARM10C 20140118
 #ifdef	__KERNEL__
 #define BIT(nr)			(1UL << (nr))
 #define BIT_ULL(nr)		(1ULL << (nr))
+// ARM10C 20140118
 #define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
+// ARM10C 20140118
+// ARM10C 20140301
 #define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
 #define BIT_ULL_MASK(nr)	(1ULL << ((nr) % BITS_PER_LONG_LONG))
 #define BIT_ULL_WORD(nr)	((nr) / BITS_PER_LONG_LONG)
+// KID 20140113
 #define BITS_PER_BYTE		8
+// KID 20140113
+// BITS_PER_BYTE: 8
 #define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
 #endif
 
@@ -72,9 +79,14 @@ static __inline__ int get_count_order(unsigned int count)
 	return order;
 }
 
+// ARM10C 20140215
+// src: cpu_possible_mask->bits, BITMAP_LAST_WORD_MASK(4): 0xF
 static inline unsigned long hweight_long(unsigned long w)
 {
+	// w: 0xF
+	// hweight32(0xF) 
 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
+	// hweight32(0xF): 4
 }
 
 /**
@@ -168,10 +180,19 @@ static inline __s32 sign_extend32(__u32 value, int index)
 	return (__s32)(value << shift) >> shift;
 }
 
+// ARM10C 20140301
+// fls_long(31)
+// fls_long(10)
+// ARM10C 20140322
+// fls_long(3008) : 4096
 static inline unsigned fls_long(unsigned long l)
 {
 	if (sizeof(l) == 4)
+		// l: 31
+		// l: 10
 		return fls(l);
+		// return 5
+		// return 4
 	return fls64(l);
 }
 

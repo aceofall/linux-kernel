@@ -68,31 +68,56 @@
  * until either the TLB entry is evicted under pressure, or a context
  * switch which changes the user space mapping occurs.
  */
+// ARM10C 20131123
+// ARM10C 20140419
 #define PTRS_PER_PTE		512
 #define PTRS_PER_PMD		1
+// ARM10C 20131026
 #define PTRS_PER_PGD		2048
 
 #define PTE_HWTABLE_PTRS	(PTRS_PER_PTE)
+// ARM10C 20131123
+// PTE_HWTABLE_PTRS: 512, sizeof(pte_t): 4
+// PTE_HWTABLE_OFF: 2048
 #define PTE_HWTABLE_OFF		(PTE_HWTABLE_PTRS * sizeof(pte_t))
+// ARM10C 20131123
+// PTRS_PER_PTE: 512, sizeof(u32): 4
+// PTE_HWTABLE_SIZE: 2048
 #define PTE_HWTABLE_SIZE	(PTRS_PER_PTE * sizeof(u32))
 
 /*
  * PMD_SHIFT determines the size of the area a second-level page table can map
  * PGDIR_SHIFT determines what a third-level page table entry can map
  */
+// KID 20140327
+// ARM10C 20140419
 #define PMD_SHIFT		21
+// ARM10C 20131102
 #define PGDIR_SHIFT		21
 
+// ARM10C 20131102
+// ARM10C 20140419
+// PMD_SHIFT: 21
+// PMD_SIZE: 0x200000
 #define PMD_SIZE		(1UL << PMD_SHIFT)
+// ARM10C 20131130
+// PMD_MASK: 0xFFE00000
 #define PMD_MASK		(~(PMD_SIZE-1))
+// ARM10C 20131109
+// PGDIR_SIZE: 0x200000
 #define PGDIR_SIZE		(1UL << PGDIR_SHIFT)
+// PGDIR_MASK: 0xFFE00000
 #define PGDIR_MASK		(~(PGDIR_SIZE-1))
 
 /*
  * section address mask and size definitions.
  */
 #define SECTION_SHIFT		20
+// ARM10C 20131109
+// SECTION_SIZE: 0x00100000
 #define SECTION_SIZE		(1UL << SECTION_SHIFT)
+// ARM10C 20131109
+// SECTION_MASK: 0xFFF00000
 #define SECTION_MASK		(~(SECTION_SIZE-1))
 
 /*
@@ -115,30 +140,72 @@
  * The PTE table pointer refers to the hardware entries; the "Linux"
  * entries are stored 1024 bytes below.
  */
+// ARM10C 20131123
+// L_PTE_VALID: 0x1
 #define L_PTE_VALID		(_AT(pteval_t, 1) << 0)		/* Valid */
+// KID 20140321
+// L_PTE_PRESENT: 0x1
 #define L_PTE_PRESENT		(_AT(pteval_t, 1) << 0)
+// ARM10C 20131123
+// KID 20140321
+// L_PTE_YOUNG: 0x2
 #define L_PTE_YOUNG		(_AT(pteval_t, 1) << 1)
 #define L_PTE_FILE		(_AT(pteval_t, 1) << 2)	/* only when !PRESENT */
+// ARM10C 20131123
+// KID 20140321
+// L_PTE_DIRTY: 0x40
 #define L_PTE_DIRTY		(_AT(pteval_t, 1) << 6)
+// ARM10C 20131123
+// KID 20140321
+// L_PTE_RDONLY: 0x80
 #define L_PTE_RDONLY		(_AT(pteval_t, 1) << 7)
+// ARM10C 20131123
+// KID 20140321
+// L_PTE_USER: 0x100
 #define L_PTE_USER		(_AT(pteval_t, 1) << 8)
+// ARM10C 20131123
+// KID 20140321
+// L_PTE_XN: 0x200
 #define L_PTE_XN		(_AT(pteval_t, 1) << 9)
+// KID 20140321
+// L_PTE_SHARED: 0x400
 #define L_PTE_SHARED		(_AT(pteval_t, 1) << 10)	/* shared(v6), coherent(xsc3) */
+// ARM10C 20131123
+// KID 20140326
+// L_PTE_NONE: 0x800
 #define L_PTE_NONE		(_AT(pteval_t, 1) << 11)
 
 /*
  * These are the memory types, defined to be compatible with
  * pre-ARMv6 CPUs cacheable and bufferable bits:   XXCB
  */
+// KID 20140321
+// L_PTE_MT_UNCACHED: 0x0
 #define L_PTE_MT_UNCACHED	(_AT(pteval_t, 0x00) << 2)	/* 0000 */
+// KID 20140321
+// L_PTE_MT_BUFFERABLE: 0x4
 #define L_PTE_MT_BUFFERABLE	(_AT(pteval_t, 0x01) << 2)	/* 0001 */
+// KID 20140325
+// L_PTE_MT_WRITETHROUGH: 0x8
 #define L_PTE_MT_WRITETHROUGH	(_AT(pteval_t, 0x02) << 2)	/* 0010 */
+// KID 20140325
+// L_PTE_MT_WRITEBACK: 0xC	
 #define L_PTE_MT_WRITEBACK	(_AT(pteval_t, 0x03) << 2)	/* 0011 */
 #define L_PTE_MT_MINICACHE	(_AT(pteval_t, 0x06) << 2)	/* 0110 (sa1100, xscale) */
+// KID 20140325
+// L_PTE_MT_WRITEALLOC: 0x1C
 #define L_PTE_MT_WRITEALLOC	(_AT(pteval_t, 0x07) << 2)	/* 0111 */
+// KID 20140321
+// L_PTE_MT_DEV_SHARED: 0x10
 #define L_PTE_MT_DEV_SHARED	(_AT(pteval_t, 0x04) << 2)	/* 0100 */
+// KID 20140321
+// L_PTE_MT_DEV_NONSHARED: 0x30
 #define L_PTE_MT_DEV_NONSHARED	(_AT(pteval_t, 0x0c) << 2)	/* 1100 */
+// KID 20140321
+// L_PTE_MT_DEV_WC: 0x24
 #define L_PTE_MT_DEV_WC		(_AT(pteval_t, 0x09) << 2)	/* 1001 */
+// KID 20140321
+// L_PTE_MT_DEV_CACHED: 0x2c
 #define L_PTE_MT_DEV_CACHED	(_AT(pteval_t, 0x0b) << 2)	/* 1011 */
 #define L_PTE_MT_MASK		(_AT(pteval_t, 0x0f) << 2)
 
@@ -155,11 +222,14 @@
 #define pud_clear(pudp)		do { } while (0)
 #define set_pud(pud,pudp)	do { } while (0)
 
+// ARM10C 20131102
+// KID 20140327
 static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
 {
 	return (pmd_t *)pud;
 }
 
+// ARM10C 20131109
 #define pmd_bad(pmd)		(pmd_val(pmd) & 2)
 
 #define copy_pmd(pmdpd,pmdps)		\
@@ -169,6 +239,8 @@ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
 		flush_pmd_entry(pmdpd);	\
 	} while (0)
 
+// ARM10C 20131102
+// KID 20140327
 #define pmd_clear(pmdp)			\
 	do {				\
 		pmdp[0] = __pmd(0);	\
@@ -179,6 +251,9 @@ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
 /* we don't need complex calculations here as the pmd is folded into the pgd */
 #define pmd_addr_end(addr,end) (end)
 
+// ARM10C 20131123
+// pte: 0xEF7FD1F0, pfn_pte(0x4F7FE, __pgprot(type->prot_pte)): 0x4F7FEXXX, 0
+// ptep: 0xEF7FD1F0, pte: 0x4F7FEXXX, ext:0
 #define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
 
 /*

@@ -7,12 +7,18 @@
 #include <linux/kallsyms.h>
 #include <linux/sched.h>
 
+// ARM10C 20130824
+// FIXME: notrace와 관련하여 프로파일링-함수가 무엇인가?
+// ARM10C 20140308
 notrace unsigned int debug_smp_processor_id(void)
 {
 	int this_cpu = raw_smp_processor_id();
 
 	if (likely(preempt_count()))
 		goto out;
+
+// 2013/08/24 종료
+// 2013/08/31 시작
 
 	if (irqs_disabled())
 		goto out;
@@ -35,6 +41,8 @@ notrace unsigned int debug_smp_processor_id(void)
 	 */
 	preempt_disable_notrace();
 
+// 2013/08/31 종료 (spin lock 분석중)
+// 2013/09/07 시작
 	if (!printk_ratelimit())
 		goto out_enable;
 

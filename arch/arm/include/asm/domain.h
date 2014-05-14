@@ -32,10 +32,16 @@
  * 36-bit addressing and supersections are only available on
  * CPUs based on ARMv6+ or the Intel XSC3 core.
  */
-#ifndef CONFIG_IO_36
+#ifndef CONFIG_IO_36 // CONFIG_IO_36=n
+// ARM10C 20131102
+// ARM10C 20131130
+// KID 20140321
 #define DOMAIN_KERNEL	0
 #define DOMAIN_TABLE	0
+// ARM10C 20131116
+// KID 20140321
 #define DOMAIN_USER	1
+// KID 20140321
 #define DOMAIN_IO	2
 #else
 #define DOMAIN_KERNEL	2
@@ -48,6 +54,7 @@
  * Domain types
  */
 #define DOMAIN_NOACCESS	0
+// ARM10C 20131116
 #define DOMAIN_CLIENT	1
 #ifdef CONFIG_CPU_USE_DOMAINS
 #define DOMAIN_MANAGER	3
@@ -59,7 +66,7 @@
 
 #ifndef __ASSEMBLY__
 
-#ifdef CONFIG_CPU_USE_DOMAINS
+#ifdef CONFIG_CPU_USE_DOMAINS // CONFIG_CPU_USE_DOMAINS=n
 static inline void set_domain(unsigned val)
 {
 	asm volatile(
@@ -79,6 +86,7 @@ static inline void set_domain(unsigned val)
 
 #else
 static inline void set_domain(unsigned val) { }
+// ARM10C 20131116
 static inline void modify_domain(unsigned dom, unsigned type)	{ }
 #endif
 

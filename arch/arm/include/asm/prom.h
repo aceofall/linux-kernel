@@ -11,10 +11,11 @@
 #ifndef __ASMARM_PROM_H
 #define __ASMARM_PROM_H
 
-#ifdef CONFIG_OF
+#ifdef CONFIG_OF // CONFIG_OF=y
 
 extern const struct machine_desc *setup_machine_fdt(unsigned int dt_phys);
 extern void arm_dt_memblock_reserve(void);
+// ARM10C 20140215
 extern void __init arm_dt_init_cpu_maps(void);
 
 #else /* CONFIG_OF */

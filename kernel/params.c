@@ -60,6 +60,8 @@ static void maybe_kfree_parameter(void *param)
 	}
 }
 
+// ARM10C 20131019
+// KID 20140306
 static char dash2underscore(char c)
 {
 	if (c == '-')
@@ -67,22 +69,41 @@ static char dash2underscore(char c)
 	return c;
 }
 
+// ARM10C 20131019
+// KID 20140306
+// a: "console", b: "earlycon", strlen(a)+1: 8
 bool parameqn(const char *a, const char *b, size_t n)
 {
 	size_t i;
 
+	// n: 8
 	for (i = 0; i < n; i++) {
+		// a: "console", b: "earlycon"
+		// i: 0, a[0]: 'c', b[0]: 'e', 
 		if (dash2underscore(a[i]) != dash2underscore(b[i]))
+			// dash2underscore(a[0]): 'c', dash2underscore(b[0]): 'e'
 			return false;
+			// return false;
 	}
 	return true;
 }
 
+// ARM10C 20131019
+// KID 20140306
+// param: "console", p->str: "earlycon"
 bool parameq(const char *a, const char *b)
 {
+	// a: "console", b: "earlycon", strlen(a)+1: 8
 	return parameqn(a, b, strlen(a)+1);
+	// return false
 }
 
+// ARM10C 20131019
+// parse_one( param, val, "early options", "NULL, 0, 0, 0, do_early_param);
+// KID 20140305
+// param: "console", val: "ttySAC2,115200", doing: "early options",
+// params: NULL, num: 0, min_level: 0, max_level: 0, unknown: do_early_param
+// ARM10C 20140322
 static int parse_one(char *param,
 		     char *val,
 		     const char *doing,
@@ -97,6 +118,7 @@ static int parse_one(char *param,
 	int err;
 
 	/* Find parameter */
+	// num_params: 0
 	for (i = 0; i < num_params; i++) {
 		if (parameq(param, params[i].name)) {
 			if (params[i].level < min_level
@@ -115,9 +137,17 @@ static int parse_one(char *param,
 		}
 	}
 
+	// handle_unknown: do_early_param
 	if (handle_unknown) {
+		// doing: "early options", param: "console", val: "ttySAC2,115200"
 		pr_debug("doing %s: %s='%s'\n", doing, param, val);
+		// 출력값: doing early options: console='ttySAC2,115200'
+
+		// handle_unknown: do_early_param
+		// param: "console", val: "ttySAC2,115200", doing: "early options"
+		// do_early_param("console", "ttySAC2,115200", "early options"): 0
 		return handle_unknown(param, val, doing);
+		// return 0
 	}
 
 	pr_debug("Unknown argument '%s'\n", param);
@@ -126,49 +156,85 @@ static int parse_one(char *param,
 
 /* You can use " around spaces, but can't escape ". */
 /* Hyphens and underscores equivalent in parameter names. */
+// ARM10C 20131019
+// "console=ttySAC2,115200 init=/linuxrc"
+// KID 20140305
+// args: "console=ttySAC2,115200 init=/linuxrc"
 static char *next_arg(char *args, char **param, char **val)
 {
 	unsigned int i, equals = 0;
 	int in_quote = 0, quoted = 0;
 	char *next;
 
+	// *args: c
 	if (*args == '"') {
 		args++;
+
 		in_quote = 1;
+
 		quoted = 1;
 	}
 
+	// args: "console=ttySAC2,115200 init=/linuxrc"
 	for (i = 0; args[i]; i++) {
+		// i: 0, args[0]: c, in_quote: 0
+		// i: 22, args[22]: ' ', in_quote: 0
 		if (isspace(args[i]) && !in_quote)
 			break;
+			// i: 22
+
+		// i: 0, equals: 0
 		if (equals == 0) {
+			// i: 0, args[0]: c
+			// i: 7, args[7]: =
 			if (args[i] == '=')
 				equals = i;
+				// i: 7, equal: 7
 		}
+		// i: 0, args[0]: c
 		if (args[i] == '"')
 			in_quote = !in_quote;
 	}
+	// equals 값은 "=" string index 값
 
+	// args: "console=ttySAC2,115200 init=/linuxrc"
 	*param = args;
+	// *param: "console=ttySAC2,115200 init=/linuxrc"
+
+	// equals: 7
 	if (!equals)
 		*val = NULL;
 	else {
+		// args: "console=ttySAC2,115200 init=/linuxrc"
 		args[equals] = '\0';
+		// args: console
+
+		// equals: 7
 		*val = args + equals + 1;
+		// *val: "ttySAC2,115200 init=/linuxrc"
 
 		/* Don't include quotes in value. */
+		// **val: t
 		if (**val == '"') {
 			(*val)++;
+
 			if (args[i-1] == '"')
 				args[i-1] = '\0';
 		}
+
+		// quoted: 0, i: 22, args[22]: ' '
 		if (quoted && args[i-1] == '"')
 			args[i-1] = '\0';
 	}
 
+	// i: 22, args[22]: ' '
 	if (args[i]) {
 		args[i] = '\0';
+		// i: 22, args[22]: '\0'
+
 		next = args + i + 1;
+		// next: "init=/linuxrc"
+
 	} else
 		next = args + i;
 
@@ -177,6 +243,11 @@ static char *next_arg(char *args, char **param, char **val)
 }
 
 /* Args looks like "foo=bar,bar2 baz=fuz wiz". */
+// ARM10C 20131019
+// parse_args("early options", cmdline, NULL, 0, 0, 0, do_early_param);
+// KID 20140305
+// "early options", cmdline: "console=ttySAC2,115200 init=/linuxrc"
+// NULL, 0, 0, 0, do_early_param
 int parse_args(const char *doing,
 	       char *args,
 	       const struct kernel_param *params,
@@ -188,23 +259,38 @@ int parse_args(const char *doing,
 	char *param, *val;
 
 	/* Chew leading spaces */
+	// string의 앞 공백 제거
 	args = skip_spaces(args);
 
+	// dtb 에서 복사된 값
+	// args: "console=ttySAC2,115200 init=/linuxrc" 이 args 값임
 	if (*args)
+		// doing: "early options"
 		pr_debug("doing %s, parsing ARGS: '%s'\n", doing, args);
 
+	// args: "console=ttySAC2,115200 init=/linuxrc"
 	while (*args) {
 		int ret;
 		int irq_was_disabled;
 
+		// args: "console=ttySAC2,115200 init=/linuxrc"
 		args = next_arg(args, &param, &val);
+		// args: "init=/linuxrc", param: "console", val: "ttySAC2,115200" 
+
 		irq_was_disabled = irqs_disabled();
+
+		// param: "console", val: "ttySAC2,115200", doing: "early options",
+		// params: NULL, num: 0, min_level: 0, max_level: 0, unknown: do_early_param
 		ret = parse_one(param, val, doing, params, num,
 				min_level, max_level, unknown);
+		// ret: 0
+
+		// irq 값이 바뀌었는지 확인
 		if (irq_was_disabled && !irqs_disabled())
 			pr_warn("%s: option '%s' enabled irq's!\n",
 				doing, param);
 
+		// ret: 0
 		switch (ret) {
 		case -ENOENT:
 			pr_err("%s: Unknown parameter `%s'\n", doing, param);
@@ -214,6 +300,7 @@ int parse_args(const char *doing,
 			       doing, val ?: "", param);
 			return ret;
 		case 0:
+			// ret: 0
 			break;
 		default:
 			pr_err("%s: `%s' invalid for parameter `%s'\n",
@@ -224,9 +311,11 @@ int parse_args(const char *doing,
 
 	/* All parsed OK. */
 	return 0;
+	// return 0
 }
 
 /* Lazy bastard, eh? */
+// ARM10C 20140322
 #define STANDARD_PARAM_DEF(name, type, format, tmptype, strtolfn)      	\
 	int param_set_##name(const char *val, const struct kernel_param *kp) \
 	{								\
@@ -256,6 +345,30 @@ int parse_args(const char *doing,
 STANDARD_PARAM_DEF(byte, unsigned char, "%hhu", unsigned long, kstrtoul);
 STANDARD_PARAM_DEF(short, short, "%hi", long, kstrtol);
 STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, kstrtoul);
+// ARM10C 20140322
+// #define STANDARD_PARAM_DEF(int, int, "%i", long, strict_strtol)
+// 	int param_set_int(const char *val, const struct kernel_param *kp)
+// 	{
+// 		long l;
+// 		int ret;
+//
+// 		ret = strict_strtol(val, 0, &l);
+// 		if (ret < 0 || ((int)l != l))
+// 			return ret < 0 ? ret : -EINVAL;
+// 		*((int *)kp->arg) = l;
+// 		return 0;
+// 	}
+// 	int param_get_int(char *buffer, const struct kernel_param *kp)
+// 	{
+// 		return sprintf(buffer, "%i", *((int *)kp->arg));
+// 	}
+// 	struct kernel_param_ops param_ops_int = {
+// 		.set = param_set_int,
+// 		.get = param_get_int,
+// 	};
+// 	EXPORT_SYMBOL(param_set_int);
+// 	EXPORT_SYMBOL(param_get_int);
+// 	EXPORT_SYMBOL(param_ops_int)
 STANDARD_PARAM_DEF(int, int, "%i", long, kstrtol);
 STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, kstrtoul);
 STANDARD_PARAM_DEF(long, long, "%li", long, kstrtol);
@@ -506,6 +619,7 @@ EXPORT_SYMBOL(param_ops_string);
 #define to_module_attr(n) container_of(n, struct module_attribute, attr)
 #define to_module_kobject(n) container_of(n, struct module_kobject, kobj)
 
+// ARM10C 20140322
 extern struct kernel_param __start___param[], __stop___param[];
 
 struct param_attribute

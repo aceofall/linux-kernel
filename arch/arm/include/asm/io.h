@@ -103,9 +103,13 @@ static inline u8 __raw_readb(const volatile void __iomem *addr)
 	return val;
 }
 
+// ARM10C 20131130
 static inline u32 __raw_readl(const volatile void __iomem *addr)
 {
 	u32 val;
+
+	// +, Q, o : inline asm의 문법 
+	// FIXME: (*(volatile u32 __force *)addr) 의 문법? addr에 *해서 쓰는 이유?
 	asm volatile("ldr %1, %0"
 		     : "+Qo" (*(volatile u32 __force *)addr),
 		       "=r" (val));
@@ -115,9 +119,13 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 /*
  * Architecture ioremap implementation.
  */
+// KID 20140321
 #define MT_DEVICE		0
+// KID 20140321
 #define MT_DEVICE_NONSHARED	1
+// KID 20140321
 #define MT_DEVICE_CACHED	2
+// KID 20140321
 #define MT_DEVICE_WC		3
 /*
  * types 4 onwards can be found in asm/mach/map.h and are undefined

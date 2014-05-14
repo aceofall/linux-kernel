@@ -122,6 +122,7 @@ static void v6_clear_user_highpage_aliasing(struct page *page, unsigned long vad
 	raw_spin_unlock(&v6_lock);
 }
 
+// KID 20140418
 struct cpu_user_fns v6_user_fns __initdata = {
 	.cpu_clear_user_highpage = v6_clear_user_highpage_nonaliasing,
 	.cpu_copy_user_highpage	= v6_copy_user_highpage_nonaliasing,

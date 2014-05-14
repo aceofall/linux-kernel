@@ -44,17 +44,28 @@ static void generic_swap(void *a, void *b, int size)
  * it less suitable for kernel use.
  */
 
+// ARM10C 20131019
+// sort(&meminfo.bank, meminfo.nr_banks, sizeof(meminfo.bank[0]), meminfo_cmp, NULL);
+// KID 20140306
+// sort(&meminfo.bank, 1, 12, meminfo_cmp, NULL)
+// ARM10C 20140329
 void sort(void *base, size_t num, size_t size,
 	  int (*cmp_func)(const void *, const void *),
 	  void (*swap_func)(void *, void *, int size))
 {
 	/* pre-scale counters for performance */
+	// num: 1, size: 12
 	int i = (num/2 - 1) * size, n = num * size, c, r;
+	// i: -12, n: 12
 
+	// swap_func: NULL
 	if (!swap_func)
+		// size: 12
 		swap_func = (size == 4 ? u32_swap : generic_swap);
+		// swap_func: generic_swap
 
 	/* heapify */
+	// i: -12
 	for ( ; i >= 0; i -= size) {
 		for (r = i; r * 2 + size < n; r  = c) {
 			c = r * 2 + size;
@@ -68,6 +79,7 @@ void sort(void *base, size_t num, size_t size,
 	}
 
 	/* sort */
+	// i: -12
 	for (i = n - size; i > 0; i -= size) {
 		swap_func(base, base + i, size);
 		for (r = 0; r * 2 + size < i; r = c) {

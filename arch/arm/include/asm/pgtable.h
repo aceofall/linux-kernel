@@ -41,8 +41,19 @@
  * The vmalloc() routines leaves a hole of 4kB between each vmalloced
  * area for the same reason. ;)
  */
+// ARM10C 20131019
+// KID 20140306
+// VMALLOC_OFFSET: 0x800000
 #define VMALLOC_OFFSET		(8*1024*1024)
+// ARM10C 20131102
+// KID 20140328
+// ARM10C 20140419
+// high_memory: 0xef800000, VMALLOC_OFFSET: (8*1024*1024): 0x800000
+// VMALLOC_START: 0xf0000000
 #define VMALLOC_START		(((unsigned long)high_memory + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1))
+// ARM10C 20131019
+// KID 20140306
+// ARM10C 20140419
 #define VMALLOC_END		0xff000000UL
 
 #define LIBRARY_TEXT_START	0x0c000000
@@ -78,6 +89,9 @@ extern void __pgd_error(const char *file, int line, pgd_t);
  * as well as any architecture dependent bits like global/ASID and SMP
  * shared mapping bits.
  */
+// KID 20140326
+// L_PTE_PRESENT: 0x1, L_PTE_YOUNG: 0x2
+// _L_PTE_DEFAULT: 0x3
 #define _L_PTE_DEFAULT	L_PTE_PRESENT | L_PTE_YOUNG
 
 extern pgprot_t		pgprot_user;
@@ -102,12 +116,34 @@ extern pgprot_t		pgprot_s2_device;
 #define PAGE_S2			_MOD_PROT(pgprot_s2, L_PTE_S2_RDONLY)
 #define PAGE_S2_DEVICE		_MOD_PROT(pgprot_s2_device, L_PTE_S2_RDWR)
 
+// ARM10C 20131026
+// KID 20140326
+// _L_PTE_DEFAULT: 0x3, L_PTE_RDONLY: 0x80, L_PTE_XN: 0x200, L_PTE_NONE: 0x800
+// __PAGE_NONE: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_RDONLY | L_PTE_XN | L_PTE_NONE (0xa83)
 #define __PAGE_NONE		__pgprot(_L_PTE_DEFAULT | L_PTE_RDONLY | L_PTE_XN | L_PTE_NONE)
+// KID 20140326
+// _L_PTE_DEFAULT: 0x3, L_PTE_USER: 0x100, L_PTE_XN: 0x200
+// __PAGE_SHARED: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_XN (0x303)
 #define __PAGE_SHARED		__pgprot(_L_PTE_DEFAULT | L_PTE_USER | L_PTE_XN)
+// KID 20140326
+// _L_PTE_DEFAULT: 0x3, L_PTE_USER: 0x100
+// __PAGE_SHARED_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER (0x103)
 #define __PAGE_SHARED_EXEC	__pgprot(_L_PTE_DEFAULT | L_PTE_USER)
+// KID 20140326
+// _L_PTE_DEFAULT: 0x3, L_PTE_USER: 0x100, L_PTE_RDONLY: 0x80, L_PTE_XN: 0x200
+// __PAGE_COPY: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN (0x383)
 #define __PAGE_COPY		__pgprot(_L_PTE_DEFAULT | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN)
+// KID 20140326
+// _L_PTE_DEFAULT: 0x3, L_PTE_USER: 0x100, L_PTE_RDONLY: 0x80
+// __PAGE_COPY_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
 #define __PAGE_COPY_EXEC	__pgprot(_L_PTE_DEFAULT | L_PTE_USER | L_PTE_RDONLY)
+// KID 20140326
+// _L_PTE_DEFAULT: 0x3, L_PTE_USER: 0x100, L_PTE_RDONLY: 0x80, L_PTE_XN: 0x200
+// __PAGE_READONLY: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN (0x383)
 #define __PAGE_READONLY		__pgprot(_L_PTE_DEFAULT | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN)
+// KID 20140326
+// _L_PTE_DEFAULT: 0x3, L_PTE_USER: 0x100, L_PTE_RDONLY: 0x80
+// __PAGE_READONLY_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
 #define __PAGE_READONLY_EXEC	__pgprot(_L_PTE_DEFAULT | L_PTE_USER | L_PTE_RDONLY)
 
 #define __pgprot_modify(prot,mask,bits)		\
@@ -144,22 +180,71 @@ extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
  *  2) If we could do execute protection, then read is implied
  *  3) write implies read permissions
  */
+// ARM10C 20131026
+// KID 20140326
+// __PAGE_NONE: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_RDONLY | L_PTE_XN | L_PTE_NONE (0xa83)
+// __P000: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_RDONLY | L_PTE_XN | L_PTE_NONE (0xa83)
 #define __P000  __PAGE_NONE
+// KID 20140326
+// __PAGE_READONLY: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN (0x383)
+// __P001: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN (0x383)
 #define __P001  __PAGE_READONLY
+// KID 20140326
+// __PAGE_COPY: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN (0x383)
+// __P010: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN (0x383)
 #define __P010  __PAGE_COPY
+// KID 20140326
+// __PAGE_COPY: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN (0x383)
+// __P011: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN (0x383)
 #define __P011  __PAGE_COPY
+// KID 20140326
+// __PAGE_READONLY_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
+// __P100: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
 #define __P100  __PAGE_READONLY_EXEC
+// KID 20140326
+// __PAGE_READONLY_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
+// __P101: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
 #define __P101  __PAGE_READONLY_EXEC
+// KID 20140326
+// __PAGE_COPY_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
+// __P110: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
 #define __P110  __PAGE_COPY_EXEC
+// KID 20140326
+// __PAGE_COPY_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
+// __P111: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
 #define __P111  __PAGE_COPY_EXEC
 
+// KID 20140326
+// __PAGE_NONE: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_RDONLY | L_PTE_XN | L_PTE_NONE (0xa83)
+// __S000: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_RDONLY | L_PTE_XN | L_PTE_NONE (0xa83)
 #define __S000  __PAGE_NONE
+// KID 20140326
+// __PAGE_READONLY: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN (0x383)
+// __S001: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY | L_PTE_XN (0x383)
 #define __S001  __PAGE_READONLY
+// KID 20140326
+// __PAGE_SHARED: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_XN (0x303)
+// __S010: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_XN (0x303)
 #define __S010  __PAGE_SHARED
+// KID 20140326
+// __PAGE_SHARED: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_XN (0x303)
+// __S011: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_XN (0x303)
 #define __S011  __PAGE_SHARED
+// KID 20140326
+// __PAGE_READONLY_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
+// __S100: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
 #define __S100  __PAGE_READONLY_EXEC
+// KID 20140326
+// __PAGE_READONLY_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
+// __S101: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER | L_PTE_RDONLY (0x183)
 #define __S101  __PAGE_READONLY_EXEC
+// KID 20140326
+// __PAGE_SHARED_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER (0x103)
+// __S110: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER (0x103)
 #define __S110  __PAGE_SHARED_EXEC
+// KID 20140326
+// __PAGE_SHARED_EXEC: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER (0x103)
+// __S111: L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_USER (0x103)
 #define __S111  __PAGE_SHARED_EXEC
 
 #ifndef __ASSEMBLY__
@@ -174,18 +259,34 @@ extern struct page *empty_zero_page;
 extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
 
 /* to find an entry in a page-table-directory */
+// ARM10C 20131102
+// KID 20140327
+// PGDIR_SHIFT:	21
 #define pgd_index(addr)		((addr) >> PGDIR_SHIFT)
 
+// ARM10C 20131102
+// KID 20140327
+// 연산결과 swapper_pg_dir : 0xc0004000
+// .pgd = swapper_pg_dir
 #define pgd_offset(mm, addr)	((mm)->pgd + pgd_index(addr))
 
 /* to find an entry in a kernel page-table-directory */
+// ARM10C 20131102
+// ARM10C 20131109
+// KID 20140327
+// KID 20140418
 #define pgd_offset_k(addr)	pgd_offset(&init_mm, addr)
 
+// ARM10C 20131109
 #define pmd_none(pmd)		(!pmd_val(pmd))
 #define pmd_present(pmd)	(pmd_val(pmd))
 
+// ARM10C 20131123
+// pmd: 0x6F7FD8XX
 static inline pte_t *pmd_page_vaddr(pmd_t pmd)
 {
+	// pmd_val(pmd): 0x6F7FD8XX, PHYS_MASK: 0xFFFFFFFF, PAGE_MASK: 0xFFFFF000
+	// __va(pmd_val(pmd) & PHYS_MASK & (s32)PAGE_MASK): 0xEF7FD000
 	return __va(pmd_val(pmd) & PHYS_MASK & (s32)PAGE_MASK);
 }
 
@@ -199,14 +300,24 @@ static inline pte_t *pmd_page_vaddr(pmd_t pmd)
 #define __pte_unmap(pte)	kunmap_atomic(pte)
 #endif
 
+// ARM10C 20131123
+// addr: 0xffff0000,  PTRS_PER_PTE: 512
+// pte_index(0xffff0000): 0x1F0
 #define pte_index(addr)		(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
 
+// ARM10C 20131123
+// pmd: 0xc0007FF8, addr: 0xffff0000
+// pmd_page_vaddr(*(pmd)): 0xEF7FD000,  pte_index(0xffff0000): 0x1F0
+// pte_offset_kernel(0x4F7FD8XX, 0xffff0000): 0xEF7FD1F0
 #define pte_offset_kernel(pmd,addr)	(pmd_page_vaddr(*(pmd)) + pte_index(addr))
 
 #define pte_offset_map(pmd,addr)	(__pte_map(pmd) + pte_index(addr))
 #define pte_unmap(pte)			__pte_unmap(pte)
 
 #define pte_pfn(pte)		((pte_val(pte) & PHYS_MASK) >> PAGE_SHIFT)
+// ARM10C 20131123
+// pfn: 0x6F7FE, __pfn_to_phys(pfn): 0x6F7FE000
+// __pte(__pfn_to_phys(pfn) | pgprot_val(prot)): 0x6F7FEXXX
 #define pfn_pte(pfn,prot)	__pte(__pfn_to_phys(pfn) | pgprot_val(prot))
 
 #define pte_page(pte)		pfn_to_page(pte_pfn(pte))

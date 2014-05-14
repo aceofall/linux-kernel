@@ -70,10 +70,12 @@
 #ifdef __ASSEMBLY__
 
 #ifndef LINKER_SCRIPT
+// KID 20140417
 #define ALIGN __ALIGN
 #define ALIGN_STR __ALIGN_STR
 
 #ifndef ENTRY
+// KID 20140417
 #define ENTRY(name) \
   .globl name; \
   ALIGN; \

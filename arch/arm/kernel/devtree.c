@@ -26,24 +26,35 @@
 #include <asm/mach/arch.h>
 #include <asm/mach-types.h>
 
+// ARM10C 20131012
+// KID 20140306
+// base: 0x20000000, size: 0x80000000
 void __init early_init_dt_add_memory_arch(u64 base, u64 size)
 {
+	// base: 0x20000000, size: 0x80000000
 	arm_add_memory(base, size);
 }
 
+// ARM10C 20140208
+// size + 4 : ?, __alignof__(struct device_node) : 4
 void * __init early_init_dt_alloc_memory_arch(u64 size, u64 align)
 {
 	return alloc_bootmem_align(size, align);
 }
 
+// ARM10C 20131026
+// KID 20140311
 void __init arm_dt_memblock_reserve(void)
 {
 	u64 *reserve_map, base, size;
 
+	// initial_boot_params: atag / devtree의 위치 하고 있는 가상 주소 값
 	if (!initial_boot_params)
 		return;
 
 	/* Reserve the dtb region */
+	// virt_to_phys(initial_boot_params): atag / devtree의 위치 하고 있는 물리 주소 값
+	// be32_to_cpu(initial_boot_params->totalsize): 0x3236
 	memblock_reserve(virt_to_phys(initial_boot_params),
 			 be32_to_cpu(initial_boot_params->totalsize));
 
@@ -52,13 +63,24 @@ void __init arm_dt_memblock_reserve(void)
 	 * and dtb locations which are already reserved, but overlaping
 	 * doesn't hurt anything
 	 */
+	// offset to memory reserve map
+	// be32_to_cpu(initial_boot_params->off_mem_rsvmap): 0x28
 	reserve_map = ((void*)initial_boot_params) +
 			be32_to_cpu(initial_boot_params->off_mem_rsvmap);
+	// reserve_map: devtree에서 가지고 있는 reserve map 정보의 가상 주소 값
+
 	while (1) {
+		// detree 값이 big endian이므로 little로 변환
 		base = be64_to_cpup(reserve_map++);
+		// base: 0x0
+
 		size = be64_to_cpup(reserve_map++);
+		// size: 0x0
+
 		if (!size)
 			break;
+			// break
+
 		memblock_reserve(base, size);
 	}
 }
@@ -70,6 +92,7 @@ void __init arm_dt_memblock_reserve(void)
  *
  * Updates the cpu possible mask with the number of parsed cpu nodes
  */
+// ARM10C 20140215
 void __init arm_dt_init_cpu_maps(void)
 {
 	/*
@@ -80,37 +103,53 @@ void __init arm_dt_init_cpu_maps(void)
 	 */
 	struct device_node *cpu, *cpus;
 	u32 i, j, cpuidx = 1;
+        // A.R.M: B4.1.106 MPIDR, Multiprocessor Affinity Register, VMSA
+	// T.R.M: 4.3.5 Multiprocessor Affinity Register
+        // MPIDR_HWID_BITMASK: 0xFFFFFF
+	// mpidr: CPU ID를 가리킴
 	u32 mpidr = is_smp() ? read_cpuid_mpidr() & MPIDR_HWID_BITMASK : 0;
+	// mpidr 값은 0
 
+        // NR_CPUS: 4, MPIDR_INVALID: 0xFF000000
 	u32 tmp_map[NR_CPUS] = { [0 ... NR_CPUS-1] = MPIDR_INVALID };
 	bool bootcpu_valid = false;
 	cpus = of_find_node_by_path("/cpus");
+        // cpus: cpus의tree의주소값
 
 	if (!cpus)
 		return;
 
+        // for_each_child_of_node(cpus, cpu) 
+        //   for (cpu = of_get_next_child(cpus, NULL); cpu != NULL;
+        //      cpu = of_get_next_child(cpus, cpu))
 	for_each_child_of_node(cpus, cpu) {
+		// [0] cpu: cpu0의 node의 주소값
 		u32 hwid;
 
+                // cpu->type: "cpu", "cpu"
 		if (of_node_cmp(cpu->type, "cpu"))
 			continue;
 
+		// cpu->full_name: "/cpus/cpu@0"
 		pr_debug(" * %s...\n", cpu->full_name);
 		/*
 		 * A device tree containing CPU nodes with missing "reg"
 		 * properties is considered invalid to build the
 		 * cpu_logical_map.
 		 */
+		// [0] cpu: cpu0의 node의 주소값, "reg", &hwid
 		if (of_property_read_u32(cpu, "reg", &hwid)) {
 			pr_debug(" * %s missing reg property\n",
 				     cpu->full_name);
 			return;
 		}
+		// hwid: 0
 
 		/*
 		 * 8 MSBs must be set to 0 in the DT since the reg property
 		 * defines the MPIDR[23:0].
 		 */
+		// ~MPIDR_HWID_BITMASK: 0xFF000000
 		if (hwid & ~MPIDR_HWID_BITMASK)
 			return;
 
@@ -121,7 +160,9 @@ void __init arm_dt_init_cpu_maps(void)
 		 * temp values were initialized to UINT_MAX
 		 * to avoid matching valid MPIDR[23:0] values.
 		 */
+		// cpuidx: 1
 		for (j = 0; j < cpuidx; j++)
+			// tmp_map[0]: 0xFF000000, hwid: 0
 			if (WARN(tmp_map[j] == hwid, "Duplicate /cpu reg "
 						     "properties in the DT\n"))
 				return;
@@ -135,6 +176,7 @@ void __init arm_dt_init_cpu_maps(void)
 		 * logical map built from DT is validated and can be used
 		 * to override the map created in smp_setup_processor_id().
 		 */
+		// hwid: 0, mpidr: 0
 		if (hwid == mpidr) {
 			i = 0;
 			bootcpu_valid = true;
@@ -142,6 +184,7 @@ void __init arm_dt_init_cpu_maps(void)
 			i = cpuidx++;
 		}
 
+		// cpuidx: 1,  nr_cpu_ids: 4
 		if (WARN(cpuidx > nr_cpu_ids, "DT /cpu %u nodes greater than "
 					       "max cores %u, capping them\n",
 					       cpuidx, nr_cpu_ids)) {
@@ -149,9 +192,12 @@ void __init arm_dt_init_cpu_maps(void)
 			break;
 		}
 
+		// i:0  hwid: 0
 		tmp_map[i] = hwid;
+		// tmp_map[0]: 0 
 	}
 
+	// bootcpu_valid: true
 	if (!bootcpu_valid) {
 		pr_warn("DT missing boot CPU MPIDR[23:0], fall back to default cpu_logical_map\n");
 		return;
@@ -162,9 +208,13 @@ void __init arm_dt_init_cpu_maps(void)
 	 * a reg property, the DT CPU list can be considered valid and the
 	 * logical map created in smp_setup_processor_id() can be overridden
 	 */
+	// cpuidx: 4
 	for (i = 0; i < cpuidx; i++) {
+		// i: 0, true
 		set_cpu_possible(i, true);
 		cpu_logical_map(i) = tmp_map[i];
+		// __cpu_logical_map[0]: tmp_map[0]: 0
+
 		pr_debug("cpu logical map 0x%x\n", cpu_logical_map(i));
 	}
 }
@@ -194,11 +244,12 @@ static const void * __init arch_get_next_mach(const char *const **match)
  * If a dtb was passed to the kernel in r2, then use it to choose the
  * correct machine_desc and to setup the system.
  */
+// ARM10C 20130928
 const struct machine_desc * __init setup_machine_fdt(unsigned int dt_phys)
 {
 	const struct machine_desc *mdesc, *mdesc_best = NULL;
 
-#ifdef CONFIG_ARCH_MULTIPLATFORM
+#ifdef CONFIG_ARCH_MULTIPLATFORM // not defined
 	DT_MACHINE_START(GENERIC_DT, "Generic DT based system")
 	MACHINE_END
 
