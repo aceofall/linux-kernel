@@ -449,6 +449,7 @@ do {								\
 // ARM10C 20140405
 // LOCK_CONTENDED(lock, do_raw_spin_trylock, do_raw_spin_lock);
 // => do_raw_spin_lock(lock)
+// ARM10C 20140517
 #define LOCK_CONTENDED(_lock, try, lock) \
 	lock(_lock)
 
@@ -503,13 +504,16 @@ static inline void print_irqtrace_events(struct task_struct *curr)
 
 // KID 20140116
 // ARM10C 20140405
+// ARM10C 20140517
 #define spin_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
 #define spin_acquire_nest(l, s, t, n, i)	lock_acquire_exclusive(l, s, t, n, i)
 // ARM10C 20140412
 #define spin_release(l, n, i)			lock_release(l, n, i)
 
+// ARM10C 20140125
 #define rwlock_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
 #define rwlock_acquire_read(l, s, t, i)		lock_acquire_shared_recursive(l, s, t, NULL, i)
+// ARM10C 20140125
 #define rwlock_release(l, n, i)			lock_release(l, n, i)
 
 #define seqcount_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
@@ -517,7 +521,9 @@ static inline void print_irqtrace_events(struct task_struct *curr)
 #define seqcount_release(l, n, i)		lock_release(l, n, i)
 
 #define mutex_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
+// ARM10C 20140315
 #define mutex_acquire_nest(l, s, t, n, i)	lock_acquire_exclusive(l, s, t, n, i)
+// ARM10C 20140322
 #define mutex_release(l, n, i)			lock_release(l, n, i)
 
 #define rwsem_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)

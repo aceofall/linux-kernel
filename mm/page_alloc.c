@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  linux/mm/page_alloc.c
  *
  *  Manages the free list, the system allocates free pages here.
@@ -238,18 +238,23 @@ EXPORT_SYMBOL(nr_online_nodes);
 #endif
 
 // ARM10C 20140426
+// ARM10C 20140517
 int page_group_by_mobility_disabled __read_mostly;
 
 // ARM10C 20140118
 // MIGRATE_MOVABLE : 2
+// ARM10C 20140517
+// page: order 5의 migratetype MIGRATE_MOVABLE인 lru page, start_type: 0
 void set_pageblock_migratetype(struct page *page, int migratetype)
 {
 	// 수행 안함
+	// page_group_by_mobility_disabled: 0, MIGRATE_PCPTYPES: 3
 	if (unlikely(page_group_by_mobility_disabled &&
 		     migratetype < MIGRATE_PCPTYPES))
 		migratetype = MIGRATE_UNMOVABLE;
 	
 	// migratetype : 2, PB_migrate : 0, PB_migrate_end : 2
+	// migratetype : 0, PB_migrate : 0, PB_migrate_end : 2
 	set_pageblock_flags_group(page, (unsigned long)migratetype,
 					PB_migrate, PB_migrate_end);
 }
@@ -302,6 +307,8 @@ static int bad_range(struct zone *zone, struct page *page)
 }
 #else
 // ARM10C 20140405
+// ARM10C 20140517
+// ARM10C 20140524
 static inline int bad_range(struct zone *zone, struct page *page)
 {
 	return 0;
@@ -465,6 +472,8 @@ static inline void clear_page_guard_flag(struct page *page) { }
 // page: 0x20000 (pfn), order: 5
 // ARM10C 20140412
 // page: 0x20000 (pfn), order: 0
+// ARM10C 20140517
+// page[16]: order 5의 migratetype MIGRATE_MOVABLE인 lru page + 16, high: 4
 static inline void set_page_order(struct page *page, int order)
 {
 	// [order: 5] page: 0x20000 (pfn), order: 5
@@ -482,6 +491,8 @@ static inline void set_page_order(struct page *page, int order)
 
 // ARM10C 20140412
 // buddy: 0x20000 (pfn)
+// ARM10C 20140517
+// page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
 static inline void rmv_page_order(struct page *page)
 {
 	// page: 0x20000 (pfn)
@@ -800,7 +811,7 @@ static inline int free_pages_check(struct page *page)
 		bad_page(page);
 		return 1;
 	}
-	page_cpupid_reset_last(page);
+	page_cpupid_reset_last(page); // NULL 함수
 
 	// page->flags : 0x20000000
 	// PAGE_FLAGS_CHECK_AT_PREP: 0x1FFFFF
@@ -920,8 +931,8 @@ static void free_pcppages_bulk(struct zone *zone, int count,
 			if (likely(!is_migrate_isolate_page(page))) {
 				// zone: &(&contig_page_data)->node_zones[ZONE_NORMAL], NR_FREE_PAGES: 0
 				__mod_zone_page_state(zone, NR_FREE_PAGES, 1);
-				// (&contig_page_data)->node_zones[ZONE_NORMAL].vm_stat[NR_FREE_PAGES]: 1 로 설정
-				// vmstat.c의 vm_stat[NR_FREE_PAGES] 전역 변수에도 1로 설정
+				// (&contig_page_data)->node_zones[ZONE_NORMAL].vm_stat[NR_FREE_PAGES]: 1 을 더함
+				// vmstat.c의 vm_stat[NR_FREE_PAGES] 전역 변수에도 1을 더함
 
 				// mt: 0x2, is_migrate_cma(0x2): 0
 				if (is_migrate_cma(mt))
@@ -1165,19 +1176,38 @@ void __init init_cma_reserved_pageblock(struct page *page)
  *
  * -- nyc
  */
+// ARM10C 20140517
+// zone: contig_page_data->node_zones[0], page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
+// order: 0, current_order: 5, area: &contig_page_data->node_zones[0].free_area[5], new_type: 0
 static inline void expand(struct zone *zone, struct page *page,
 	int low, int high, struct free_area *area,
 	int migratetype)
 {
+	// high: 5
 	unsigned long size = 1 << high;
+	// size: 32
 
+	// high: 5, low: 0
 	while (high > low) {
+		// area: &contig_page_data->node_zones[0].free_area[5]
 		area--;
+		// area: &contig_page_data->node_zones[0].free_area[4]
+
+		// high: 5
 		high--;
+		// high: 4
+
+		// size: 32
 		size >>= 1;
+		// size: 16
+
+		// zone: contig_page_data->node_zones[0],
+		// page: order 5의 migratetype MIGRATE_MOVABLE인 lru page,
+		// bad_range(contig_page_data->node_zones[0],
+		//	    order 5의 migratetype MIGRATE_MOVABLE인 lru page + 16): 0
 		VM_BUG_ON(bad_range(zone, &page[size]));
 
-#ifdef CONFIG_DEBUG_PAGEALLOC
+#ifdef CONFIG_DEBUG_PAGEALLOC // CONFIG_DEBUG_PAGEALLOC=n
 		if (high < debug_guardpage_minorder()) {
 			/*
 			 * Mark as guard pages (or page), that will allow to
@@ -1194,17 +1224,34 @@ static inline void expand(struct zone *zone, struct page *page,
 			continue;
 		}
 #endif
+		// size: 16, page[16].lru: (order 5의 migratetype MIGRATE_MOVABLE인 lru page + 16).lru
+		// migratetype: 0, area->free_list[0]: (&contig_page_data->node_zones[0].free_area[4])->free_list[0]
 		list_add(&page[size].lru, &area->free_list[migratetype]);
+		// (&contig_page_data->node_zones[0].free_area[4])->free_list[0] 에
+		// order 5의 migratetype MIGRATE_MOVABLE인 lru page + 16 인 page 추가
+
+		// area->nr_free: (&contig_page_data->node_zones[0].free_area[4])->nr_free
 		area->nr_free++;
+		// free page 수 증가
+
+		// size: 16, page[16]: order 5의 migratetype MIGRATE_MOVABLE인 lru page + 16, high: 4
 		set_page_order(&page[size], high);
+		// page의 _mapcount 값을 -128, private를 4로 변경
 	}
 }
 
 /*
  * This page is about to be returned from the page allocator
- */
+*/
+// ARM10C 20140524
+// p: migratetype이 MIGRATE_UNMOVABLE인 page
 static inline int check_new_page(struct page *page)
 {
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page
+	// PAGE_FLAGS_CHECK_AT_PREP: 0x1FFFFF
+	// mem_cgroup_bad_page_check(page): false
+	// page_mapcount(page): 0
+	// page->mapping: null, page->_count: 0
 	if (unlikely(page_mapcount(page) |
 		(page->mapping != NULL)  |
 		(atomic_read(&page->_count) != 0)  |
@@ -1213,28 +1260,52 @@ static inline int check_new_page(struct page *page)
 		bad_page(page);
 		return 1;
 	}
+
+	// page->_mapcount: -1: 사용하기위해 할당 받았지만 쓰지는 않음
+	// page->mapping: 할당 받았으면 null 로 됨, 사용중인 page는 vma, inode 등의
+	//                address space로 맵핑된다
+	// page->_count: 현재 page 를 참조한 숫자값
+
 	return 0;
 }
 
+// ARM10C 20140524
+// page: migratetype이 MIGRATE_UNMOVABLE인 page, order: 0, gfp_flags: 0x221200
 static int prep_new_page(struct page *page, int order, gfp_t gfp_flags)
 {
 	int i;
 
+	// order: 0
 	for (i = 0; i < (1 << order); i++) {
+		// page: migratetype이 MIGRATE_UNMOVABLE인 page
 		struct page *p = page + i;
+		// p: migratetype이 MIGRATE_UNMOVABLE인 page
+
+		// check_new_page(migratetype이 MIGRATE_UNMOVABLE인 page): 0
 		if (unlikely(check_new_page(p)))
 			return 1;
 	}
 
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page
 	set_page_private(page, 0);
+	// page->private: 0
+	// FIXME: 왜 pamam order값을 보지 않고 0으로 초기화 하는지?
+
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page
 	set_page_refcounted(page);
+	// page->_count를 1로 set
 
-	arch_alloc_page(page, order);
-	kernel_map_pages(page, 1 << order, 1);
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page, order: 0
+	arch_alloc_page(page, order); // null function
 
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page, order: 0
+	kernel_map_pages(page, 1 << order, 1); // null function
+
+	// gfp_flags: 0x221200, __GFP_ZERO: 0x8000u
 	if (gfp_flags & __GFP_ZERO)
 		prep_zero_page(page, order, gfp_flags);
 
+	// order: 0, gfp_flags: 0x221200, __GFP_COMP: 0x4000u
 	if (order && (gfp_flags & __GFP_COMP))
 		prep_compound_page(page, order);
 
@@ -1245,6 +1316,8 @@ static int prep_new_page(struct page *page, int order, gfp_t gfp_flags)
  * Go through the free lists for the given migratetype and remove
  * the smallest available page from the freelists
  */
+// ARM10C 20140517
+// zone: contig_page_data->node_zones[0], order: 0, migratetype: MIGRATE_UNMOVABLE: 0
 static inline
 struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
 						int migratetype)
@@ -1254,8 +1327,16 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
 	struct page *page;
 
 	/* Find a page of the appropriate size in the preferred list */
+	// order: 0, MAX_ORDER: 11
 	for (current_order = order; current_order < MAX_ORDER; ++current_order) {
+		// current_order: 0
+		// zone->free_area[0]: contig_page_data->node_zones[0].free_area[0]
 		area = &(zone->free_area[current_order]);
+		// area: &(contig_page_data->node_zones[0].free_area[0])
+
+		// migratetype: 0,
+		// area->free_list[0]: (&(contig_page_data->node_zones[0].free_area[0]))->free_list[0]
+		// list_empty((&(contig_page_data->node_zones[0].free_area[0]))->free_list[0]): 1
 		if (list_empty(&area->free_list[migratetype]))
 			continue;
 
@@ -1265,10 +1346,15 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
 		rmv_page_order(page);
 		area->nr_free--;
 		expand(zone, page, order, current_order, area, migratetype);
+		// expand 의 동작:
+		// order의 의미: 사용하고자 하는 크기, current_order의 의미: buddy에서 가져온 크기
+		// 큰 buddy order 에서 사용하고자 하는 order를 제외한 나머지 buddy 영역을 free 상태로 정리
+
 		return page;
 	}
 
 	return NULL;
+	// return NULL
 }
 
 
@@ -1276,17 +1362,19 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
  * This array describes the order lists are fallen back to when
  * the free lists for the desirable migrate type are depleted
  */
+// ARM10C 20140517
+// MIGRATE_TYPES: 4
 static int fallbacks[MIGRATE_TYPES][4] = {
 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,     MIGRATE_RESERVE },
 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,     MIGRATE_RESERVE },
-#ifdef CONFIG_CMA
+#ifdef CONFIG_CMA // CONFIG_CMA=n
 	[MIGRATE_MOVABLE]     = { MIGRATE_CMA,         MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
 	[MIGRATE_CMA]         = { MIGRATE_RESERVE }, /* Never used */
 #else
 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE,   MIGRATE_RESERVE },
 #endif
 	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
-#ifdef CONFIG_MEMORY_ISOLATION
+#ifdef CONFIG_MEMORY_ISOLATION // CONFIG_MEMORY_ISOLATION=n
 	[MIGRATE_ISOLATE]     = { MIGRATE_RESERVE }, /* Never used */
 #endif
 };
@@ -1296,6 +1384,9 @@ static int fallbacks[MIGRATE_TYPES][4] = {
  * Note that start_page and end_pages are not aligned on a pageblock
  * boundary. If alignment is required, use move_freepages_block()
  */
+// ARM10C 20140517
+// zone: contig_page_data->node_zones[0], start_page: page 0x20000 (pfn),
+// end_page: page 0x20cff (pfn), migratetype: 0
 int move_freepages(struct zone *zone,
 			  struct page *start_page, struct page *end_page,
 			  int migratetype)
@@ -1304,7 +1395,7 @@ int move_freepages(struct zone *zone,
 	unsigned long order;
 	int pages_moved = 0;
 
-#ifndef CONFIG_HOLES_IN_ZONE
+#ifndef CONFIG_HOLES_IN_ZONE // CONFIG_HOLES_IN_ZONE=n
 	/*
 	 * page_zone is not safe to call in this context when
 	 * CONFIG_HOLES_IN_ZONE is set. This bug check is probably redundant
@@ -1312,53 +1403,102 @@ int move_freepages(struct zone *zone,
 	 * Remove at a later date when no bug reports exist related to
 	 * grouping pages by mobility
 	 */
+	// start_page: 0x20000 (pfn), end_page: 0x20cff (pfn)
 	BUG_ON(page_zone(start_page) != page_zone(end_page));
 #endif
 
+	// start_page: page 0x20000 (pfn), end_page: page 0x20cff (pfn)
 	for (page = start_page; page <= end_page;) {
 		/* Make sure we are not inadvertently changing nodes */
+		// page: 0x20000 (pfn), zone: contig_page_data->node_zones[0]
 		VM_BUG_ON(page_to_nid(page) != zone_to_nid(zone));
 
+		// page: 0x20000 (pfn), pfn_valid_within(0x20000): 1
 		if (!pfn_valid_within(page_to_pfn(page))) {
 			page++;
 			continue;
 		}
 
+		// page: 0x20000 (pfn), PageBuddy(0x20000): 1
 		if (!PageBuddy(page)) {
 			page++;
 			continue;
 		}
 
+		// page: 0x20000 (pfn)
 		order = page_order(page);
+		// order: 5
+
+		// zone->free_area[5].free_list[0]: contig_page_data->node_zones[0].free_area[5].free_list[0]
 		list_move(&page->lru,
 			  &zone->free_area[order].free_list[migratetype]);
+		// contig_page_data->node_zones[0].free_area[5].free_list[2]
+		// 에서 contig_page_data->node_zones[0].free_area[5].free_list[0] 로 옮김
+
+		// page: 0x20000 (pfn), migratetype: 0
 		set_freepage_migratetype(page, migratetype);
+		// migratetype이 2에서 0으로 변경됨
+
+		// order: 5
 		page += 1 << order;
+		// page: 0x20020 (pfn)
+
+		// pages_moved: 0
 		pages_moved += 1 << order;
+		// pages_moved: 32
 	}
 
+	// pages_moved: ??? (옮겨진 page 갯수)
 	return pages_moved;
 }
 
+// ARM10C 20140517
+// zone: contig_page_data->node_zones[0],
+// page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
+// start_type: 0
 int move_freepages_block(struct zone *zone, struct page *page,
 				int migratetype)
 {
 	unsigned long start_pfn, end_pfn;
 	struct page *start_page, *end_page;
 
+	// 가정: order 5의 migratetype MIGRATE_MOVABLE인 lru page
+	//       의 pfn값을 0x20000으로 가정하고 분석
+
+	// page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
 	start_pfn = page_to_pfn(page);
+	// start_pfn: 0x20000
+
+	// pageblock_nr_pages : 0x400
 	start_pfn = start_pfn & ~(pageblock_nr_pages-1);
+	// start_pfn: 0x20000
+
 	start_page = pfn_to_page(start_pfn);
+	// start_page : page 0x20000 (pfn)
+
+	// pageblock_nr_pages: 0x400
 	end_page = start_page + pageblock_nr_pages - 1;
+	// end_page: page 0x20cff (pfn)
+
+	// start_pfn: 0x20000, pageblock_nr_pages: 0x400
 	end_pfn = start_pfn + pageblock_nr_pages - 1;
+	// end_pfn: 0x20cff
 
 	/* Do not cross zone boundaries */
+	// zone: contig_page_data->node_zones[0], start_pfn: 0x20000
+	// zone_spans_pfn(contig_page_data->node_zones[0], 0x20000): 1
 	if (!zone_spans_pfn(zone, start_pfn))
 		start_page = page;
+
+	// zone: contig_page_data->node_zones[0], end_pfn: 0x20cff
+	// zone_spans_pfn(contig_page_data->node_zones[0], 0x20cff): 1
 	if (!zone_spans_pfn(zone, end_pfn))
 		return 0;
 
+	// zone: contig_page_data->node_zones[0], start_page: page 0x20000 (pfn),
+	// end_page: page 0x20cff (pfn), migratetype: 0
 	return move_freepages(zone, start_page, end_page, migratetype);
+	// pages_moved: ??? (옮겨진 page 갯수)
 }
 
 static void change_pageblock_range(struct page *pageblock_page,
@@ -1384,37 +1524,62 @@ static void change_pageblock_range(struct page *pageblock_page,
  * Returns the new migratetype of the pageblock (or the same old migratetype
  * if it was unchanged).
  */
+// ARM10C 20140517
+// zone: contig_page_data->node_zones[0],
+// page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
+// start_migratetype: 0
+// migratetype: MIGRATE_MOVABLE: 2
 static int try_to_steal_freepages(struct zone *zone, struct page *page,
 				  int start_type, int fallback_type)
 {
+	// page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
 	int current_order = page_order(page);
+	// current_order: 5
 
 	/*
 	 * When borrowing from MIGRATE_CMA, we need to release the excess
 	 * buddy pages to CMA itself.
 	 */
+	// fallback_type: MIGRATE_MOVABLE: 2
+	// is_migrate_cma(2): false
 	if (is_migrate_cma(fallback_type))
 		return fallback_type;
 
 	/* Take ownership for orders >= pageblock_order */
+	// current_order: 5, pageblock_order: 10
 	if (current_order >= pageblock_order) {
 		change_pageblock_range(page, current_order, start_type);
 		return start_type;
 	}
 
+	// current_order: 5, pageblock_order: 10, start_type: 0,
+	// MIGRATE_RECLAIMABLE: 1, page_group_by_mobility_disabled: 0
 	if (current_order >= pageblock_order / 2 ||
 	    start_type == MIGRATE_RECLAIMABLE ||
 	    page_group_by_mobility_disabled) {
 		int pages;
 
+		// zone: contig_page_data->node_zones[0],
+		// page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
+		// start_type: 0
 		pages = move_freepages_block(zone, page, start_type);
+		// pages: ??? (옮겨진 page 갯수)
 
 		/* Claim the whole block if over half of it is free */
+		// pages: ??? (옮겨진 page 갯수), pageblock_order: 10
+		// page_group_by_mobility_disabled: 0
 		if (pages >= (1 << (pageblock_order-1)) ||
 				page_group_by_mobility_disabled) {
 
+			// pages: ??? (옮겨진 page 갯수) 512개 이상임
+			// page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
+			// start_type: 0
 			set_pageblock_migratetype(page, start_type);
+			// page block의 migratetype을 2에서 0으로 변경
+
+			// start_type: 0
 			return start_type;
+			// return 0
 		}
 
 	}
@@ -1423,6 +1588,8 @@ static int try_to_steal_freepages(struct zone *zone, struct page *page,
 }
 
 /* Remove an element from the buddy allocator from the fallback list */
+// ARM10C 20140517
+// zone: contig_page_data->node_zones[0], order: 0, migratetype: MIGRATE_UNMOVABLE: 0
 static inline struct page *
 __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
 {
@@ -1432,37 +1599,84 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
 	int migratetype, new_type, i;
 
 	/* Find the largest possible block of pages in the other list */
+	// MAX_ORDER: 11, order: 0
 	for (current_order = MAX_ORDER-1; current_order >= order;
 						--current_order) {
 		for (i = 0;; i++) {
+			// i: 0, start_migratetype: 0, fallbacks[0][0]: MIGRATE_RECLAIMABLE: 1
+			// i: 1, start_migratetype: 0, fallbacks[0][1]: MIGRATE_MOVABLE: 2
 			migratetype = fallbacks[start_migratetype][i];
+			// i: 0, migratetype: MIGRATE_RECLAIMABLE: 1
+			// i: 1, migratetype: MIGRATE_MOVABLE: 2
 
 			/* MIGRATE_RESERVE handled later if necessary */
+			// i: 0, migratetype: MIGRATE_RECLAIMABLE: 1
+			// i: 1, migratetype: MIGRATE_MOVABLE: 2
 			if (migratetype == MIGRATE_RESERVE)
 				break;
 
+			// i: 0, current_order: 10
+			// i: 0, zone->free_area[10]: contig_page_data->node_zones[0].free_area[10]
+			// i: 1, current_order: 10
+			// i: 1, zone->free_area[10]: contig_page_data->node_zones[0].free_area[10]
 			area = &(zone->free_area[current_order]);
+			// i: 0, area: &contig_page_data->node_zones[0].free_area[10]
+			// i: 1, area: &contig_page_data->node_zones[0].free_area[10]
+
+			// i: 0, migratetype: MIGRATE_RECLAIMABLE: 1
+			// i: 0, area->free_list[1]: (&contig_page_data->node_zones[0].free_area[10])->free_list[1]
+			// i: 1, migratetype: MIGRATE_MOVABLE: 2
+			// i: 1, area->free_list[2]: (&contig_page_data->node_zones[0].free_area[10])->free_list[2]
 			if (list_empty(&area->free_list[migratetype]))
 				continue;
 
+			// 가정: current_order: 5, migratetype: MIGRATE_MOVABLE: 2 일때 아래 코드 수행이
+			//       될것이라 보고 분석
+
+			// i: 1, current_order: 5
+			// i: 1, migratetype: MIGRATE_MOVABLE: 2
+			// i: 1, area->free_list[2].next: (&contig_page_data->node_zones[0].free_area[5])->free_list[2].next
 			page = list_entry(area->free_list[migratetype].next,
 					struct page, lru);
-			area->nr_free--;
+			// page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
 
+			// i: 1, area->nr_free: (&contig_page_data->node_zones[0].free_area[5])->nr_free
+			area->nr_free--;
+			// area->nr_free: (&contig_page_data->node_zones[0].free_area[5])->nr_free 1 감소
+
+			// i: 1, zone: contig_page_data->node_zones[0],
+			// i: 1, page: order 5의 migratetype MIGRATE_MOVABLE인 lru page,
+			// i: 1, start_migratetype: 0,
+			// i: 1, migratetype: MIGRATE_MOVABLE: 2,
+			// i: 1, try_to_steal_freepages(contig_page_data->node_zones[0],
+			//				order 5의 migratetype MIGRATE_MOVABLE인 lru page, 0, 2): 0
 			new_type = try_to_steal_freepages(zone, page,
 							  start_migratetype,
 							  migratetype);
+			// i: 1, new_type: 0
 
 			/* Remove the page from the freelists */
+			// i: 1, page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
 			list_del(&page->lru);
-			rmv_page_order(page);
 
+			// i: 1, page: order 5의 migratetype MIGRATE_MOVABLE인 lru page
+			rmv_page_order(page);
+			// i: 1, page의 _mapcount를 -1, private 값을 0으로 초기화
+
+			// i: 1, zone: contig_page_data->node_zones[0],
+			// i: 1, page: order 5의 migratetype MIGRATE_MOVABLE인 lru page,
+			// i: 1, order: 0, current_order: 5, area: &contig_page_data->node_zones[0].free_area[5],
+			// i: 1, new_type: 0
 			expand(zone, page, order, current_order, area,
 			       new_type);
+			// expand 의 동작:
+			// order의 의미: 사용하고자 하는 크기, current_order의 의미: buddy에서 가져온 크기
+			// 큰 buddy order 에서 사용하고자 하는 order를 제외한 나머지 buddy 영역을 free 상태로 정리
 
 			trace_mm_page_alloc_extfrag(page, order, current_order,
 				start_migratetype, migratetype, new_type);
 
+			// page: migratetype이 MIGRATE_UNMOVABLE인 page
 			return page;
 		}
 	}
@@ -1474,22 +1688,31 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
  * Do the hard work of removing an element from the buddy allocator.
  * Call me with the zone->lock already held.
  */
+// ARM10C 20140517
+// zone: contig_page_data->node_zones[0], order: 0, migratetype: MIGRATE_UNMOVABLE: 0
 static struct page *__rmqueue(struct zone *zone, unsigned int order,
 						int migratetype)
 {
 	struct page *page;
 
 retry_reserve:
+	// zone: contig_page_data->node_zones[0], order: 0, migratetype: MIGRATE_UNMOVABLE: 0
+	// __rmqueue_smallest(contig_page_data->node_zones[0], 0, 0): NULL
 	page = __rmqueue_smallest(zone, order, migratetype);
+	// page: NULL
 
+	// page: NULL, migratetype: 0, MIGRATE_RESERVE: 3
 	if (unlikely(!page) && migratetype != MIGRATE_RESERVE) {
+		// zone: contig_page_data->node_zones[0], order: 0, migratetype: MIGRATE_UNMOVABLE: 0
 		page = __rmqueue_fallback(zone, order, migratetype);
+		// page: migratetype이 MIGRATE_UNMOVABLE인 page
 
 		/*
 		 * Use MIGRATE_RESERVE rather than fail an allocation. goto
 		 * is used because __rmqueue_smallest is an inline function
 		 * and we want just one call site
 		 */
+		// page: migratetype이 MIGRATE_UNMOVABLE인 page
 		if (!page) {
 			migratetype = MIGRATE_RESERVE;
 			goto retry_reserve;
@@ -1497,6 +1720,8 @@ retry_reserve:
 	}
 
 	trace_mm_page_alloc_zone_locked(page, order, migratetype);
+
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page
 	return page;
 }
 
@@ -1505,15 +1730,35 @@ retry_reserve:
  * a single hold of the lock, for efficiency.  Add them to the supplied list.
  * Returns the number of new pages which were placed at *list.
  */
+// ARM10C 20140517
+// zone: contig_page_data->node_zones[0], 0,
+// pcp->batch: (&boot_pageset + (__per_cpu_offset[0]))->pcp.batch: 1
+// list: (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]
+// migratetype: MIGRATE_UNMOVABLE: 0, cold: 0
 static int rmqueue_bulk(struct zone *zone, unsigned int order,
 			unsigned long count, struct list_head *list,
 			int migratetype, int cold)
 {
+	// migratetype: MIGRATE_UNMOVABLE: 0
 	int mt = migratetype, i;
+	// mt: 0
 
+	// zone->lock: contig_page_data->node_zones[0].lock
 	spin_lock(&zone->lock);
+	// spinlock 획득
+
+	// count: 1
 	for (i = 0; i < count; ++i) {
+		// zone: contig_page_data->node_zones[0], order: 0, migratetype: MIGRATE_UNMOVABLE: 0
 		struct page *page = __rmqueue(zone, order, migratetype);
+		// page: migratetype이 MIGRATE_UNMOVABLE인 page
+
+		// __rmqueue에서 한일:
+		// 해당 zone에서 order에 맞고 migratetype이 같은 page를 구해옴
+		// migratetype 이 일치 하지 않으면
+		// fallbacks의 enum의 메모리 정책에 의해 할당받는 순서가 결정됨
+
+		// page: migratetype이 MIGRATE_UNMOVABLE인 page
 		if (unlikely(page == NULL))
 			break;
 
@@ -1526,27 +1771,54 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
 		 * merge IO requests if the physical pages are ordered
 		 * properly.
 		 */
+		// cold: 0
 		if (likely(cold == 0))
+			// page->lru: (migratetype이 MIGRATE_UNMOVABLE인 page)->lru
+			// list: (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]
 			list_add(&page->lru, list);
+			// (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]에
+			// (migratetype이 MIGRATE_UNMOVABLE인 page)->lru가 head로 등록
 		else
 			list_add_tail(&page->lru, list);
+
+		// page의 lru는 cold가 1일때가 tail로 cold가 0일때 head로 등록됨
+
+		// CONFIG_CMA=n, IS_ENABLED(CONFIG_CMA): 0
 		if (IS_ENABLED(CONFIG_CMA)) {
 			mt = get_pageblock_migratetype(page);
 			if (!is_migrate_cma(mt) && !is_migrate_isolate(mt))
 				mt = migratetype;
 		}
+
+		// page: migratetype이 MIGRATE_UNMOVABLE인 page, mt: 0
 		set_freepage_migratetype(page, mt);
+		// page의 index 필드를 migratetype: 0으로 변경
+
+		// list: (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]
+		// page->lru: (migratetype이 MIGRATE_UNMOVABLE인 page)->lru
 		list = &page->lru;
+		// list: (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0] 에 값을 업데이트됨
+
+		// mt: 0, is_migrate_cma(0): false
 		if (is_migrate_cma(mt))
 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
 					      -(1 << order));
 	}
+
+	// zone: contig_page_data->node_zones[0], NR_FREE_PAGES: 0, i: 1
+	// order: 0, -(1 << 0): -1
 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
+	// (&contig_page_data)->node_zones[ZONE_NORMAL].vm_stat[0], vm_stat[0] 값을 업데이트
+
 	spin_unlock(&zone->lock);
+	// spinlock 해제
+
+	// i: 1
 	return i;
+	// return 1
 }
 
-#ifdef CONFIG_NUMA
+#ifdef CONFIG_NUMA // CONFIG_NUMA=n
 /*
  * Called from the vmstat counter updater to drain pagesets of this
  * currently executing processor on remote nodes after they have
@@ -1578,6 +1850,9 @@ static bool gfp_thisnode_allocation(gfp_t gfp_mask)
 	return (gfp_mask & GFP_THISNODE) == GFP_THISNODE;
 }
 #else
+// ARM10C 20140510
+// ARM10C 20140517
+// gfp_mask: 0x221200
 static bool gfp_thisnode_allocation(gfp_t gfp_mask)
 {
 	return false;
@@ -1904,6 +2179,10 @@ int split_free_page(struct page *page)
  * we cheat by calling it from here, in the order > 0 path.  Saves a branch
  * or two.
  */
+// ARM10C 20140510
+// preferred_zone: (&contig_page_data)->node_zones[0]
+// zone: contig_page_data->node_zones[0], order: 0, gfp_mask: 0x221200
+// migratetype: MIGRATE_UNMOVABLE: 0
 static inline
 struct page *buffered_rmqueue(struct zone *preferred_zone,
 			struct zone *zone, int order, gfp_t gfp_flags,
@@ -1911,31 +2190,66 @@ struct page *buffered_rmqueue(struct zone *preferred_zone,
 {
 	unsigned long flags;
 	struct page *page;
+	// gfp_flags: 0x221200, __GFP_COLD: 0x100u
 	int cold = !!(gfp_flags & __GFP_COLD);
+	// cold: 0
 
 again:
+	// order: 0
 	if (likely(order == 0)) {
 		struct per_cpu_pages *pcp;
 		struct list_head *list;
 
 		local_irq_save(flags);
+		// zone->pageset: contig_page_data->node_zones[0].pageset: &boot_pageset
+		// this_cpu_ptr(&boot_pageset): &boot_pageset + (__per_cpu_offset[0])
+		// this_cpu_ptr(&boot_pageset)->pcp: (&boot_pageset + (__per_cpu_offset[0]))->pcp
 		pcp = &this_cpu_ptr(zone->pageset)->pcp;
+		// pcp: (&boot_pageset + (__per_cpu_offset[0]))->pcp
+
+		// migratetype: 0, pcp->lists[0]: (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]
 		list = &pcp->lists[migratetype];
+		// list: (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]
+
+// 2014/05/10 종료
+// 2014/05/17 시작
+
+		// list: (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]
+		// list_empty((&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]): 1
 		if (list_empty(list)) {
+			// pcp->count: (&boot_pageset + (__per_cpu_offset[0]))->pcp.count: 0
+			// zone: contig_page_data->node_zones[0],
+			// pcp->batch: (&boot_pageset + (__per_cpu_offset[0]))->pcp.batch: 1
+			// list: (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]
+			// migratetype: MIGRATE_UNMOVABLE: 0, cold: 0
+			// rmqueue_bulk(contig_page_data->node_zones[0], 0, 1,
+			//		(&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0] , 0, 0): 1
 			pcp->count += rmqueue_bulk(zone, 0,
 					pcp->batch, list,
 					migratetype, cold);
+			// pcp->count: (&boot_pageset + (__per_cpu_offset[0]))->pcp.count: 1
+
+			// list: (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]
+			// list_empty((&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0]): 0
 			if (unlikely(list_empty(list)))
 				goto failed;
 		}
 
+		// cold: 0
 		if (cold)
 			page = list_entry(list->prev, struct page, lru);
 		else
+			// list->next: ((&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0])->next
 			page = list_entry(list->next, struct page, lru);
+			// page: migratetype이 MIGRATE_UNMOVABLE인 page
 
+		// page->lru: (migratetype이 MIGRATE_UNMOVABLE인 page)->lru
 		list_del(&page->lru);
+		// (&boot_pageset + (__per_cpu_offset[0]))->pcp.lists[0] 에서 현재 page->lru 삭제
+
+		// pcp->count: (&boot_pageset + (__per_cpu_offset[0]))->pcp.count: 1
 		pcp->count--;
+		// pcp->count: (&boot_pageset + (__per_cpu_offset[0]))->pcp.count: 0
 	} else {
 		if (unlikely(gfp_flags & __GFP_NOFAIL)) {
 			/*
@@ -1959,20 +2273,42 @@ again:
 					  get_pageblock_migratetype(page));
 	}
 
+// 2014/05/17 종료
+// 2014/05/24 시작
+
 	/*
 	 * NOTE: GFP_THISNODE allocations do not partake in the kswapd
 	 * aging protocol, so they can't be fair.
 	 */
+	// gfp_flags: 0x221200
+	// gfp_thisnode_allocation(0x221200): false
 	if (!gfp_thisnode_allocation(gfp_flags))
+		// zone: contig_page_data->node_zones[0], NR_ALLOC_BATCH: 1, order: 0
 		__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
+		// (&contig_page_data)->node_zones[ZONE_NORMAL].vm_stat[1]: 0x2efd5, vm_stat[1]: 0x2efd5
+		// (&contig_page_data)->node_zones[ZONE_NORMAL].vm_stat[1], vm_stat[1] 값을 업데이트
 
+	// zone: contig_page_data->node_zones[0], order: 0
 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
-	zone_statistics(preferred_zone, zone, gfp_flags);
+	// vm_event_states.event[PGALLOC_NORMAL]: 1 업데이트
+
+	// preferred_zone: (&contig_page_data)->node_zones[0],
+	// zone: contig_page_data->node_zones[0], gfp_flags: 0x221200
+	zone_statistics(preferred_zone, zone, gfp_flags); // null function
 	local_irq_restore(flags);
 
+	// zone: contig_page_data->node_zones[0],
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page
+	// bad_range(contig_page_data->node_zones[0],
+	//	    migratetype이 MIGRATE_UNMOVABLE인 page): 0
 	VM_BUG_ON(bad_range(zone, page));
+
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page, order: 0, gfp_flags: 0x221200
+	// prep_new_page (migratetype이 MIGRATE_UNMOVABLE인 page, 0, 0x221200): 0
 	if (prep_new_page(page, order, gfp_flags))
 		goto again;
+
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page
 	return page;
 
 failed:
@@ -2062,28 +2398,45 @@ static inline bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
  * Return true if free pages are above 'mark'. This takes into account the order
  * of the allocation.
  */
+// ARM10C 20140510
+// z: contig_page_data->node_zones[0], order: 0, mark: 0
+// classzone_idx: 0 alloc_flags: 0x41, ????
 static bool __zone_watermark_ok(struct zone *z, int order, unsigned long mark,
 		      int classzone_idx, int alloc_flags, long free_pages)
 {
 	/* free_pages my go negative - that's OK */
+	// mark: 0
 	long min = mark;
+	// min: 0
+	// classzone_idx: 0, z->lowmem_reserve[0]: contig_page_data->node_zones[0].lowmem_reserve[0]: 0
 	long lowmem_reserve = z->lowmem_reserve[classzone_idx];
+	// lowmem_reserve: 0
 	int o;
 	long free_cma = 0;
 
+	// free_pages: ????
 	free_pages -= (1 << order) - 1;
+	// free_pages: ????
+
+	// alloc_flags: 0x41, ALLOC_HIGH: 0x20
 	if (alloc_flags & ALLOC_HIGH)
 		min -= min / 2;
+
+	// alloc_flags: 0x41, ALLOC_HARDER: 0x10
 	if (alloc_flags & ALLOC_HARDER)
 		min -= min / 4;
-#ifdef CONFIG_CMA
+
+#ifdef CONFIG_CMA // CONFIG_CMA=n
 	/* If allocation can't use CMA areas don't use free CMA pages */
 	if (!(alloc_flags & ALLOC_CMA))
 		free_cma = zone_page_state(z, NR_FREE_CMA_PAGES);
 #endif
 
+	// free_pages: ????, free_cma: 0, min: 0, lowmem_reserve: 0
 	if (free_pages - free_cma <= min + lowmem_reserve)
 		return false;
+
+	// order: 0
 	for (o = 0; o < order; o++) {
 		/* At the next order, this order's pages become unavailable */
 		free_pages -= z->free_area[o].nr_free << o;
@@ -2095,13 +2448,21 @@ static bool __zone_watermark_ok(struct zone *z, int order, unsigned long mark,
 			return false;
 	}
 	return true;
+	// return true
 }
 
+// ARM10C 20140510
+// zone: contig_page_data->node_zones[0], order: 0, mark: 0
+// classzone_idx: 0 alloc_flags: 0x41
 bool zone_watermark_ok(struct zone *z, int order, unsigned long mark,
 		      int classzone_idx, int alloc_flags)
 {
+	// z: contig_page_data->node_zones[0], order: 0, mark: 0
+	// classzone_idx: 0 alloc_flags: 0x41
+	// zone_page_state(contig_page_data->node_zones[0], NR_FREE_PAGES): ????
 	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
 					zone_page_state(z, NR_FREE_PAGES));
+	// return 1
 }
 
 bool zone_watermark_ok_safe(struct zone *z, int order, unsigned long mark,
@@ -2261,6 +2622,8 @@ static nodemask_t *zlc_setup(struct zonelist *zonelist, int alloc_flags)
 	return NULL;
 }
 
+// ARM10C 20140510
+// zonelist: contig_page_data->node_zonelists, allowednodes: NULL
 static int zlc_zone_worth_trying(struct zonelist *zonelist, struct zoneref *z,
 				nodemask_t *allowednodes)
 {
@@ -2275,6 +2638,9 @@ static void zlc_clear_zones_full(struct zonelist *zonelist)
 {
 }
 
+// ARM10C 20140510
+// preferred_zone: (&contig_page_data)->node_zones[0]
+// zone: contig_page_data->node_zones[0]
 static bool zone_local(struct zone *local_zone, struct zone *zone)
 {
 	return true;
@@ -2296,6 +2662,7 @@ static inline void init_zone_allows_reclaim(int nid)
  * a page.
  */
 // ARM10C 20140426
+// ARM10C 20140510
 // 0x221200, nodemask: NULL, order: 0
 // zonelist: contig_page_data->node_zonelists, high_zoneidx: ZONE_NORMAL: 0
 // alloc_flags: 0x41, preferred_zone: (&contig_page_data)->node_zones[0]
@@ -2313,23 +2680,43 @@ get_page_from_freelist(gfp_t gfp_mask, nodemask_t *nodemask, unsigned int order,
 	int zlc_active = 0;		/* set if using zonelist_cache */
 	int did_zlc_setup = 0;		/* just call zlc_setup() one time */
 
+	// preferred_zone: (&contig_page_data)->node_zones[0]
+	// zone_idx((&contig_page_data)->node_zones[0]): 0
 	classzone_idx = zone_idx(preferred_zone);
+	// classzone_idx: 0
+
 zonelist_scan:
 	/*
 	 * Scan zonelist, looking for a zone with enough free.
 	 * See also __cpuset_node_allowed_softwall() comment in kernel/cpuset.c.
 	 */
+	// zonelist: contig_page_data->node_zonelists, high_zoneidx: ZONE_NORMAL: 0
+	// nodemask: NULL
 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
 						high_zoneidx, nodemask) {
+	// for (z = first_zones_zonelist(contig_page_data->node_zonelists, ZONE_NORMAL, NULL, &zone);
+	//	zone; z = next_zones_zonelist(++z, ZONE_NORMAL, NULL, &zone))
+
 		unsigned long mark;
 
+		// IS_ENABLED(CONFIG_NUMA): 0, zlc_active: 0
+		// zonelist: contig_page_data->node_zonelists, allowednodes: NULL
+		// zlc_zone_worth_trying(contig_page_data->node_zonelists, z, NULL): 1
 		if (IS_ENABLED(CONFIG_NUMA) && zlc_active &&
 			!zlc_zone_worth_trying(zonelist, z, allowednodes))
 				continue;
+
+		// alloc_flags: 0x41, ALLOC_CPUSET: 0x40
+		// zone: contig_page_data->node_zones[0], gfp_mask: 0x221200
+		// cpuset_zone_allowed_softwall(contig_page_data->node_zones[0], 0x221200): 1
 		if ((alloc_flags & ALLOC_CPUSET) &&
 			!cpuset_zone_allowed_softwall(zone, gfp_mask))
 				continue;
+
+		// ALLOC_NO_WATERMARKS: 0x04, NR_WMARK: 3
 		BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
+
+		// alloc_flags: 0x41, ALLOC_NO_WATERMARKS: 0x04
 		if (unlikely(alloc_flags & ALLOC_NO_WATERMARKS))
 			goto try_this_zone;
 		/*
@@ -2348,10 +2735,18 @@ zonelist_scan:
 		 * NOTE: GFP_THISNODE allocations do not partake in
 		 * the kswapd aging protocol, so they can't be fair.
 		 */
+		// alloc_flags: 0x41, ALLOC_WMARK_LOW: 1, gfp_mask: 0x221200
+		// gfp_thisnode_allocation(0x221200): false
 		if ((alloc_flags & ALLOC_WMARK_LOW) &&
 		    !gfp_thisnode_allocation(gfp_mask)) {
+			// zone: contig_page_data->node_zones[0], NR_ALLOC_BATCH: 1
+			// zone_page_state(contig_page_data->node_zones[0], NR_ALLOC_BATCH): 0x2efd6
 			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
 				continue;
+
+			// preferred_zone: (&contig_page_data)->node_zones[0]
+			// zone: contig_page_data->node_zones[0]
+			// zone_local((&contig_page_data)->node_zones[0], contig_page_data->node_zones[0]): true
 			if (!zone_local(preferred_zone, zone))
 				continue;
 		}
@@ -2381,11 +2776,21 @@ zonelist_scan:
 		 * will require awareness of zones in the
 		 * dirty-throttling and the flusher threads.
 		 */
+		// alloc_flags: 0x41, ALLOC_WMARK_LOW: 1, gfp_mask: 0x221200
+		// __GFP_WRITE: 0x1000000u, zone: contig_page_data->node_zones[0]
+		// zone_dirty_ok(contig_page_data->node_zones[0]): 1
 		if ((alloc_flags & ALLOC_WMARK_LOW) &&
 		    (gfp_mask & __GFP_WRITE) && !zone_dirty_ok(zone))
 			goto this_zone_full;
 
+		// alloc_flags: 0x41, ALLOC_WMARK_MASK: 0x03
+		// zone->watermark[0x1]: contig_page_data->node_zones[0].watermark[1]: 0
 		mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
+		// mark: 0
+
+		// zone: contig_page_data->node_zones[0], order: 0, mark: 0
+		// classzone_idx: 0 alloc_flags: 0x41
+		// zone_watermark_ok(contig_page_data->node_zones[0], 0, 0, 0, 0x41): 1
 		if (!zone_watermark_ok(zone, order, mark,
 				       classzone_idx, alloc_flags)) {
 			int ret;
@@ -2446,21 +2851,29 @@ zonelist_scan:
 		}
 
 try_this_zone:
+		// preferred_zone: (&contig_page_data)->node_zones[0]
+		// zone: contig_page_data->node_zones[0], order: 0, gfp_mask: 0x221200
+		// migratetype: MIGRATE_UNMOVABLE: 0
 		page = buffered_rmqueue(preferred_zone, zone, order,
 						gfp_mask, migratetype);
+		// page: migratetype이 MIGRATE_UNMOVABLE인 page
+
 		if (page)
 			break;
+			// break 로 loop 탈출
 this_zone_full:
 		if (IS_ENABLED(CONFIG_NUMA))
 			zlc_mark_zone_full(zonelist, z);
 	}
 
+	// IS_ENABLED(CONFIG_NUMA): 0, page: migratetype이 MIGRATE_UNMOVABLE인 page, zlc_active: 0
 	if (unlikely(IS_ENABLED(CONFIG_NUMA) && page == NULL && zlc_active)) {
 		/* Disable zlc cache for second zonelist scan */
 		zlc_active = 0;
 		goto zonelist_scan;
 	}
 
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page
 	if (page)
 		/*
 		 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
@@ -2469,8 +2882,11 @@ this_zone_full:
 		 * memory. The caller should avoid the page being used
 		 * for !PFMEMALLOC purposes.
 		 */
+		// alloc_flags: 0x41, ALLOC_NO_WATERMARKS: 0x04
 		page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
+		// page->pfmemalloc: 0
 
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page
 	return page;
 }
 
@@ -3163,6 +3579,7 @@ retry_cpuset:
 #endif
 
 // 2014/04/26 종료
+// 2014/05/10 시작
 
 	/* First allocation attempt */
 	// gfp_mask: 0x201200, __GFP_HARDWALL: 0x20000, nodemask: NULL, order: 0
@@ -3172,6 +3589,8 @@ retry_cpuset:
 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
 			zonelist, high_zoneidx, alloc_flags,
 			preferred_zone, migratetype);
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page
+
 	if (unlikely(!page)) {
 		/*
 		 * Runtime PM, block IO and its error handling path
@@ -3193,11 +3612,15 @@ out:
 	 * the mask is being updated. If a page allocation is about to fail,
 	 * check if the cpuset changed during allocation and if so, retry.
 	 */
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page, cpuset_mems_cookie: 0
+	// put_mems_allowed(0): true
 	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
 		goto retry_cpuset;
 
-	memcg_kmem_commit_charge(page, memcg, order);
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page, memcg: NULL, order: 0
+	memcg_kmem_commit_charge(page, memcg, order); // null function
 
+	// page: migratetype이 MIGRATE_UNMOVABLE인 page
 	return page;
 }
 EXPORT_SYMBOL(__alloc_pages_nodemask);
@@ -5616,7 +6039,6 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
 		//j = 1, zone->zone_pgdat = (&contig_page_data)
 		//j = 2, zone->zone_pgdat = (&contig_page_data)
 		zone->zone_pgdat = pgdat;
-		
 		// j = 0, zone->pageset = &boot_pageset;
 		// j = 1, zone->pageset = &boot_pageset;
 		// j = 2, zone->pageset = &boot_pageset;
@@ -5624,6 +6046,10 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
 		// least recently used vector init
 
 		/* For bootup, initialized properly in watermark setup */
+		// ARM10C 20140510
+		//j = 0, zone = &pgdat->node_zones[ZONE_NORMAL], zone->managed_pages = 0x2efd6
+		//j = 1, zone = &pgdat->node_zones[ZONE_HIGHMEM], zone->managed_pages = 0x50800
+		//j = 2, zone = &pgdat->node_zones[ZONE_MOVABLE], zone->managed_pages = 0x0
 		mod_zone_page_state(zone, NR_ALLOC_BATCH, zone->managed_pages);
 
 		// least recently used vector init
@@ -5635,17 +6061,19 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
 		if (!size)
 			continue;
 
-		set_pageblock_order();	// empty function 
+		set_pageblock_order();	// empty function
 		//j = 0, zone_start_pfn = 0x20000, size = 0x2f800
 		//j = 1, zone_start_pfn = 0x4F800, size = 0x50800
-		setup_usemap(pgdat, zone, zone_start_pfn, size);	// empty function 
+		setup_usemap(pgdat, zone, zone_start_pfn, size);	// empty function
 		//j = 0, zone_start_pfn = 0x20000, size = 0x2f800, MEMMAP_EARLY = 0
 		//j = 1, zone_start_pfn = 0x4F800, size = 0x50800, MEMMAP_EARLY = 0
 		ret = init_currently_empty_zone(zone, zone_start_pfn,
 						size, MEMMAP_EARLY);
 		//zone wait_table, free_area관련 멤버를 초기화
+
 // 2014/01/11 종료
 // 2014/01/18 시작
+
 		BUG_ON(ret);
 		// j = 0, size : 0x2F800, nid : 0, j : 0, zone_start_pfn : 0x20000
 		// j = 1, size : 0x50800, nid : 0, j : 1, zone_start_pfn : 0x4F800
@@ -6750,10 +7178,20 @@ void *__init alloc_large_system_hash(const char *tablename,
 		// [iCA] static unsigned long __meminitdata nr_kernel_pages
 		// [iCA] nr_kernel_pages : 0x2EFD6
 		numentries = nr_kernel_pages;
+		// [PID] numentries : 0x2EFD6
+		// [dCA] numentries : 0x2EFD6
+		// [iCA] numentries : 0x2EFD6
 
 		/* It isn't necessary when PAGE_SIZE >= 1MB */
 		if (PAGE_SHIFT < 20)
+			// [PID] numentries : 0x2EFD6
+			// [dCA] numentries : 0x2EFD6
+			// [iCA] numentries : 0x2EFD6
+			// PAGE_SIZE: 0x1000, (1UL << 20) / 0x1000): 0xFF
 			numentries = round_up(numentries, (1<<20)/PAGE_SIZE);
+			// [PID] numentries : 0x2F000
+			// [dCA] numentries : 0x2F000
+			// [iCA] numentries : 0x2F000
 
 		/* limit to 1 bucket per 2^scale bytes of low memory */
 		// [PID] scale : (18 > 12)
@@ -7002,6 +7440,8 @@ unsigned long get_pageblock_flags_group(struct page *page,
  */
 // ARM10C 20140118
 // migratetype : 2, PB_migrate : 0, PB_migrate_end : 2
+// ARM10C 20140517
+// migratetype : 0, PB_migrate : 0, PB_migrate_end : 2
 void set_pageblock_flags_group(struct page *page, unsigned long flags,
 					int start_bitidx, int end_bitidx)
 {

@@ -1,4 +1,4 @@
-#ifndef __ASM_SPINLOCK_H
+﻿#ifndef __ASM_SPINLOCK_H
 #define __ASM_SPINLOCK_H
 
 #if __LINUX_ARM_ARCH__ < 6
@@ -36,7 +36,11 @@
 // KID 20140115
 #define SEV		__ALT_SMP_ASM(WASM(sev), WASM(nop))
 
+// ARM10C 20130907
 // KID 20140115
+// ARM10C 20140125
+// ARM10C 20130322
+// ARM10C 20140412
 static inline void dsb_sev(void)
 {
 
@@ -65,8 +69,11 @@ static inline void dsb_sev(void)
 static inline void arch_spin_lock(arch_spinlock_t *lock)
 {
 	unsigned long tmp;
-	u32 newval; //다음 next 값
-	arch_spinlock_t lockval; //현재 next 값
+	u32 newval; // 다음 next 값
+	arch_spinlock_t lockval; // 현재 next 값
+
+	prefetchw(&lock->slock);
+
 // ARM10C 20130907
 // 1:	ldrex	lockval, &lock->slock
 // 현재 next(lockval)는 받아 놓고,
@@ -77,8 +84,6 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 // 	bne	1b
 	// lock->slock에서 실제 데이터를 쓸때 (next+=1) 까지 루프
 	// next+=1 의 의미는 표를 받기위해 번호표 발행
-
-	prefetchw(&lock->slock);
 	__asm__ __volatile__(
 "1:	ldrex	%0, [%3]\n"
 "	add	%1, %0, %4\n"
@@ -106,6 +111,8 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 // ARM10C 20130831
 // lock->slock : 0
 // ARM10C 20140405
+// ARM10C 20140517
+// &lock->raw_lock: (&(&contig_page_data->node_zones[0].lock)->rlock)->raw_lock
 static inline int arch_spin_trylock(arch_spinlock_t *lock)
 {
 	unsigned long contended, res;

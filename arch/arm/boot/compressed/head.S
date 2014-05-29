@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  linux/arch/arm/boot/compressed/head.S
  *
  *  Copyright (C) 1996-2002 Russell King
@@ -981,6 +981,7 @@ __armv7_mmu_cache_on:
 						// SCTLR[22]  - U bit set, arm11 지원 코드
 						// arm11은 이 bit가 programmable 함
 						// A.R.M: 2728p(Glossary)
+
 #ifdef CONFIG_MMU // CONFIG_MMU=y
  ARM_BE8(	orr	r0, r0, #1 << 25 )	@ big-endian page tables
 						// SCTLR[25]  - EE(Exception Endianness)
@@ -1659,9 +1660,3 @@ reloc_code_end:
 
 .L_user_stack:	.space	4096			// Stack공간을 4K만큼 잡음
 .L_user_stack_end:
-
-
-
-
-'
-

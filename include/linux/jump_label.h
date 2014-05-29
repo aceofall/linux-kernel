@@ -1,4 +1,4 @@
-#ifndef _LINUX_JUMP_LABEL_H
+﻿#ifndef _LINUX_JUMP_LABEL_H
 #define _LINUX_JUMP_LABEL_H
 
 /*

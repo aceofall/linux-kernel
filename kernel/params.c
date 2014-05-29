@@ -1,4 +1,4 @@
-/* Helpers for initial module or kernel cmdline parsing
+﻿/* Helpers for initial module or kernel cmdline parsing
    Copyright (C) 2001 Rusty Russell.
 
     This program is free software; you can redistribute it and/or modify

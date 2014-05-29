@@ -41,9 +41,6 @@
 */
 #define PAGE_OFFSET		UL(CONFIG_PAGE_OFFSET)
 
-/*
-// KID 20140212
-*/
 #ifdef CONFIG_MMU // CONFIG_MMU=y
 
 /*
@@ -298,6 +295,9 @@ static inline unsigned long __phys_to_virt(phys_addr_t x)
 
 /*
 // KID 20140212
+// ARM10C 20140222
+// PLAT_PHYS_OFFSET: 0x20000000
+// PHYS_OFFSET: 0x20000000
 // PHYS_OFFSET이 exynos5420용으로 kernel config에 제대로 들어가있지 않은 것으로 보임
 // 현재 : PLAT_PHYS_OFFSET: 0x40000000 - exynos4 default 값임
 */

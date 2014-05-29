@@ -12,8 +12,14 @@
 // ARM10C 20140308
 notrace unsigned int debug_smp_processor_id(void)
 {
+	// FIXME: this_cpu 값은?
+	// ARM10C this_cpu = 0이 가장 유력함
 	int this_cpu = raw_smp_processor_id();
 
+	// likely는 true일 가능성이 높은 코드라고 컴파일러에게 알려준다.
+	// preempt_count(): 0x4000_0001
+	// 최초만 0x40000001
+	// Reset by start_kernel()->sched_init()->init_idle().
 	if (likely(preempt_count()))
 		goto out;
 

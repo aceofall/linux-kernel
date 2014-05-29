@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  arch/arm/include/asm/tlbflush.h
  *
  *  Copyright (C) 1999-2003 Russell King
@@ -509,15 +509,21 @@ static inline void __local_flush_tlb_all(void)
 	tlb_op(TLB_V4_I_FULL | TLB_V6_I_FULL, "c8, c5, 0", zero);
 }
 
+// ARM10C 20131130
 static inline void local_flush_tlb_all(void)
 {
 	const int zero = 0;
 	const unsigned int __tlb_flag = __cpu_tlb_flags;
 
+	// tlb_flag(TLB_WB)): 0아닌 값
 	if (tlb_flag(TLB_WB))
 		dsb(nshst);
 
 	__local_flush_tlb_all();
+	
+	// T.R.M: 4.2.8 c8 registers
+	// c8, c3, 0: Invalidate entire TLB Inner Shareable
+	// TLB_V7_UIS_FULL: (1 << 21)
 	tlb_op(TLB_V7_UIS_FULL, "c8, c7, 0", zero);
 
 	// TLB_BARRIER:	(1 << 28)

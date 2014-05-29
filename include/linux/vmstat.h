@@ -46,9 +46,15 @@ static inline void count_vm_event(enum vm_event_item item)
 
 // ARM10C 20140405
 // item: 7, delta: 32
+// ARM10C 20140524
+// PGALLOC_NORMAL: 4, ZONE_NORMAL: 0, zone_idx(contig_page_data->node_zones[0]): 0
+// __count_vm_events(PGALLOC_NORMAL - ZONE_NORMAL + zone_idx(contig_page_data->node_zones[0]), 1)
+// item: 4, delta: 1
 static inline void __count_vm_events(enum vm_event_item item, long delta)
 {
 	// vm_event_states.event[PGFREE]: 0, delta: 32
+	// ARM10C 20140524
+	// vm_event_states.event[PGALLOC_NORMAL]: 0, delta: 1
 	__this_cpu_add(vm_event_states.event[item], delta);
 
 	// __pcpu_size_call(__this_cpu_add_, vm_event_states.event[PGFREE], delta)
@@ -70,6 +76,8 @@ static inline void __count_vm_events(enum vm_event_item item, long delta)
 	//		*__this_cpu_ptr(&(vm_event_states.event[7])) += delta;
 	//	
 	// vm_event_states.event[PGFREE]: 32
+	// ARM10C 20140524
+	// vm_event_states.event[PGALLOC_NORMAL]: 1
 }
 
 static inline void count_vm_events(enum vm_event_item item, long delta)
@@ -113,6 +121,10 @@ static inline void vm_events_fold_cpu(int cpu)
 #define count_vm_numa_events(x, y) do { (void)(y); } while (0)
 #endif /* CONFIG_NUMA_BALANCING */
 
+// ARM10C 20140524
+// PGALLOC, zone: contig_page_data->node_zones[0], 1
+// #define __count_zone_vm_events(PGALLOC, contig_page_data->node_zones[0], 1)
+// 		__count_vm_events(PGALLOC_NORMAL - ZONE_NORMAL + zone_idx(contig_page_data->node_zones[0]), 1)
 #define __count_zone_vm_events(item, zone, delta) \
 		__count_vm_events(item##_NORMAL - ZONE_NORMAL + \
 		zone_idx(zone), delta)
@@ -148,15 +160,49 @@ static inline unsigned long global_page_state(enum zone_stat_item item)
 	return x;
 }
 
+// ARM10C 20140510
+// zone: contig_page_data->node_zones[0], NR_ALLOC_BATCH: 1
+// ARM10C 20140510
+// zone: contig_page_data->node_zones[0], NR_FREE_PAGES: 0
+// zone: contig_page_data->node_zones[0], NR_INACTIVE_FILE: 4
+// zone: contig_page_data->node_zones[0], NR_ACTIVE_FILE: 5
+// zone: contig_page_data->node_zones[0], NR_FILE_DIRTY: 11
+// zone: contig_page_data->node_zones[0], NR_UNSTABLE_NFS: 17
+// zone: contig_page_data->node_zones[0], NR_WRITEBACK: 12
 static inline unsigned long zone_page_state(struct zone *zone,
 					enum zone_stat_item item)
 {
+	// item: 1, zone->vm_stat[1]: contig_page_data->node_zones[0].vm_stat[1]
+	// atomic_long_read(&contig_page_data->node_zones[0].vm_stat[1]): 0x2efd6
+	// item: 0, zone->vm_stat[0]: contig_page_data->node_zones[0].vm_stat[0]
+	// atomic_long_read(&contig_page_data->node_zones[0].vm_stat[0]): ???? (32)
+	// item: 4, zone->vm_stat[4]: contig_page_data->node_zones[0].vm_stat[4]
+	// atomic_long_read(&contig_page_data->node_zones[0].vm_stat[4]): 0
+	// item: 5, zone->vm_stat[5]: contig_page_data->node_zones[0].vm_stat[5]
+	// atomic_long_read(&contig_page_data->node_zones[0].vm_stat[5]): 0
 	long x = atomic_long_read(&zone->vm_stat[item]);
-#ifdef CONFIG_SMP
+	// x: 0x2efd6
+	// x: ???? (32)
+	// x: 0
+	// x: 0
+
+	// vm_stat[NR_FREE_PAGES] 사용가능한 page 수를 의미함
+	// vm_stat[NR_ALLOC_BATCH] buddy에서 할당 가능한 총 page 수
+	// batch 의 의미: chunk size for buddy add/remove
+
+#ifdef CONFIG_SMP // CONFIG_SMP=y
 	if (x < 0)
 		x = 0;
 #endif
+	// x: 0x2efd6
+	// x: ???? (32)
+	// x: 0
+	// x: 0
 	return x;
+	// return 0x2efd6
+	// return ???? (32)
+	// return 0
+	// return 0
 }
 
 /*
@@ -181,7 +227,7 @@ static inline unsigned long zone_page_state_snapshot(struct zone *zone,
 	return x;
 }
 
-#ifdef CONFIG_NUMA
+#ifdef CONFIG_NUMA // CONFIG_NUMA=n
 /*
  * Determine the per node value of a stat item. This function
  * is called frequently in a NUMA machine, so try to be as
@@ -211,6 +257,7 @@ extern void zone_statistics(struct zone *, struct zone *, gfp_t gfp);
 #else
 
 #define node_page_state(node, item) global_page_state(item)
+// ARM10C 20140524
 #define zone_statistics(_zl, _z, gfp) do { } while (0)
 
 #endif /* CONFIG_NUMA */
@@ -222,10 +269,13 @@ extern void inc_zone_state(struct zone *, enum zone_stat_item);
 
 #ifdef CONFIG_SMP // CONFIG_SMP=y
 // ARM10C 20140412
+// ARM10C 20140510
 void __mod_zone_page_state(struct zone *, enum zone_stat_item item, int);
 void __inc_zone_page_state(struct page *, enum zone_stat_item);
 void __dec_zone_page_state(struct page *, enum zone_stat_item);
 
+// ARM10C 20140510
+// ARM10C 20140517
 void mod_zone_page_state(struct zone *, enum zone_stat_item, int);
 void inc_zone_page_state(struct page *, enum zone_stat_item);
 void dec_zone_page_state(struct page *, enum zone_stat_item);

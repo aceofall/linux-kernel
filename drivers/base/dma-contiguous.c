@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Contiguous Memory Allocator for DMA mapping framework
  * Copyright (c) 2010-2011 by Samsung Electronics.
  * Written by:

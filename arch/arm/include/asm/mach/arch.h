@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  arch/arm/include/asm/mach/arch.h
  *
  *  Copyright (C) 2000 Russell King
@@ -74,9 +74,9 @@ extern const struct machine_desc *machine_desc;
 /*
  * Machine type table - also only accessible during boot
  */
-extern const struct machine_desc __arch_info_begin[], __arch_info_end[];
 // ARM10C 20131005
 // KID 20140302
+extern const struct machine_desc __arch_info_begin[], __arch_info_end[];
 #define for_each_machine_desc(p)			\
 	for (p = __arch_info_begin; p < __arch_info_end; p++)
 

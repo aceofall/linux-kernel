@@ -2395,7 +2395,7 @@ void __kprobes preempt_count_add(int val)
 }
 EXPORT_SYMBOL(preempt_count_add);
 
-// ARM10C 20130907 
+// ARM10C 20130907
 void __kprobes preempt_count_sub(int val)
 {
 #ifdef CONFIG_DEBUG_PREEMPT // CONFIG_DEBUG_PREEMPT=y

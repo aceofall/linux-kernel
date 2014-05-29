@@ -881,6 +881,7 @@ const char * __init of_flat_dt_get_machine_name(void)
  * Iterate through machine match tables to find the best match for the machine
  * compatible string in the FDT.
  */
+// ARM10C 20130928
 const void * __init of_flat_dt_match_machine(const void *default_match,
 		const void * (*get_next_compat)(const char * const**))
 {
@@ -892,12 +893,16 @@ const void * __init of_flat_dt_match_machine(const void *default_match,
 
 	dt_root = of_get_flat_dt_root();
 	while ((data = get_next_compat(&compat))) {
+		// 아래 경로의 dtcompat 값 비교
+		// arch/arm/mach-exynos/mach-exynos5-dt.c
 		score = of_flat_dt_match(dt_root, compat);
 		if (score > 0 && score < best_score) {
 			best_data = data;
 			best_score = score;
 		}
 	}
+
+	// 해당하는 compatible 이 없을 경우 에러 메시지 처리
 	if (!best_data) {
 		const char *prop;
 		long size;
@@ -1178,6 +1183,7 @@ void * __init __weak early_init_dt_alloc_memory_arch(u64 size, u64 align)
 }
 #endif
 
+// ARM10C 20130928
 bool __init early_init_dt_scan(void *params)
 {
 	if (!params)
@@ -1187,18 +1193,26 @@ bool __init early_init_dt_scan(void *params)
 	initial_boot_params = params;
 
 	/* check device tree validity */
+	// little endian으로 swap 한 결과
+	// devtree->magic: 0xd00dfeed
 	if (be32_to_cpu(initial_boot_params->magic) != OF_DT_HEADER) {
 		initial_boot_params = NULL;
 		return false;
 	}
 
+// 2013/10/05 종료
+// 2013/10/12 시작
+
 	/* Retrieve various information from the /chosen node */
+	// dt에서 chosen 노드를 찾고 정보를 저장 
 	of_scan_flat_dt(early_init_dt_scan_chosen, boot_command_line);
 
 	/* Initialize {size,address}-cells info */
+	// dt에서 root 노드에 있는 정보를 저장
 	of_scan_flat_dt(early_init_dt_scan_root, NULL);
 
 	/* Setup memory, calling early_init_dt_add_memory_arch */
+	// dt에서 memory 노드에 있는 정보를 저장
 	of_scan_flat_dt(early_init_dt_scan_memory, NULL);
 
 	return true;

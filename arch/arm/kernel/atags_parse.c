@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Tag parsing.
  *
  * Copyright (C) 1995-2001 Russell King

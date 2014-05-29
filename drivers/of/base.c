@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Procedures for creating, accessing and interpreting the device tree.
  *
  * Paul Mackerras	August 1996.

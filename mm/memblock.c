@@ -147,6 +147,7 @@ static long __init_memblock memblock_overlaps_region(struct memblock_type *type,
  * RETURNS:
  * Found address on success, 0 on failure.
  */
+// ARM10C 20131109
 static phys_addr_t __init_memblock
 __memblock_find_range_bottom_up(phys_addr_t start, phys_addr_t end,
 				phys_addr_t size, phys_addr_t align, int nid)
@@ -155,10 +156,21 @@ __memblock_find_range_bottom_up(phys_addr_t start, phys_addr_t end,
 	u64 i;
 
 	for_each_free_mem_range(i, nid, &this_start, &this_end, NULL) {
+		// start: 0x00001000, end: 0x4f800000
+		// 가정: this_start: 0x4F800000, this_end: 0xA0000000
 		this_start = clamp(this_start, start, end);
-		this_end = clamp(this_end, start, end);
+		// this_start: 0x4F800000 
+		// 복습: this_start값이 현재보다 작아진 결과가 나와야 한다. 현재 확인 불가 
 
+		// this_end: 0xA0000000, start: 0x00001000, end: 0x4f800000
+		this_end = clamp(this_end, start, end);
+		// this_end: 0x4f800000
+
+		// this_end - size: 0x4f7FE000, align: 0x00002000
 		cand = round_up(this_start, align);
+		// cand: 0x4f7FE000
+
+		// cand: 0x4f7FE000, this_start: 0x4F800000
 		if (cand < this_end && this_end - cand >= size)
 			return cand;
 	}

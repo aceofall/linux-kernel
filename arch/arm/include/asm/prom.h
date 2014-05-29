@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  arch/arm/include/asm/prom.h
  *
  *  Copyright (C) 2009 Canonical Ltd. <jeremy.kerr@canonical.com>

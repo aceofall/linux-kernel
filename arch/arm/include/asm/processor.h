@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  arch/arm/include/asm/processor.h
  *
  *  Copyright (C) 1995-1999 Russell King

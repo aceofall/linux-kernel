@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  arch/arm/include/asm/smp.h
  *
  *  Copyright (C) 2004-2005 ARM Ltd.

@@ -1,4 +1,4 @@
-#ifndef _LINUX_OF_H
+﻿#ifndef _LINUX_OF_H
 #define _LINUX_OF_H
 /*
  * Definitions for talking to the Open Firmware PROM on

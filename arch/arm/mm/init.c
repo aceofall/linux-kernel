@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  linux/arch/arm/mm/init.c
  *
  *  Copyright (C) 1995-2005 Russell King
@@ -432,14 +432,14 @@ void __init arm_memblock_init(struct meminfo *mi,
 	memblock_reserve(__pa(_stext), _end - _stext);
 #endif
 #ifdef CONFIG_BLK_DEV_INITRD // CONFIG_BLK_DEV_INITRD=y
-	// initrd로 넘어온 메모리 영역이 memblock.memory 안에 있는지 체크
-
 	/* FDT scan will populate initrd_start */
 	if (initrd_start && !phys_initrd_size) {
 		phys_initrd_start = __virt_to_phys(initrd_start);
 		phys_initrd_size = initrd_end - initrd_start;
 	}
 	initrd_start = initrd_end = 0;
+
+	// initrd로 넘어온 메모리 영역이 memblock.memory 안에 있는지 체크 
 	if (phys_initrd_size &&
 	    !memblock_is_region_memory(phys_initrd_start, phys_initrd_size)) {
 		pr_err("INITRD: 0x%08llx+0x%08lx is not a memory region - disabling initrd\n",
@@ -521,6 +521,7 @@ void __init bootmem_init(void)
 	// ms->section_mem_map에 256MB를 위한 struct page용 공간 정보 저장
 	// ms->pageblock_bitmap : 할당받은 주소 + offset가 저장
 	sparse_init();
+
 // 2013/12/21 종료
 // 2014/01/11 시작
 	
@@ -538,9 +539,17 @@ void __init bootmem_init(void)
 	 * more, but is used by ll_rw_block.  If we can get rid of it, we
 	 * also get rid of some of the stuff above as well.
 	 */
+	// min: 0x20000
 	min_low_pfn = min;
+	// min_low_pfn: 0x20000
+
+	// max_low: 0x4f800
 	max_low_pfn = max_low;
+	// max_low_pfn: 0x4f800
+
+	// max_high: 0xA0000
 	max_pfn = max_high;
+	// max_pfn: 0xA0000
 }
 
 /*
@@ -678,8 +687,10 @@ static inline void free_area_high(unsigned long pfn, unsigned long end)
 // ARM10C 20140419
 static void __init free_highpages(void)
 {
-#ifdef CONFIG_HIGHMEM
+#ifdef CONFIG_HIGHMEM // CONFIG_HIGHMEM=y
+	// max_low_pfn: 0x4F800
 	unsigned long max_low = max_low_pfn;
+	// max_low: 0x4F800
 	struct memblock_region *mem, *res;
 	
 	/* set highmem page free */

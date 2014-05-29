@@ -1,4 +1,4 @@
-/*
+﻿/*
  * sparse memory mappings.
  */
 #include <linux/mm.h>
@@ -563,6 +563,7 @@ void __attribute__((weak)) __meminit vmemmap_populate_print_last(void)
  *  alloc_usemap_and_memmap - memory alloction for pageblock flags and vmemmap
  *  @map: usemap_map for pageblock flags or mmap_map for vmemmap
  */
+// ARM10C 20131214
 static void __init alloc_usemap_and_memmap(void (*alloc_func)
 					(void *, unsigned long, unsigned long,
 					unsigned long, int), void *data)
@@ -572,6 +573,7 @@ static void __init alloc_usemap_and_memmap(void (*alloc_func)
 	int nodeid_begin = 0;
 	unsigned long pnum_begin = 0;
 
+	// NR_MEM_SECTIONS: 0x10
 	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
 		struct mem_section *ms;
 
@@ -582,7 +584,11 @@ static void __init alloc_usemap_and_memmap(void (*alloc_func)
 		pnum_begin = pnum;
 		break;
 	}
+	// nodeid_begin: 0, pnum_begin: 2
+
 	map_count = 1;
+
+	// NR_MEM_SECTIONS: 0x10
 	for (pnum = pnum_begin + 1; pnum < NR_MEM_SECTIONS; pnum++) {
 		struct mem_section *ms;
 		int nodeid;
@@ -590,7 +596,11 @@ static void __init alloc_usemap_and_memmap(void (*alloc_func)
 		if (!present_section_nr(pnum))
 			continue;
 		ms = __nr_to_section(pnum);
+
+		// nodeid: 0
 		nodeid = sparse_early_nid(ms);
+
+		// nodeid_begin: 0, nodeid: 0
 		if (nodeid == nodeid_begin) {
 			map_count++;
 			continue;
@@ -603,9 +613,16 @@ static void __init alloc_usemap_and_memmap(void (*alloc_func)
 		pnum_begin = pnum;
 		map_count = 1;
 	}
+	// usemap_count: 8
+
+// 2013/12/14 종료
+// 2013/12/21 시작
+
 	/* ok, last chunk */
+	// usemap_map: ?, pnum_begin: 2, NR_MEM_SECTIONS: 0x10, usemap_count: 8, nodeid_begin: 0
 	alloc_func(data, pnum_begin, NR_MEM_SECTIONS,
 						map_count, nodeid_begin);
+	// usemap_map[2] ~ usemap_map[10] : 할당받은 주소 + offset가 저장됨
 }
 
 /*
@@ -655,8 +672,9 @@ void __init sparse_init(void)
 		panic("can not allocate usemap_map\n");
 	alloc_usemap_and_memmap(sparse_early_usemaps_alloc_node,
 							(void *)usemap_map);
-
-#ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
+	// usemap_map[2] ~ usemap_map[10] : 할당받은 주소 + offset가 저장됨
+	
+#ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER	// CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER=n
 	size2 = sizeof(struct page *) * NR_MEM_SECTIONS;
 	map_map = alloc_bootmem(size2);
 	if (!map_map)

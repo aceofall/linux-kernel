@@ -1,4 +1,4 @@
-#ifndef _LINUX_BITOPS_H
+﻿#ifndef _LINUX_BITOPS_H
 #define _LINUX_BITOPS_H
 #include <asm/types.h>
 

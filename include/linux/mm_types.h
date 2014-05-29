@@ -1,4 +1,4 @@
-#ifndef _LINUX_MM_TYPES_H
+﻿#ifndef _LINUX_MM_TYPES_H
 #define _LINUX_MM_TYPES_H
 
 #include <linux/auxvec.h>
@@ -463,6 +463,7 @@ struct mm_struct {
 	struct uprobes_state uprobes_state;
 };
 
+// ARM10C 20140222
 static inline void mm_init_cpumask(struct mm_struct *mm)
 {
 #ifdef CONFIG_CPUMASK_OFFSTACK // CONFIG_CPUMASK_OFFSTACK=n

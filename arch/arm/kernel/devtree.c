@@ -259,8 +259,12 @@ const struct machine_desc * __init setup_machine_fdt(unsigned int dt_phys)
 	if (!dt_phys || !early_init_dt_scan(phys_to_virt(dt_phys)))
 		return NULL;
 
+// 2013/09/28 종료
+// 2013/10/05 시작
+
 	mdesc = of_flat_dt_match_machine(mdesc_best, arch_get_next_mach);
 
+	// 해당하는 compatible 이 없을 경우 에러 메시지 처리
 	if (!mdesc) {
 		const char *prop;
 		long size;
@@ -282,6 +286,8 @@ const struct machine_desc * __init setup_machine_fdt(unsigned int dt_phys)
 	}
 
 	/* Change machine number to match the mdesc we're using */
+	// FIXME: machine_arch_type값이 0xFFFFFFFF 가 맞는지?
+	// __machine_arch_type = 0xFFFFFFFF 
 	__machine_arch_type = mdesc->nr;
 
 	return mdesc;

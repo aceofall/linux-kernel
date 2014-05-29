@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  bootmem - A boot-time physical memory allocator and configurator
  *
  *  Copyright (C) 1999 Ingo Molnar
@@ -215,7 +215,10 @@ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
 	if (!bdata->node_bootmem_map)
 		return 0;
 
+	// bdata->node_bootmem_map: (&bdata_list)->node_bootmem_map
 	map = bdata->node_bootmem_map;
+	// map: (&bdata_list)->node_bootmem_map
+
 	// bdata->node_min_pfn: (&bdata_list)->node_min_pfn: 0x20000
 	start = bdata->node_min_pfn;
 	// start: 0x20000
@@ -233,6 +236,8 @@ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
 		unsigned long idx, vec;
 		unsigned shift;
 
+		// start: 0x20000
+		// bdata->node_min_pfn: (&bdata_list)->node_min_pfn: 0x20000
 		idx = start - bdata->node_min_pfn;
 		// idx: 0
 
@@ -275,6 +280,7 @@ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
 			// CPU0의 vm_event_states.event[PGFREE] 를 32로 설정함
 			// page에 해당하는 pageblock의 migrate flag를 반환함
 			// struct page의 index 멤버에 migratetype을 저장함
+			// struct page의 _count 멥버의 값을 0 으로 초기화함
 			// order 5 buddy를 contig_page_data에 추가함
 			// (&contig_page_data)->node_zones[ZONE_NORMAL].vm_stat[NR_FREE_PAGES]: 32 로 설정
 			// vmstat.c의 vm_stat[NR_FREE_PAGES] 전역 변수에도 32로 설정
@@ -312,6 +318,7 @@ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
 					// CPU0의 vm_event_states.event[PGFREE] 를 1로 설정함
 					// page에 해당하는 pageblock의 migrate flag를 반환함
 					// struct page의 index 멤버에 migratetype을 저장함
+					// struct page의 _count 멥버의 값을 0 으로 초기화함
 					// order 0 buddy를 contig_page_data에 추가함
 					// (&contig_page_data)->node_zones[ZONE_NORMAL].vm_stat[NR_FREE_PAGES]: 1 로 설정
 					// vmstat.c의 vm_stat[NR_FREE_PAGES] 전역 변수에도 1로 설정

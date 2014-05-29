@@ -1,4 +1,4 @@
-#ifndef _LINUX_MMZONE_H
+﻿#ifndef _LINUX_MMZONE_H
 #define _LINUX_MMZONE_H
 
 #ifndef __ASSEMBLY__
@@ -24,6 +24,7 @@
 #define MAX_ORDER 11
 #else
 // ARM10C 20140329
+// ARM10C 20140517
 // CONFIG_FORCE_MAX_ZONEORDER: 11
 // MAX_ORDER: 11
 #define MAX_ORDER CONFIG_FORCE_MAX_ZONEORDER
@@ -76,6 +77,7 @@ enum {
 #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
 #else
 // ARM10C 20140412
+// ARM10C 20140517
 #  define is_migrate_cma(migratetype) false
 #endif
 
@@ -99,6 +101,7 @@ static inline int get_pageblock_migratetype(struct page *page)
 }
 
 // ARM10C 20140125
+// ARM10C 20140517
 // MIGRATE_TYPES: 4
 struct free_area {
 	struct list_head	free_list[MIGRATE_TYPES];
@@ -127,6 +130,7 @@ struct zone_padding {
 // ARM10C 20140308
 // ARM10C 20140412
 // ARM10C 20140419
+// ARM10C 20140510
 enum zone_stat_item {
 	/* First 128 byte cacheline (assuming 64 bit words) */
 	NR_FREE_PAGES,
@@ -142,13 +146,18 @@ enum zone_stat_item {
 	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
 			   only modified from process context */
 	NR_FILE_PAGES,
+	// NR_FILE_DIRTY: 11
 	NR_FILE_DIRTY,
+	// NR_WRITEBACK: 12
 	NR_WRITEBACK,
+	// NR_SLAB_RECLAIMABLE: 13
 	NR_SLAB_RECLAIMABLE,
+	// NR_SLAB_UNRECLAIMABLE: 14
 	NR_SLAB_UNRECLAIMABLE,
 	NR_PAGETABLE,		/* used for pagetables */
 	NR_KERNEL_STACK,
 	/* Second 128 byte cacheline */
+	// NR_UNSTABLE_NFS: 17
 	NR_UNSTABLE_NFS,	/* NFS unstable pages */
 	NR_BOUNCE,
 	NR_VMSCAN_WRITE,
@@ -258,6 +267,7 @@ typedef unsigned __bitwise__ isolate_mode_t;
 
 // ARM10C 20140125
 // ARM10C 20140426
+// ARM10C 20140510
 enum zone_watermarks {
 	WMARK_MIN,
 	WMARK_LOW,
@@ -305,7 +315,7 @@ struct per_cpu_pageset {
 
 // ARM10C 20140308
 enum zone_type {
-#ifdef CONFIG_ZONE_DMA	// ARM10C CONFIG_ZONE_DMA = n 
+#ifdef CONFIG_ZONE_DMA	// ARM10C CONFIG_ZONE_DMA = n
 	/*
 	 * ZONE_DMA is used when there are devices that are not able
 	 * to do DMA to all of addressable memory (ZONE_NORMAL). Then we
@@ -339,8 +349,8 @@ enum zone_type {
 	 * performed on pages in ZONE_NORMAL if the DMA devices support
 	 * transfers to all addressable memory.
 	 */
-	ZONE_NORMAL,	// ARM10C ZONE_NORMAL = 0 
-#ifdef CONFIG_HIGHMEM	// ARM10C CONFIG_HIGHMEM = y 
+	ZONE_NORMAL,	// ARM10C ZONE_NORMAL = 0
+#ifdef CONFIG_HIGHMEM	// ARM10C CONFIG_HIGHMEM = y
 	/*
 	 * A memory area that is only addressable by the kernel through
 	 * mapping portions into its own address space. This is for example
@@ -349,10 +359,10 @@ enum zone_type {
 	 * table entries on i386) for each page that the kernel needs to
 	 * access.
 	 */
-	ZONE_HIGHMEM,	// ARM10C ZONE_HIGHMEM = 1 
+	ZONE_HIGHMEM,	// ARM10C ZONE_HIGHMEM = 1
 #endif
-	ZONE_MOVABLE,	// ARM10C ZONE_MOVABLE = 2 
-	__MAX_NR_ZONES	// ARM10C __MAX_NR_ZONES = 3 
+	ZONE_MOVABLE,	// ARM10C ZONE_MOVABLE = 2
+	__MAX_NR_ZONES	// ARM10C __MAX_NR_ZONES = 3
 };
 
 #ifndef __GENERATING_BOUNDS_H
@@ -632,6 +642,8 @@ static inline unsigned long zone_end_pfn(const struct zone *zone)
 }
 
 // ARM10C 20140118
+// ARM10C 20140517
+// zone: contig_page_data->node_zones[0], start_pfn: 0x20000
 static inline bool zone_spans_pfn(const struct zone *zone, unsigned long pfn)
 {
 	return zone->zone_start_pfn <= pfn && pfn < zone_end_pfn(zone);
@@ -941,6 +953,8 @@ unsigned long __init node_memmap_size_bytes(int, unsigned long, unsigned long);
 // ARM10C 20140111
 // ARM10C 20140308
 // zone: contig_page_data->node_zones[1]
+// ARM10C 20140510
+// preferred_zone: (&contig_page_data)->node_zones[0]
 #define zone_idx(zone)		((zone) - (zone)->zone_pgdat->node_zones)
 
 // ARM10C 20140308
@@ -1142,6 +1156,8 @@ struct zoneref *next_zones_zonelist(struct zoneref *z,
 // ARM10C 20140426
 // zonelist: contig_page_data->node_zonelists, high_zoneidx: ZONE_NORMAL: 0
 // cpuset_current_mems_allowed: node_states[N_HIGH_MEMORY], &preferred_zone
+// ARM10C 20140510
+// first_zones_zonelist(contig_page_data->node_zonelists, ZONE_NORMAL, NULL, &zone)
 static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
 					enum zone_type highest_zoneidx,
 					nodemask_t *nodes,
@@ -1175,6 +1191,13 @@ static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
 //	for (z = first_zones_zonelist(contig_page_data->node_zonelists, 0, 0, &zone);
 //		zone;
 //		z = next_zones_zonelist(++z, 0, 0, &zone))
+//
+// ARM10C 20140510
+// for_each_zone_zonelist_nodemask(zone, z, contig_page_data->node_zonelists, ZONE_NORMAL, NULL):
+//
+// for (z = first_zones_zonelist(contig_page_data->node_zonelists, ZONE_NORMAL, NULL, &zone);
+//	zone;
+//	z = next_zones_zonelist(++z, ZONE_NORMAL, NULL, &zone))
 #define for_each_zone_zonelist_nodemask(zone, z, zlist, highidx, nodemask) \
 	for (z = first_zones_zonelist(zlist, highidx, nodemask, &zone);	\
 		zone;							\
@@ -1474,6 +1497,7 @@ unsigned long __init node_memmap_size_bytes(int, unsigned long, unsigned long);
 #define pfn_valid_within(pfn) pfn_valid(pfn)
 #else
 // ARM10C 20140405
+// ARM10C 20140517
 #define pfn_valid_within(pfn) (1)
 #endif
 

@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  arch/arm/include/asm/thread_info.h
  *
  *  Copyright (C) 2002 Russell King.

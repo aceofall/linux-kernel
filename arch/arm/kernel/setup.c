@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  linux/arch/arm/kernel/setup.c
  *
  *  Copyright (C) 1995-2001 Russell King
@@ -799,7 +799,6 @@ void __init dump_machine_table(void)
 // KID 20140306
 // base: 0x20000000, size: 0x80000000
 int __init arm_add_memory(u64 start, u64 size)
-int __init arm_add_memory(phys_addr_t start, phys_addr_t size)
 {
 	// meminfo.nr_banks: 0
 	struct membank *bank = &meminfo.bank[meminfo.nr_banks];
@@ -817,19 +816,25 @@ int __init arm_add_memory(phys_addr_t start, phys_addr_t size)
 	 * Ensure that start/size are aligned to a page boundary.
 	 * Size is appropriately rounded down, start is rounded up.
 	 */
-	// start=0x20000000 , size=0x80000000
+	// start: 0x20000000, size: 0x80000000
 	// PAGE_MASK=(~((1 << 12) - 1)) : 0xFFFFF000, 4k
-	// size = 0x80000000 - (0x20000000 & 0x00000FFF)
+	// size: 0x80000000 - (0x20000000 & 0x00000FFF)
 	size -= start & ~PAGE_MASK;
-	aligned_start = PAGE_ALIGN(start);
+	// size: 0x80000000
 
-#ifndef CONFIG_ARCH_PHYS_ADDR_T_64BIT
+	// start: 0x20000000
+	aligned_start = PAGE_ALIGN(start);
+	// aligned_start: 0x20000000
+
+#ifndef CONFIG_ARCH_PHYS_ADDR_T_64BIT // CONFIG_ARCH_PHYS_ADDR_T_64BIT=n
+	// aligned_start: 0x20000000
 	if (aligned_start > ULONG_MAX) {
 		printk(KERN_CRIT "Ignoring memory at 0x%08llx outside "
 		       "32-bit physical address space\n", (long long)start);
 		return -EINVAL;
 	}
 
+	// aligned_start: 0x20000000, size: 0x80000000
 	if (aligned_start + size > ULONG_MAX) {
 		printk(KERN_CRIT "Truncating memory at 0x%08llx to fit in "
 			"32-bit physical address space\n", (long long)start);
@@ -842,7 +847,11 @@ int __init arm_add_memory(phys_addr_t start, phys_addr_t size)
 	}
 #endif
 
+	// aligned_start: 0x20000000
 	bank->start = aligned_start;
+	// bank->start: 0x20000000
+
+	// size: 0x80000000
 	bank->size = size & ~(phys_addr_t)(PAGE_SIZE - 1);
 	// bank->size: 0x80000000
 
@@ -1129,6 +1138,8 @@ void __init setup_arch(char **cmdline_p)
 
 	early_paging_init(mdesc, lookup_processor_type(read_cpuid_id()));
 	setup_dma_zone(mdesc);
+
+	// memory bank에서 bank하나가  valloc limit 을 넘으면 2개로 쪼갬.bank[0]:low bank[1]:high
 	sanity_check_meminfo();
 
 // 2013/10/19 종료
