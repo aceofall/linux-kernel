@@ -105,8 +105,6 @@ static inline __maybe_unused phys_addr_t cma_early_percent_memory(void)
  * has been activated and all other subsystems have already allocated/reserved
  * memory.
  */
-// ARM10C 20131026
-// limit: 0
 void __init dma_contiguous_reserve(phys_addr_t limit)
 {
 	phys_addr_t selected_size = 0;

@@ -17,6 +17,7 @@
 #if __LINUX_ARM_ARCH__ >= 7 // __LINUX_ARM_ARCH__: 7
 #define isb(option) __asm__ __volatile__ ("isb " #option : : : "memory")
 // ARM10C 20131109
+// KID 20140530
 #define dsb(option) __asm__ __volatile__ ("dsb " #option : : : "memory")
 // ARM10C 20131109
 // KID 20140116

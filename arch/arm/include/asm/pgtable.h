@@ -13,13 +13,14 @@
 #include <linux/const.h>
 #include <asm/proc-fns.h>
 
-#ifndef CONFIG_MMU
+#ifndef CONFIG_MMU // CONFIG_MMU=y
 
 #include <asm-generic/4level-fixup.h>
 #include <asm/pgtable-nommu.h>
 
 #else
 
+// KID 20140530
 #include <asm-generic/pgtable-nopud.h>
 #include <asm/memory.h>
 #include <asm/pgtable-hwdef.h>
@@ -27,7 +28,7 @@
 
 #include <asm/tlbflush.h>
 
-#ifdef CONFIG_ARM_LPAE
+#ifdef CONFIG_ARM_LPAE // CONFIG_ARM_LPAE=n
 #include <asm/pgtable-3level.h>
 #else
 #include <asm/pgtable-2level.h>
@@ -424,6 +425,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 /* FIXME: this is not correct */
 #define kern_addr_valid(addr)	(1)
 
+// KID 20140530
 #include <asm-generic/pgtable.h>
 
 /*

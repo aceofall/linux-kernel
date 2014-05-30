@@ -133,6 +133,7 @@ static inline void dev_set_cma_area(struct device *dev, struct cma *cma) { }
 
 static inline void dma_contiguous_set_default(struct cma *cma) { }
 
+// ARM10C 20131026
 // KID 20140311
 static inline void dma_contiguous_reserve(phys_addr_t limit) { }
 

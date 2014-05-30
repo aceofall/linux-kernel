@@ -434,6 +434,17 @@ extern struct cpu_tlb_fns cpu_tlb;
 
 // ARM10C 20131109
 // ARM10C 20131130
+// KID 20140530
+// always_tlb_flags: TLB_WB | TLB_BARRIER (0x90000000)
+// possible_tlb_flags:
+// TLB_WB | TLB_DCLEAN | TLB_BARRIER |
+// TLB_V6_U_FULL | TLB_V6_U_PAGE | TLB_V7_UIS_ASID | TLB_V7_UIS_BP |
+// TLB_V6_U_FULL | TLB_V6_U_PAGE | TLB_V6_U_ASID | TLB_V6_BP (0xd0f91010)
+// __tlb_flag:
+// TLB_WB | TLB_BARRIER | TLB_V7_UIS_FULL | TLB_V7_UIS_PAGE | TLB_V7_UIS_ASID | TLB_V7_UIS_BP (0x90f00000)
+//
+// #define tlb_flag(TLB_WB):
+// ((always_tlb_flags & (TLB_WB)) || (__tlb_flag & possible_tlb_flags & (TLB_WB)))
 #define tlb_flag(f)	((always_tlb_flags & (f)) || (__tlb_flag & possible_tlb_flags & (f)))
 
 // ARM10C 20131102
@@ -469,11 +480,16 @@ extern struct cpu_tlb_fns cpu_tlb;
 // ARM10C 20131102
 // KID 20140327
 // KID 20140328
+// KID 20140530
+// TLB_DCLEAN: 0x40000000
 // always_tlb_flags: TLB_WB | TLB_BARRIER (0x90000000)
 // possible_tlb_flags:
 // TLB_WB | TLB_DCLEAN | TLB_BARRIER |
 // TLB_V6_U_FULL | TLB_V6_U_PAGE | TLB_V7_UIS_ASID | TLB_V7_UIS_BP |
 // TLB_V6_U_FULL | TLB_V6_U_PAGE | TLB_V6_U_ASID | TLB_V6_BP (0xd0f91010)
+// __tlb_flag:
+// TLB_WB | TLB_BARRIER | TLB_V7_UIS_FULL | TLB_V7_UIS_PAGE | TLB_V7_UIS_ASID | TLB_V7_UIS_BP (0x90f00000)
+//
 // __tlb_op(TLB_DCLEAN, "p15, 0, %0, " "c7, c10, 1	@ flush_pmd", pmd):
 // do {
 //		if (always_tlb_flags & (TLB_DCLEAN))
@@ -492,10 +508,35 @@ extern struct cpu_tlb_fns cpu_tlb;
 //			    "mcrne " "p15, 0, "r" (pmd), " "c7, c10, 1	@ flush_pmd");
 // } while (0)
 #define tlb_op(f, regs, arg)	__tlb_op(f, "p15, 0, %0, " regs, arg)
+
 // ARM10C 20131102
 // KID 20140328
-// tlb_l2_op(TLB_L2CLEAN_FR, "c15, c9, 1  @ L2 flush_pmd", pmd);
-//      "mcrne " "p15, 0, %0, " "c15, c9, 1  @ L2 flush_pmd"
+// TLB_L2CLEAN_FR: 0x20000000
+// always_tlb_flags: TLB_WB | TLB_BARRIER (0x90000000)
+// possible_tlb_flags:
+// TLB_WB | TLB_DCLEAN | TLB_BARRIER |
+// TLB_V6_U_FULL | TLB_V6_U_PAGE | TLB_V7_UIS_ASID | TLB_V7_UIS_BP |
+// TLB_V6_U_FULL | TLB_V6_U_PAGE | TLB_V6_U_ASID | TLB_V6_BP (0xd0f91010)
+// __tlb_flag:
+// TLB_WB | TLB_BARRIER | TLB_V7_UIS_FULL | TLB_V7_UIS_PAGE | TLB_V7_UIS_ASID | TLB_V7_UIS_BP (0x90f00000)
+//
+// __tlb_op(TLB_L2CLEAN_FR, "p15, 0, %0, " "c7, c10, 1	@ flush_pmd", pmd):
+// do {
+//		if (always_tlb_flags & (TLB_L2CLEAN_FR))
+//			asm("mcr " "p15, 0, "r" (pmd), " "c7, c10, 1	@ flush_pmd");
+//		else if (possible_tlb_flags & (TLB_L2CLEAN_FR))
+//			asm("tst "r" (__tlb_flag), "Ir" (TLB_L2CLEAN_FR)\n\t"
+//			    "mcrne " "p15, 0, "r" (pmd), " "c7, c10, 1	@ flush_pmd");
+// } while (0)
+//
+// #define tlb_l2_op(TLB_L2CLEAN_FR, "c15, c9, 1  @ L2 flush_pmd", pmd);
+// do {
+//		if (always_tlb_flags & (TLB_L2CLEAN_FR))
+//			asm("mcr " "p15, 0, "r" (pmd), " "c7, c10, 1	@ flush_pmd");
+//		else if (possible_tlb_flags & (TLB_L2CLEAN_FR))
+//			asm("tst "r" (__tlb_flag), "Ir" (TLB_L2CLEAN_FR)\n\t"
+//			    "mcrne " "p15, 0, "r" (pmd), " "c7, c10, 1	@ flush_pmd");
+// } while (0)
 #define tlb_l2_op(f, regs, arg)	__tlb_op(f, "p15, 1, %0, " regs, arg)
 
 // ARM10C 20131130
@@ -762,17 +803,28 @@ static inline void __flush_bp_all(void)
  *	PMD entries.
  */
 // ARM10C 20131109
+// KID 20140530
 static inline void flush_pmd_entry(void *pmd)
 {
-	// __cpu_tlb_flags: 0
+	// __cpu_tlb_flags: TLB_WB | TLB_BARRIER | TLB_V7_UIS_FULL | TLB_V7_UIS_PAGE
+	//                  | TLB_V7_UIS_ASID | TLB_V7_UIS_BP (0x90f00000)
 	const unsigned int __tlb_flag = __cpu_tlb_flags;
+	// __tlb_flag: TLB_WB | TLB_BARRIER | TLB_V7_UIS_FULL | TLB_V7_UIS_PAGE
+	//             | TLB_V7_UIS_ASID | TLB_V7_UIS_BP (0x90f00000)
 
-	// Data cache clean 수행
+	// TLB_DCLEAN: 0x40000000
 	tlb_op(TLB_DCLEAN, "c7, c10, 1	@ flush_pmd", pmd);
-	// TLB_L2CLEAN_FR 은 exynos에서 사용 안함 
-	tlb_l2_op(TLB_L2CLEAN_FR, "c15, c9, 1  @ L2 flush_pmd", pmd);
+	// Data cache clean 수행 (data cache에 있는 값을 메모리에 반영)
 
+	// TLB_L2CLEAN_FR: 0x20000000
+	tlb_l2_op(TLB_L2CLEAN_FR, "c15, c9, 1  @ L2 flush_pmd", pmd);
+	// TLB_L2CLEAN_FR 은 exynos에서 사용 안함
+
+	// TLB_WB: 0x80000000, tlb_flag(TLB_WB): 0x80000000
 	if (tlb_flag(TLB_WB))
+		// A.R.M: A8.8.44 DSB
+		// ishst: Inner Shareable is the required shareability domain,
+		// writes are the required access type. Encoded as option =0b1010.
 		dsb(ishst);
 }
 

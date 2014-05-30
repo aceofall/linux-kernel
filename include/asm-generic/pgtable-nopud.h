@@ -57,6 +57,7 @@ static inline pud_t * pud_offset(pgd_t * pgd, unsigned long address)
 #define __pud_free_tlb(tlb, x, a)		do { } while (0)
 
 #undef  pud_addr_end
+// KID 20140530
 #define pud_addr_end(addr, end)			(end)
 
 #endif /* __ASSEMBLY__ */

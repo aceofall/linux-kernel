@@ -72,6 +72,7 @@ typedef pteval_t pgprot_t;
 #define __pte(x)        (x)
 // ARM10C 20131102
 // KID 20140327
+// KID 20140530
 #define __pmd(x)        (x)
 // ARM10C 20131026
 // ARM10C 20131102
