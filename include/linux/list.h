@@ -84,8 +84,9 @@ extern void __list_add(struct list_head *new,
  * Insert a new entry after the specified head.
  * This is good for implementing stacks.
  */
-// ARM10C 20140301 
-// ARM10C 20140301 //new = &dchunk->list, head = &pcpu_slot[11]
+// ARM10C 20140301
+// ARM10C 20140301
+/// new: &dchunk->list, head: &pcpu_slot[11]
 static inline void list_add(struct list_head *new, struct list_head *head)
 {
 	__list_add(new, head, head->next);
@@ -421,6 +422,9 @@ static inline void list_splice_tail_init(struct list_head *list,
 // ARM10C 20140322
 // ARM10C 20140329
 // ARM10C 20140412
+// ARM10C 20140531
+// #define list_entry((&pcpu_slot[1])->next, typeof(*chunk), list):
+// container_of((&pcpu_slot[1])->next, typeof(*chunk), list)
 #define list_entry(ptr, type, member)		\
 	container_of(ptr, type, member)
 
@@ -432,6 +436,9 @@ static inline void list_splice_tail_init(struct list_head *list,
  *
  * Note, that list is expected to be not empty.
  */
+// ARM10C 20140531
+// #define list_first_entry(&pcpu_slot[1], typeof(*chunk), list):
+// list_entry((&pcpu_slot[1])->next, typeof(*chunk), list)
 #define list_first_entry(ptr, type, member) \
 	list_entry((ptr)->next, type, member)
 
@@ -518,6 +525,10 @@ static inline void list_splice_tail_init(struct list_head *list,
  */
 // ARM10C 20131130
 // ARM10C 20140329
+// ARM10C 20140531
+// #define list_for_each_entry(chunk, &pcpu_slot[slot], list):
+// for (chunk = list_first_entry(&pcpu_slot[1], typeof(*chunk), list);
+//      &chunk->list != (&pcpu_slot[1]); chunk = list_next_entry(chunk, list))
 #define list_for_each_entry(pos, head, member)				\
 	for (pos = list_first_entry(head, typeof(*pos), member);	\
 	     &pos->member != (head);					\
