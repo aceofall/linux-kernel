@@ -166,6 +166,7 @@ typedef unsigned __bitwise__ oom_flags_t;
 typedef u64 phys_addr_t;
 #else
 // KID 20140306
+// KID 20140603
 typedef u32 phys_addr_t;
 #endif
 

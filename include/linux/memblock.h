@@ -35,6 +35,7 @@ struct memblock_region {
 // ARM10C 20131019
 // ARM10C 20131207
 // KID 20140307
+// KID 20140603
 struct memblock_type {
 	unsigned long cnt;	/* number of regions */
 	unsigned long max;	/* size of the allocated array */
@@ -130,6 +131,7 @@ void __next_free_mem_range_rev(u64 *idx, int nid, phys_addr_t *out_start,
  * order.  Available as soon as memblock is initialized.
  */
 // ARM10C 20131109
+// KID 20140603
 // nid: 1
 #define for_each_free_mem_range_reverse(i, nid, p_start, p_end, p_nid)	\
 	for (i = (u64)ULLONG_MAX,					\
@@ -166,9 +168,10 @@ static inline int memblock_get_region_node(const struct memblock_region *r)
 phys_addr_t memblock_alloc_nid(phys_addr_t size, phys_addr_t align, int nid);
 phys_addr_t memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, int nid);
 
+// KID 20140603
 phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align);
 
-#ifdef CONFIG_MOVABLE_NODE
+#ifdef CONFIG_MOVABLE_NODE // CONFIG_MOVABLE_NODE=n
 /*
  * Set the allocation direction to bottom-up or top-down.
  */
@@ -188,12 +191,14 @@ static inline bool memblock_bottom_up(void)
 }
 #else
 static inline void memblock_set_bottom_up(bool enable) {}
+// KID 20140603
 static inline bool memblock_bottom_up(void) { return false; }
 #endif
 
 /* Flags for memblock_alloc_base() amd __memblock_alloc_base() */
 #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
 // ARM10C 20131109
+// KID 20140603
 #define MEMBLOCK_ALLOC_ACCESSIBLE	0
 
 phys_addr_t memblock_alloc_base(phys_addr_t size, phys_addr_t align,

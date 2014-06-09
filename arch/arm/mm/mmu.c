@@ -1100,13 +1100,14 @@ EXPORT_SYMBOL(phys_mem_access_prot);
 
 // ARM10C 20131109
 // ARM10C 20131116
-// sz: 0x00002000, sz: 0x00002000
+// KID 20140603
+// sz: 0x2000, sz: 0x2000
 // ARM10C 20131123
 // sz: 0x00001000, sz: 0x00001000
 static void __init *early_alloc_aligned(unsigned long sz, unsigned long align)
 {
-	// sz: 0x00002000, align: 0x00002000
-	// memblock_alloc(sz, align): 0x4F7FE000
+	// sz: 0x2000, align: 0x2000
+	// memblock_alloc(0x2000, 0x2000): 0x4F7FE000
 	// ptr: __va(0x4F7FE000): 0xEF7FE000
 	//
 	// sz: 0x00001000, sz: 0x00001000
@@ -1119,8 +1120,11 @@ static void __init *early_alloc_aligned(unsigned long sz, unsigned long align)
 
 // ARM10C 20131123
 // PTE_HWTABLE_OFF + PTE_HWTABLE_SIZE: 4096
+// KID 20140603
+// 0x2000
 static void __init *early_alloc(unsigned long sz)
 {
+	// sz: 0x2000
 	return early_alloc_aligned(sz, sz);
 }
 
@@ -2051,6 +2055,8 @@ void __init arm_mm_memblock_reserve(void)
  * method which may touch any device, otherwise the kernel _will_ crash.
  */
 // ARM10C 20131109
+// KID 20140603
+// mdesc: __mach_desc_EXYNOS5_DT
 static void __init devicemaps_init(const struct machine_desc *mdesc)
 {
 	struct map_desc map;
@@ -2060,8 +2066,8 @@ static void __init devicemaps_init(const struct machine_desc *mdesc)
 	/*
 	 * Allocate the vector page early.
 	 */
-	// PAGE_SIZE: 0x00001000
-	// early_alloc(PAGE_SIZE * 2): 0xEF7FE000
+	// PAGE_SIZE: 0x1000
+	// early_alloc(0x1000 * 2): 0xEF7FE000
 	vectors = early_alloc(PAGE_SIZE * 2);
 
 // 2013/11/09 종료
@@ -2328,29 +2334,32 @@ void __init paging_init(const struct machine_desc *mdesc)
 {
 	void *zero_page;
 
-	// 아키텍처 버전에 따른 메모리 타입 설정
 	build_mem_type_table();
+	// 아키텍처 버전에 따른 메모리 타입 설정
 
+	prepare_page_table();
 	// page table 초기화
 	// 0 ~ 0xBF000000, 0xBF000000 ~ 0xC0000000, 0xEF800000 ~ 0xF0000000
 	// 영역을 2M 단위로 section table entry를 clear
-	prepare_page_table();
 
+	map_lowmem();
 	// low memory영역에 page table 속성값과physical memory mapping 값 갱신
 	// region 중 lowmem영역을 추출하여 create_mapping 수행
 	// create_mapping: 가상 0xC0000000~0xEF800000을 1M 단위로 물리 0x20000000 부터 매핑하면서 
 	// mem_type을 MT_MEMORY 값으로 설정.(cache 정책 access permission 등이 들어가 있다.
-	map_lowmem();
 
-	// dma contiguous 는 사용안함
 	dma_contiguous_remap();
+	// dma contiguous 는 사용안함
 
 // 2013/11/09 종료
 // 2013/11/16 시작
-// 2014/05/30 KID 종료
 
-	// vectors, io memory map 설정
+// 2014/05/30 KID 종료
+// 2014/06/03 KID 시작
+
+	// mdesc: __mach_desc_EXYNOS5_DT
 	devicemaps_init(mdesc);
+	// vectors, io memory map 설정
 
 	// kmap을 위한 4k 공간을 0xBFE00000 에 맞는 2nd page tabel에 할당
 	kmap_init();

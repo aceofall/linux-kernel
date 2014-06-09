@@ -53,6 +53,12 @@
 //  ({ unsigned long __ptr;
 //  __asm__ ("" : "=r"(__ptr) : "0"((typeof(*(&(vm_event_states.event[PGFREE]))) __kernel __force *)(&(vm_event_states.event[PGFREE]))));
 //  (typeof((typeof(*(&(vm_event_states.event[PGFREE]))) __kernel __force *)(&(vm_event_states.event[PGFREE])))) (__ptr + (__my_cpu_offset)); })
+//
+// KID 20140603
+// RELOC_HIDE((unsigned long)(0x4f800000), 0):
+//  ({ unsigned long __ptr;
+//  __asm__ ("" : "=r"(__ptr) : "0"((unsigned long)(0x4f800000)));
+//  (typeof((unsigned long)(0x4f800000))) (__ptr + (0)); })
 #define RELOC_HIDE(ptr, off)					\
   ({ unsigned long __ptr;					\
     __asm__ ("" : "=r"(__ptr) : "0"(ptr));		\

@@ -51,6 +51,11 @@ extern int sysctl_legacy_va_layout;
 #include <asm/processor.h>
 
 #ifndef __pa_symbol
+// KID 20140603
+// RELOC_HIDE((unsigned long)(0x4f800000), 0):
+//  ({ unsigned long __ptr;
+//  __asm__ ("" : "=r"(__ptr) : "0"((unsigned long)(0x4f800000)));
+//  (typeof((unsigned long)(0x4f800000))) (__ptr + (0)); })
 #define __pa_symbol(x)  __pa(RELOC_HIDE((unsigned long)(x), 0))
 #endif
 

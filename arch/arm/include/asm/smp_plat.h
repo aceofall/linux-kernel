@@ -23,10 +23,13 @@ static inline bool is_smp(void)
 	return false;
 #elif defined(CONFIG_SMP_ON_UP) // CONFIG_SMP_ON_UP=y
 	extern unsigned int smp_on_up;
+
 	// !! 를 사용하는 이유? return 값을 0/1로 만들기 위해 사용
+	//
+	// smp_on_up: 1
 	return !!smp_on_up;
+	// return 1
 #else
-	// ARM10C 20131026
 	return true;
 #endif
 }

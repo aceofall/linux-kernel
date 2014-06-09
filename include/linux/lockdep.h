@@ -17,8 +17,7 @@ extern int prove_locking;
 extern int lock_stat;
 
 // ARM10C 20130914
-// CONFIG_LOCKDEP = n
-#ifdef CONFIG_LOCKDEP
+#ifdef CONFIG_LOCKDEP // CONFIG_LOCKDEP=n
 
 #include <linux/linkage.h>
 #include <linux/list.h>
@@ -384,8 +383,8 @@ static inline void lockdep_on(void)
 # define lock_set_subclass(l, s, i)		do { } while (0)
 # define lockdep_set_current_reclaim_state(g)	do { } while (0)
 # define lockdep_clear_current_reclaim_state()	do { } while (0)
-// ARM10C 20140426
 # define lockdep_trace_alloc(g)			do { } while (0)
+// ARM10C 20140426
 # define lockdep_init()				do { } while (0)
 # define lockdep_info()				do { } while (0)
 # define lockdep_init_map(lock, name, key, sub) \

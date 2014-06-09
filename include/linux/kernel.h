@@ -33,6 +33,7 @@
 #define LLONG_MAX	((long long)(~0ULL>>1))
 #define LLONG_MIN	(-LLONG_MAX - 1)
 // ARM10C 20131019
+// KID 20140603
 #define ULLONG_MAX	(~0ULL)
 #define SIZE_MAX	(~(size_t)0)
 
@@ -62,10 +63,12 @@
  * arguments just once each.
  */
 // ARM10C 20131109
-// size: 0x00002000, align: 0x00002000
+// KID 20140603
+// size: 0x2000, align: 0x2000
 #define __round_mask(x, y) ((__typeof__(x))((y)-1))
 // ARM10C 20131109
-// size: 0x00002000, align: 0x00002000
+// KID 20140603
+// size: 0x2000, align: 0x2000
 #define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
 #define round_down(x, y) ((x) & ~__round_mask(x, y))
 
@@ -773,6 +776,7 @@ static inline void ftrace_dump(enum ftrace_dump_mode oops_dump_mode) { }
 
 // ARM10C 20131109
 // ARM10C 20140222
+// KID 20140603
 #define max_t(type, x, y) ({			\
 	type __max1 = (x);			\
 	type __max2 = (y);			\

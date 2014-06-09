@@ -561,7 +561,7 @@ asmlinkage void __init start_kernel(void)
 	 * Need to run as early as possible, to initialize the
 	 * lockdep hash:
 	 */
-	lockdep_init();
+	lockdep_init(); // null function
 	smp_setup_processor_id();
 	debug_objects_early_init();
 

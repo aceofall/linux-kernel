@@ -191,6 +191,8 @@ __memblock_find_range_bottom_up(phys_addr_t start, phys_addr_t end,
  * RETURNS:
  * Found address on success, 0 on failure.
  */
+// KID 20140603
+// start: 0x1000, end: 0x4f800000, size: 0x2000, align: 0x2000, nid: 1
 static phys_addr_t __init_memblock
 __memblock_find_range_top_down(phys_addr_t start, phys_addr_t end,
 			       phys_addr_t size, phys_addr_t align, int nid)
@@ -198,7 +200,11 @@ __memblock_find_range_top_down(phys_addr_t start, phys_addr_t end,
 	phys_addr_t this_start, this_end, cand;
 	u64 i;
 
+	// nid: 1
 	for_each_free_mem_range_reverse(i, nid, &this_start, &this_end, NULL) {
+	// for (i = (u64)ULLONG_MAX, __next_free_mem_range_rev(&i, 1, &this_start, &this_end, NULL);
+	//     i != (u64)ULLONG_MAX; __next_free_mem_range_rev(&i, 1, &this_start, &this_end, NULL))
+
 		this_start = clamp(this_start, start, end);
 		this_end = clamp(this_end, start, end);
 
@@ -235,7 +241,8 @@ __memblock_find_range_top_down(phys_addr_t start, phys_addr_t end,
  * Found address on success, 0 on failure.
  */
 // ARM10C 20131109
-// 0, max_addr: 0, size: 0x00002000, align: 0x00002000, nid: 1
+// KID 20140603
+// 0, max_addr: 0, size: 0x2000, align: 0x2000, nid: 1
 // lowmem 위에서 요청받은 size만큼 빈 영역을 찾아 시작주소 반환
 phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
 					phys_addr_t end, phys_addr_t size,
@@ -247,22 +254,28 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
 	/* pump up @end */
 	// end: 0x0, MEMBLOCK_ALLOC_ACCESSIBLE: 0
 	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
-		// end: 0x4f800000
+		// memblock.current_limit: 0x4f800000
 		end = memblock.current_limit;
+		// end: 0x4f800000
 
 	/* avoid allocating the first page */
-	// start: 0, PAGE_SIZE: 0x00001000
-	// start: 0x00001000
+	// start: 0, PAGE_SIZE: 0x1000
 	start = max_t(phys_addr_t, start, PAGE_SIZE);
+	// start: 0x1000
 
-	// end: 0x4f800000
+	// start: 0x1000, end: 0x4f800000
 	end = max(start, end);
+	// end: 0x4f800000
+
+	// end: 0x4f800000, __pa_symbol(0x4f800000): 0xaf800000
 	kernel_end = __pa_symbol(_end);
+	// kernel_end: 0xaf800000
 
 	/*
 	 * try bottom-up allocation only when bottom-up mode
 	 * is set and @end is above the kernel image.
 	 */
+	// memblock_bottom_up(): false, end: 0x4f800000, kernel_end: 0xaf800000
 	if (memblock_bottom_up() && end > kernel_end) {
 		phys_addr_t bottom_up_start;
 
@@ -289,6 +302,7 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
 			     "memory hotunplug may be affected\n");
 	}
 
+	// start: 0x1000, end: 0x4f800000, size: 0x2000, align: 0x2000, nid: 1
 	return __memblock_find_range_top_down(start, end, size, align, nid);
 }
 
@@ -1049,20 +1063,32 @@ void __init_memblock __next_free_mem_range(u64 *idx, int nid,
  * Reverse of __next_free_mem_range().
  */
 // ARM10C 20131109
-// *idx: ULLONG_MAX, nid: 1
+// KID 20140603
+// *idx: ULLONG_MAX: 0xffffffffffffffff, nid: 1
 void __init_memblock __next_free_mem_range_rev(u64 *idx, int nid,
 					   phys_addr_t *out_start,
 					   phys_addr_t *out_end, int *out_nid)
 {
 	struct memblock_type *mem = &memblock.memory;
+	// mem: &memblock.memory
 	struct memblock_type *rsv = &memblock.reserved;
+	// rsv: &memblock.reserved
+	// *idx: ULLONG_MAX: 0xffffffffffffffff
 	int mi = *idx & 0xffffffff;
+	// mi: 0xffffffff
+	// *idx: ULLONG_MAX: 0xffffffffffffffff
 	int ri = *idx >> 32;
+	// ri: 0xffffffff
 
+	// *idx: ULLONG_MAX: 0xffffffffffffffff
 	if (*idx == (u64)ULLONG_MAX) {
 		// mem->cnt: 1, rsv->cnt: 5
+		// mem->cnt: memblock.memory.cnt: 1
 		mi = mem->cnt - 1;
+		// mi: 0
+		// rsv->cnt: memblock.reserved.cnt: 1
 		ri = rsv->cnt;
+		// ri: 1
 	}
 
 	for ( ; mi >= 0; mi--) {
@@ -1187,22 +1213,24 @@ int __init_memblock memblock_set_node(phys_addr_t base, phys_addr_t size,
 #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
 
 // ARM10C 20131109
-// size: 0x00002000, align: 0x00002000, MEMBLOCK_ALLOC_ACCESSIBLE: 0, MAX_NUMNODES: 1
+// KID 20140603
+// size: 0x2000, align: 0x2000, max_addr: 0, MAX_NUMNODES: 1
 static phys_addr_t __init memblock_alloc_base_nid(phys_addr_t size,
 					phys_addr_t align, phys_addr_t max_addr,
 					int nid)
 {
 	phys_addr_t found;
 
-	// align: 0x00002000
+	// align: 0x2000
 	if (WARN_ON(!align))
 		align = __alignof__(long long);
 
 	/* align @size to avoid excessive fragmentation on reserved array */
-	// size: 0x00002000
+	// size: 0x2000, align: 0x2000
 	size = round_up(size, align);
+	// size: 0x2000
 
-	// 0, max_addr: 0, size: 0x00002000, align: 0x00002000, nid: 1
+	// 0, max_addr: 0, size: 0x2000, align: 0x2000, nid: 1
 	found = memblock_find_in_range_node(0, max_addr, size, align, nid);
 	if (found && !memblock_reserve(found, size))
 		return found;
@@ -1219,20 +1247,22 @@ phys_addr_t __init memblock_alloc_nid(phys_addr_t size, phys_addr_t align, int n
 }
 
 // ARM10C 20131109
-// size: 0x00002000, align: 0x00002000, max_addr: 0
+// KID 20140603
+// size: 0x2000, align: 0x2000, max_addr: 0
 phys_addr_t __init __memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys_addr_t max_addr)
 {
-	// size: 0x00002000, align: 0x00002000, max_addr: 0, MAX_NUMNODES: 1
+	// size: 0x2000, align: 0x2000, max_addr: 0, MAX_NUMNODES: 1
 	return memblock_alloc_base_nid(size, align, max_addr, MAX_NUMNODES);
 }
 
 // ARM10C 20131109
-// size: 0x00002000, align: 0x00002000, MEMBLOCK_ALLOC_ACCESSIBLE: 0
+// KID 20140603
+// size: 0x2000, align: 0x2000, MEMBLOCK_ALLOC_ACCESSIBLE: 0
 phys_addr_t __init memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys_addr_t max_addr)
 {
 	phys_addr_t alloc;
 
-	// size: 0x00002000, align: 0x00002000, max_addr: 0
+	// size: 0x2000, align: 0x2000, max_addr: 0
 	alloc = __memblock_alloc_base(size, align, max_addr);
 
 	if (alloc == 0)
@@ -1243,10 +1273,11 @@ phys_addr_t __init memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys
 }
 
 // ARM10C 20131109
-// sz: 0x00002000, align: 0x00002000
+// KID 20140603
+// sz: 0x2000, align: 0x2000
 phys_addr_t __init memblock_alloc(phys_addr_t size, phys_addr_t align)
 {
-	// size: 0x00002000, align: 0x00002000, MEMBLOCK_ALLOC_ACCESSIBLE: 0
+	// size: 0x2000, align: 0x2000, MEMBLOCK_ALLOC_ACCESSIBLE: 0
 	return memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ACCESSIBLE);
 }
 

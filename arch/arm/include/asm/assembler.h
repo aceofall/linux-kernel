@@ -183,8 +183,8 @@
 	.long	9999b,9001f;			\
 	.popsection
 
-#ifdef CONFIG_SMP
-//멀티프로세서일때 적용
+#ifdef CONFIG_SMP // CONFIG_SMP=y
+// 멀티프로세서일때 적용
 #define ALT_SMP(instr...)					\
 9998:	instr
 /*
@@ -192,7 +192,7 @@
  * CONFIG_THUMB2_KERNEL, you almost certainly need to use
  * ALT_SMP( W(instr) ... )
  */
-//유니프로세서일때 적용
+// 유니프로세서일때 적용
 #define ALT_UP(instr...)					\
 	.pushsection ".alt.smp.init", "a"			;\
 	.long	9998b						;\
