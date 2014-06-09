@@ -624,6 +624,7 @@ EXPORT_SYMBOL(memcpy);
 // KID 20140307
 // bank+1: &meminfo.bank[1], bank: &meminfo.bank[0], 12
 // next: &memblock.memory.regions[1], next+1: &memblock.memory.regions[2], 0
+// ARM10C 20140607
 void *memmove(void *dest, const void *src, size_t count)
 {
 	char *tmp;
